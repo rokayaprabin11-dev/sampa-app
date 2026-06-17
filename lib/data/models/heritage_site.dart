@@ -1,0 +1,76 @@
+import 'package:equatable/equatable.dart';
+import 'package:sampada/data/models/site_image_model.dart';
+
+class HeritageSite extends Equatable {
+  final String id;
+  final String name;
+  final String nameNepali;
+  final String description;
+  final String descriptionNepali;
+  final String location;
+  final double latitude;
+  final double longitude;
+  final String? imageUrl;
+  final bool isUnesco;
+  final double rating;
+  final int reviewsCount;
+  final double avgVisitHours;
+  final String category;
+  final String district;
+  final String districtId;
+  final bool isFeatured;
+  final List<SiteImageModel> gallery;
+  final DateTime? createdAt;
+
+  const HeritageSite({
+    required this.id,
+    required this.name,
+    required this.nameNepali,
+    required this.description,
+    required this.descriptionNepali,
+    required this.location,
+    required this.latitude,
+    required this.longitude,
+    this.imageUrl,
+    this.isUnesco = false,
+    this.rating = 0.0,
+    this.reviewsCount = 0,
+    this.avgVisitHours = 1.0,
+    required this.category,
+    required this.district,
+    required this.districtId,
+    this.isFeatured = false,
+    this.gallery = const [],
+    this.createdAt,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        nameNepali,
+        description,
+        descriptionNepali,
+        location,
+        latitude,
+        longitude,
+        imageUrl,
+        isUnesco,
+        rating,
+        reviewsCount,
+        avgVisitHours,
+        category,
+        district,
+        districtId,
+        isFeatured,
+        gallery,
+        createdAt,
+      ];
+}
+
+
+
+
+
+
+

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "813832542964",
+    "project_id": "sampada-e7e99",
+    "storage_bucket": "sampada-e7e99.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:813832542964:android:29ffb9d4a15e89154c5ca1",
+        "android_client_info": {
+          "package_name": "com.example.sampada"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "813832542964-cseck5l1ksj3q5tgpo6mbf55043rn2uo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sampada",
+            "certificate_hash": "2d39d026c5a2d03432d9768f4e1f1b5052d42342"
+          }
+        },
+        {
+          "client_id": "813832542964-8c4gut4u9it22dun1lacq0uvk88ak41k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4CPOxQh-UokNJEniQ0NHX0KgKYf7Vz04"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "813832542964-8c4gut4u9it22dun1lacq0uvk88ak41k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
