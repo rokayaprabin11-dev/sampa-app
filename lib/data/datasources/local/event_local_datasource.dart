@@ -29,13 +29,13 @@ class EventLocalDataSourceImpl implements EventLocalDataSource {
         siteId: map['site_id'],
         title: map['title_en'] as String,
         titleNepali: (map['title_ne'] as String?) ?? '',
-        eventType: map['event_type'] as String?,
+        eventType: (map['event_type'] as String?) ?? '',
         description: (map['description_en'] as String?) ?? '',
         descriptionNepali: (map['description_ne'] as String?) ?? '',
         startDate: DateTime.parse(map['event_date_ad'] as String),
         endDate: DateTime.parse(map['event_date_ad'] as String),
-        latitude: null,
-        longitude: null,
+        latitude: 0.0,
+        longitude: 0.0,
         locationName: (map['district'] as String?) ?? '',
       );
     }).toList();

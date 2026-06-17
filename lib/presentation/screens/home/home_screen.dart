@@ -9,7 +9,6 @@ import 'package:sampada/presentation/widgets/heritage_widgets.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/providers/event_provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
-import 'heritage_site_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -206,13 +205,31 @@ class _HomeScreenState extends State<HomeScreen> {
             // --- Browse by District ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                l10n.browseByDistrict,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.light ? AppColors.textHeadline : AppColors.goldMain,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    l10n.browseByDistrict,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.light ? AppColors.textHeadline : AppColors.goldMain,
+                    ),
+                  ),
+                  Consumer<HeritageProvider>(
+                    builder: (_, p, __) => p.districts.length > 8
+                        ? TextButton(
+                            onPressed: () => Navigator.pushNamed(context, AppStrings.searchPath),
+                            child: const Row(
+                              children: [
+                                Text('See All', style: TextStyle(color: Color(0xFFD4520A))),
+                                Icon(Icons.arrow_forward, size: 16, color: Color(0xFFD4520A)),
+                              ],
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -229,28 +246,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (districts.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Text('No districts available'),
+                    child: Text(
+                      'No districts available',
+                      style: TextStyle(color: Color(0xFF8C7162), fontSize: 14),
+                    ),
                   );
                 }
 
+                final visible = districts.take(8).toList();
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: districts.length > 4 ? 4 : districts.length,
+                    itemCount: visible.length,
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 2.1,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      childAspectRatio: 2.2,
                     ),
                     itemBuilder: (context, index) {
-                      final d = districts[index];
+                      final d = visible[index];
+                      final info = _districtInfo(d.name);
                       return DistrictCard(
-                        name: d.name, 
-                        sitesCount: d.sitesCount, 
-                        icon: _getIconForDistrict(d.name)
+                        name: d.name,
+                        sitesCount: d.sitesCount,
+                        icon: info.icon,
+                        iconColor: info.color,
+                        iconBgColor: info.bgColor,
                       );
                     },
                   ),
@@ -325,14 +349,42 @@ class _HomeScreenState extends State<HomeScreen> {
     return months[month - 1];
   }
 
-  IconData _getIconForDistrict(String name) {
+  _DistrictInfo _districtInfo(String name) {
     switch (name.toLowerCase()) {
-      case 'kathmandu': return Icons.temple_hindu;
-      case 'bhaktapur': return Icons.castle;
-      case 'lalitpur': return Icons.temple_buddhist;
+      case 'kathmandu':
+        return _DistrictInfo(Icons.museum, const Color(0xFF5C4033), const Color(0xFFF3EBE5));
+      case 'bhaktapur':
+        return _DistrictInfo(Icons.castle, const Color(0xFF6D4C41), const Color(0xFFF5EDEA));
+      case 'lalitpur':
+        return _DistrictInfo(Icons.temple_hindu, const Color(0xFFB84B00), const Color(0xFFFFF0E6));
       case 'kaski':
-      case 'pokhara': return Icons.landscape;
-      default: return Icons.map;
+      case 'pokhara':
+        return _DistrictInfo(Icons.landscape, const Color(0xFF2E7D32), const Color(0xFFE8F5E9));
+      case 'mustang':
+        return _DistrictInfo(Icons.terrain, const Color(0xFF795548), const Color(0xFFEFEBE9));
+      case 'dolakha':
+        return _DistrictInfo(Icons.temple_buddhist, const Color(0xFFD84315), const Color(0xFFFBE9E7));
+      case 'chitwan':
+        return _DistrictInfo(Icons.forest, const Color(0xFF388E3C), const Color(0xFFE8F5E9));
+      case 'solukhumbu':
+        return _DistrictInfo(Icons.ac_unit, const Color(0xFF0277BD), const Color(0xFFE1F5FE));
+      case 'manang':
+      case 'myagdi':
+        return _DistrictInfo(Icons.filter_hdr, const Color(0xFF546E7A), const Color(0xFFECEFF1));
+      case 'dang':
+      case 'banke':
+        return _DistrictInfo(Icons.grass, const Color(0xFF558B2F), const Color(0xFFF1F8E9));
+      case 'rupandehi':
+      case 'kapilvastu':
+        return _DistrictInfo(Icons.account_balance, const Color(0xFF6A1B9A), const Color(0xFFF3E5F5));
+      case 'nawalpur':
+      case 'palpa':
+        return _DistrictInfo(Icons.park, const Color(0xFF1B5E20), const Color(0xFFE8F5E9));
+      case 'kanchanpur':
+      case 'kailali':
+        return _DistrictInfo(Icons.water, const Color(0xFF0288D1), const Color(0xFFE1F5FE));
+      default:
+        return _DistrictInfo(Icons.location_city, const Color(0xFF8C7162), const Color(0xFFF5EFEC));
     }
   }
 }
@@ -468,6 +520,15 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
         return Icons.museum;
     }
   }
+}
+
+// ─── file-level helper ───────────────────────────────────────────────────────
+
+class _DistrictInfo {
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+  const _DistrictInfo(this.icon, this.color, this.bgColor);
 }
 
 

@@ -173,7 +173,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: l10n.autoSync,
                     icon: Icons.sync,
                     trailingText: autoSyncProvider.getSyncModeLabel(context),
-                    onTap: () {},
+                    onTap: () => _showAutoSyncOptions(context, autoSyncProvider),
                   ),
                   SettingsNavigationTile(
                     title: l10n.clearCache,
@@ -211,11 +211,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+
+  void _showAutoSyncOptions(BuildContext context, AutoSyncProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Auto Sync',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.sync),
+                title: const Text('On'),
+                onTap: () {
+                  // TODO: Call provider to update mode (e.g., provider.setSyncMode('on'))
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.wifi),
+                title: const Text('Wi-Fi Only'),
+                onTap: () {
+                  // TODO: Call provider to update mode (e.g., provider.setSyncMode('wifi'))
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.sync_disabled),
+                title: const Text('Off'),
+                onTap: () {
+                  // TODO: Call provider to update mode (e.g., provider.setSyncMode('off'))
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
-
-
-
-
-
-
-

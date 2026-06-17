@@ -12,13 +12,404 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Sampada';
 
   @override
+  String get appSubtitle => 'Nepal Heritage Explorer';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navMap => 'Map';
+
+  @override
+  String get navGuide => 'Guides';
+
+  @override
+  String get navEvents => 'Events';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get navDownloads => 'Downloads';
+
+  @override
+  String get navNotifications => 'Notifications';
+
+  @override
+  String get navBookmarks => 'Bookmarks';
+
+  @override
+  String get btnSave => 'Save';
+
+  @override
+  String get btnCancel => 'Cancel';
+
+  @override
+  String get btnConfirm => 'Confirm';
+
+  @override
+  String get btnSubmit => 'Submit';
+
+  @override
+  String get btnTryAgain => 'Try Again';
+
+  @override
+  String get btnSignOut => 'Sign Out';
+
+  @override
+  String get btnSignIn => 'Sign In';
+
+  @override
+  String get btnDownload => 'Download';
+
+  @override
+  String get btnDelete => 'Delete';
+
+  @override
+  String get btnEdit => 'Edit';
+
+  @override
+  String get btnShare => 'Share';
+
+  @override
+  String get btnBack => 'Back';
+
+  @override
+  String get btnReadMore => 'Read More';
+
+  @override
+  String get btnShowLess => 'Show Less';
+
+  @override
+  String get btnTranslate => 'Translate';
+
+  @override
+  String get btnOriginal => 'Original';
+
+  @override
+  String get btnBookmark => 'Bookmark';
+
+  @override
+  String get btnRemoveBookmark => 'Remove Bookmark';
+
+  @override
+  String get btnBookGuide => 'Book Guide';
+
+  @override
+  String get btnViewOnMap => 'View on Map';
+
+  @override
+  String get btnStartAudioGuide => 'Start Audio Guide';
+
+  @override
+  String get btnDownloadOffline => 'Download for Offline';
+
+  @override
+  String get btnWriteReview => 'Write a Review';
+
+  @override
+  String get btnSubmitReview => 'Submit Review';
+
+  @override
+  String get btnSelectDate => 'Select Date';
+
+  @override
+  String get btnApply => 'Apply';
+
+  @override
+  String get btnClearFilter => 'Clear Filter';
+
+  @override
+  String get catAll => 'All';
+
+  @override
+  String get catTemple => 'Temples';
+
+  @override
+  String get catStupa => 'Stupas';
+
+  @override
+  String get catPalace => 'Palaces';
+
+  @override
+  String get catDurbar => 'Durbar';
+
+  @override
+  String get catMonument => 'Monuments';
+
+  @override
+  String get catMuseum => 'Museums';
+
+  @override
+  String get catMonastery => 'Monasteries';
+
+  @override
+  String get catLake => 'Lakes';
+
+  @override
+  String get catOther => 'Other';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsLanguageSection => 'Language';
+
+  @override
+  String get settingsNotificationsSection => 'Notifications';
+
+  @override
+  String get settingsStorageSection => 'Storage & Data';
+
+  @override
+  String get settingsAccountSection => 'Account';
+
+  @override
+  String get settingsAboutSection => 'About';
+
+  @override
+  String get settingsDarkMode => 'Dark Mode';
+
+  @override
+  String get settingsLightMode => 'Light Mode';
+
+  @override
+  String get settingsSystemMode => 'System Default';
+
+  @override
+  String get settingsTextSmall => 'Small';
+
+  @override
+  String get settingsTextMedium => 'Medium';
+
+  @override
+  String get settingsTextLarge => 'Large';
+
+  @override
+  String get settingsPushNotifications => 'Push Notifications';
+
+  @override
+  String get settingsNearbySiteAlerts => 'Nearby Site Alerts';
+
+  @override
+  String get settingsOfflineMode => 'Offline Mode';
+
+  @override
+  String get settingsCacheCleared => 'Cache cleared successfully';
+
+  @override
+  String get settingsSignOutConfirm => 'Are you sure you want to sign out?';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get errNetwork => 'No internet connection. Please check your network.';
+
+  @override
+  String get errServer => 'Server error. Please try again later.';
+
+  @override
+  String get errNotFound => 'Not found.';
+
+  @override
+  String get errUnknown => 'Something went wrong. Please try again.';
+
+  @override
+  String get errAuthFailed => 'Authentication failed. Please sign in again.';
+
+  @override
+  String get errLocationDisabled => 'Location services are disabled.';
+
+  @override
+  String get errPermissionDenied => 'Permission denied.';
+
+  @override
+  String get errCacheEmpty =>
+      'No cached data available. Please connect to the internet.';
+
+  @override
+  String get errTranslation => 'Translation unavailable.';
+
+  @override
+  String get errInvalidInput => 'Please fill in all required fields.';
+
+  @override
+  String get errReviewMinLength => 'Review must be at least 10 characters.';
+
+  @override
+  String get sectionNearby => 'Nearby Heritage Sites';
+
+  @override
+  String get sectionFeatured => 'Featured Sites';
+
+  @override
+  String get sectionUpcomingEvents => 'Upcoming Cultural Events';
+
+  @override
+  String get sectionDistricts => 'Browse by District';
+
+  @override
+  String get sectionReviews => 'Reviews';
+
+  @override
+  String get sectionGuides => 'Local Guides';
+
+  @override
+  String get sectionGallery => 'Gallery';
+
+  @override
+  String get sectionAboutSite => 'About this Site';
+
+  @override
+  String get sectionNearbyAttractions => 'Nearby Attractions';
+
+  @override
+  String get sectionOpeningHours => 'Opening Hours';
+
+  @override
+  String get sectionHowToReach => 'How to Reach';
+
+  @override
+  String get sectionDownloads => 'Offline Packs';
+
+  @override
+  String get sectionCurrentEvents => 'Current Cultural Events';
+
+  @override
+  String get sectionNearbyFestivals => 'Nearby & Upcoming Festivals';
+
+  @override
+  String get emptyBookmarks =>
+      'No bookmarks yet.\nTap ♥ on any site to save it.';
+
+  @override
+  String get emptyVisitHistory => 'You haven\'t visited any sites yet.';
+
+  @override
+  String get emptyNotifications => 'No notifications yet.';
+
+  @override
+  String get emptyEvents => 'No events found for this period.';
+
+  @override
+  String get emptyDownloads => 'No offline packs downloaded.';
+
+  @override
+  String get emptyReviews => 'No reviews yet. Be the first to review!';
+
+  @override
+  String get emptyGuides => 'No guides available in this area.';
+
+  @override
+  String get emptySearchResults => 'No results found for your search.';
+
+  @override
+  String get noSitesFound => 'No heritage sites found.';
+
+  @override
+  String get siteNotFound => 'Heritage site not found.';
+
+  @override
+  String get unescoSite => 'UNESCO World Heritage Site';
+
+  @override
+  String get ratingLabel => 'Rating';
+
+  @override
+  String reviewsCount(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String distanceKm(String distance) {
+    return '$distance km away';
+  }
+
+  @override
+  String establishedYear(int year) {
+    return 'Est. $year';
+  }
+
+  @override
+  String get labelAvailableOffline => 'Available Offline';
+
+  @override
+  String get labelVisited => 'Visited';
+
+  @override
+  String get labelVerifiedGuide => 'Verified Guide';
+
+  @override
+  String get labelPerDay => '/ day';
+
+  @override
+  String get labelPerHalfDay => '/ half day';
+
+  @override
+  String get labelLanguages => 'Languages';
+
+  @override
+  String get labelSpecializations => 'Specializations';
+
+  @override
+  String get notifTitle => 'Notifications';
+
+  @override
+  String get notifMarkAllRead => 'Mark all as read';
+
+  @override
+  String get notifFilterAll => 'All';
+
+  @override
+  String get notifFilterUnread => 'Unread';
+
+  @override
+  String get notifFilterEvents => 'Events';
+
+  @override
+  String get notifTypeEventNearby => 'Event Nearby';
+
+  @override
+  String get notifTypeHeritageUpdate => 'Heritage Update';
+
+  @override
+  String get notifTypeBookingConfirmed => 'Booking Confirmed';
+
+  @override
+  String get notifTypeSystem => 'System';
+
+  @override
+  String get packReady => 'Ready';
+
+  @override
+  String get packBuilding => 'Building...';
+
+  @override
+  String get packNotBuilt => 'Not Built';
+
+  @override
+  String get packError => 'Error';
+
+  @override
+  String packSizeMb(String size) {
+    return '$size MB';
+  }
+
+  @override
+  String get reviewPlaceholder => 'Share your experience...';
+
+  @override
+  String get translating => 'Translating...';
+
+  @override
   String get nearbyHeritageTitle => 'Nearby Heritage Sites';
 
   @override
   String get loadingText => 'Loading...';
-
-  @override
-  String get noSitesFound => 'No heritage sites found.';
 
   @override
   String get pashupatinath => 'Pashupatinath';
@@ -130,10 +521,3 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aboutSampada => 'About Sampada';
 }
-
-
-
-
-
-
-

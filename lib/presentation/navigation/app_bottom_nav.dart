@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/generated/app_localizations.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -52,15 +53,20 @@ class AppBottomNav extends StatelessWidget {
         child: Container(
           height: 64,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(context, 0, Icons.home_rounded, 'Home'),
-              _buildNavItem(context, 1, Icons.map_rounded, 'Map'),
-              _buildNavItem(context, 2, Icons.explore_rounded, 'Guide'),
-              _buildNavItem(context, 3, Icons.event_rounded, 'Events'),
-              _buildNavItem(context, 4, Icons.person_rounded, 'Profile'),
-            ],
+          child: Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context)!;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(context, 0, Icons.home_rounded, l10n.navHome),
+                  _buildNavItem(context, 1, Icons.map_rounded, l10n.navMap),
+                  _buildNavItem(context, 2, Icons.explore_rounded, l10n.navGuide),
+                  _buildNavItem(context, 3, Icons.event_rounded, l10n.navEvents),
+                  _buildNavItem(context, 4, Icons.person_rounded, l10n.navProfile),
+                ],
+              );
+            },
           ),
         ),
       ),

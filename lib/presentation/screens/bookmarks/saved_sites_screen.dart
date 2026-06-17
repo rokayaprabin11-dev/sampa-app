@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/profile_provider.dart';
 
@@ -26,6 +27,7 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
     final profileProvider = context.watch<ProfileProvider>();
     final bookmarks = profileProvider.bookmarks;
     
@@ -77,9 +79,9 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Saved Sites',
-                                style: TextStyle(
+                              Text(
+                                l10n.bookmarks,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -110,10 +112,10 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                _buildCategoryChip(context, 'All', isSelected: _selectedCategory == 'All'),
-                _buildCategoryChip(context, 'Temples', isSelected: _selectedCategory == 'Temples'),
-                _buildCategoryChip(context, 'Stupas', isSelected: _selectedCategory == 'Stupas'),
-                _buildCategoryChip(context, 'Palaces', isSelected: _selectedCategory == 'Palaces'),
+                _buildCategoryChip(context, l10n.catAll, isSelected: _selectedCategory == 'All'),
+                _buildCategoryChip(context, l10n.catTemple, isSelected: _selectedCategory == 'Temples'),
+                _buildCategoryChip(context, l10n.catStupa, isSelected: _selectedCategory == 'Stupas'),
+                _buildCategoryChip(context, l10n.catPalace, isSelected: _selectedCategory == 'Palaces'),
               ],
             ),
           ),
@@ -123,7 +125,7 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
             child: profileProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : filteredBookmarks.isEmpty
-                    ? const Center(child: Text('No bookmarks found.'))
+                    ? Center(child: Text(l10n.emptyBookmarks))
                     : ListView.builder(
                         padding: const EdgeInsets.all(20),
                         itemCount: filteredBookmarks.length,

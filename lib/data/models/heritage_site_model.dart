@@ -52,53 +52,59 @@ class HeritageSiteModel extends HeritageSite {
     );
   }
 
+  /// Serialises to the local_heritage_sites SQLite column names.
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'name_nepali': nameNepali,
-      'description': description,
-      'description_nepali': descriptionNepali,
-      'location': location,
-      'latitude': latitude,
-      'longitude': longitude,
-      'image_url': imageUrl,
-      'is_unesco': isUnesco ? 1 : 0,
-      'rating': rating,
-      'review_count': reviewsCount,
-      'avg_visit_hours': avgVisitHours,
-      'category': category,
-      'district': district,
-      'district_id': districtId,
-      'province_name': provinceName,
-      'is_featured': isFeatured ? 1 : 0,
-      'gallery': gallery.map((i) => i.toJson()).toList(),
-      'created_at': createdAt?.toIso8601String(),
+      'id':               id,
+      'name_en':          name,
+      'name_ne':          nameNepali,
+      'category':         category,
+      'short_desc_en':    '',              // populated by ContentTranslator if available
+      'short_desc_ne':    '',
+      'description_en':   description,
+      'description_ne':   descriptionNepali,
+      'latitude':         latitude,
+      'longitude':        longitude,
+      'district':         district,
+      'province':         provinceName ?? '',
+      'is_unesco':        isUnesco ? 1 : 0,
+      'cover_image_url':  imageUrl ?? '',
+      'rating_avg':       rating,
+      'review_count':     reviewsCount,
+      'is_bookmarked':    0,
+      'is_featured':      isFeatured ? 1 : 0,
+      'geofence_radius_m': 500,
+      'cached_at':        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'is_dirty':         0,
     };
   }
 
+  /// Deserialises from a local_heritage_sites SQLite row.
   factory HeritageSiteModel.fromMap(Map<String, dynamic> map) {
     return HeritageSiteModel(
-      id: map['id'].toString(),
-      name: map['name'],
-      nameNepali: map['name_nepali'] ?? '',
-      description: map['description'] ?? '',
-      descriptionNepali: map['description_nepali'] ?? '',
-      location: map['location'] ?? '',
-      latitude: map['latitude'] ?? 0.0,
-      longitude: map['longitude'] ?? 0.0,
-      imageUrl: map['image_url'],
-      isUnesco: map['is_unesco'] == 1,
-      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
-      reviewsCount: map['review_count'] ?? 0,
-      avgVisitHours: (map['avg_visit_hours'] as num?)?.toDouble() ?? 1.0,
-      category: map['category'] ?? 'heritage',
-      district: map['district'] ?? '',
-      districtId: map['district_id'] ?? '',
-      isFeatured: map['is_featured'] == 1,
-      provinceName: map['province_name'],
-      gallery: (map['gallery'] as List?)?.map((i) => SiteImageModel.fromJson(i)).toList() ?? [],
-      createdAt: map['created_at'] != null ? DateTime.fromMillisecondsSinceEpoch(map['created_at']) : null,
+      id:                map['id'].toString(),
+      name:              map['name_en'] ?? map['name'] ?? '',
+      nameNepali:        map['name_ne'] ?? map['name_nepali'] ?? '',
+      description:       map['description_en'] ?? map['description'] ?? '',
+      descriptionNepali: map['description_ne'] ?? map['description_nepali'] ?? '',
+      location:          map['district'] ?? map['location'] ?? '',
+      latitude:          (map['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude:         (map['longitude'] as num?)?.toDouble() ?? 0.0,
+      imageUrl:          map['cover_image_url'] ?? map['image_url'],
+      isUnesco:          (map['is_unesco'] as int? ?? 0) == 1,
+      rating:            (map['rating_avg'] ?? map['rating'] as num?)?.toDouble() ?? 0.0,
+      reviewsCount:      map['review_count'] as int? ?? 0,
+      avgVisitHours:     (map['avg_visit_hours'] as num?)?.toDouble() ?? 1.0,
+      category:          map['category'] ?? 'heritage',
+      district:          map['district'] ?? '',
+      districtId:        map['district'] ?? map['district_id'] ?? '',
+      isFeatured:        (map['is_featured'] as int? ?? 0) == 1,
+      provinceName:      map['province'] ?? map['province_name'],
+      gallery:           const [],
+      createdAt:         map['cached_at'] != null
+                           ? DateTime.fromMillisecondsSinceEpoch(
+                               (map['cached_at'] as int) * 1000)
+                           : null,
     );
   }
 }

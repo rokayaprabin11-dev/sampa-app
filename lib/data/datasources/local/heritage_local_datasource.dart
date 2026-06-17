@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sampada/core/database/database_helper.dart';
+import 'package:sampada/core/services/content_translator.dart';
 import 'package:sampada/data/models/heritage_site_model.dart';
 
 abstract class HeritageLocalDataSource {
@@ -13,8 +14,14 @@ abstract class HeritageLocalDataSource {
 
 class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
   final DatabaseHelper dbHelper;
+  final ContentTranslator? contentTranslator;
+  final String userLang;
 
-  HeritageLocalDataSourceImpl({required this.dbHelper});
+  HeritageLocalDataSourceImpl({
+    required this.dbHelper,
+    this.contentTranslator,
+    this.userLang = 'en',
+  });
 
   @override
   Future<void> cacheHeritageSites(List<HeritageSiteModel> sites) async {
@@ -30,6 +37,17 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
       );
     }
     await batch.commit(noResult: true);
+
+    if (contentTranslator != null && userLang != 'en') {
+      for (final site in sites) {
+        await contentTranslator!.translateAndCacheSiteDescriptions(
+          siteId: site.id,
+          shortDescEn: '',           // HeritageSite has no separate short desc field
+          descriptionEn: site.description,
+          targetLang: userLang,
+        );
+      }
+    }
   }
 
   @override

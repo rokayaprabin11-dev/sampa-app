@@ -40,12 +40,16 @@ class ApiEndpoints {
   // --- Notifications ---
   static const String notifications = '/notifications/';
   static const String markRead = '/notifications/mark-read/';
-  static const String fcmToken = '/notifications/fcm-token/';
+  static const String fcmToken = '/auth/fcm-token/';
   static const String geofenceLocation = '/notifications/geofence/location/';
   static const String geofenceNearby = '/notifications/geofence/nearby-sites/';
 
   // --- Offline ---
   static const String downloads = '/offline/downloads/';
+
+  // --- Translation ---
+  static const String translate = '/translate/';
+  static const String translateLanguages = '/translate/languages/';
 
   // --- Guides ---
   static const String guides = '/guides/';

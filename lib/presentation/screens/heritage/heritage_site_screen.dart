@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/providers/profile_provider.dart';
 import 'package:sampada/data/models/heritage_site_model.dart';
 
@@ -50,7 +51,8 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
   @override
   Widget build(BuildContext context) {
     if (_site == null) {
-      return const Scaffold(body: Center(child: Text('Site not found')));
+      final l10n = AppLocalizations.of(context)!;
+      return Scaffold(body: Center(child: Text(l10n.siteNotFound)));
     }
 
     final size = MediaQuery.of(context).size;

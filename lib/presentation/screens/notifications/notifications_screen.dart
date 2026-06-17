@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -55,9 +57,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             hoverColor: Colors.white.withValues(alpha: 0.1),
                             splashColor: Colors.white.withValues(alpha: 0.2),
                           ),
-                          const Text(
-                            'Notifications 🔔',
-                            style: TextStyle(
+                          Text(
+                            l10n.notifTitle,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -77,8 +79,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildFilterChip('All'),
-                          _buildFilterChip('Events'),
+                          _buildFilterChip(l10n.notifFilterAll),
+                          _buildFilterChip(l10n.notifFilterEvents),
                           _buildFilterChip('Heritage'),
                           _buildFilterChip('Alerts'),
                         ],

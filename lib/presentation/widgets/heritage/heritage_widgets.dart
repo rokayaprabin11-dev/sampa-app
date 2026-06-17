@@ -265,32 +265,44 @@ class DistrictCard extends StatelessWidget {
   final String name;
   final int sitesCount;
   final IconData icon;
+  final Color iconColor;
+  final Color iconBgColor;
 
   const DistrictCard({
     super.key,
     required this.name,
     required this.sitesCount,
     required this.icon,
+    this.iconColor = const Color(0xFF4A342B),
+    this.iconBgColor = const Color(0xFFF5EFEC),
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF7EED3)),
+        border: Border.all(color: const Color(0xFFF0E6D3), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5EFEC),
-              borderRadius: BorderRadius.circular(8),
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF4A342B), size: 24),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -305,7 +317,10 @@ class DistrictCard extends StatelessWidget {
                     fontSize: 15,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 2),
                 Text(
                   '$sitesCount Sites',
                   style: const TextStyle(

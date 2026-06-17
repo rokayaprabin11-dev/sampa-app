@@ -11,7 +11,6 @@ import 'core/network/api_client.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/offline_pack_download_service.dart';
 
-import 'data/models/user_model.dart'; // Just in case
 import 'data/repositories/heritage_repository_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/event_repository_impl.dart';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/event_provider.dart';
@@ -26,6 +27,8 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     final eventProvider = context.watch<EventProvider>();
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
@@ -37,7 +40,7 @@ class _EventsScreenState extends State<EventsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Text(
-                'Nearby & Upcoming Festivals',
+                l10n.sectionNearbyFestivals,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -57,7 +60,7 @@ class _EventsScreenState extends State<EventsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Text(
-                'Current Cultural Events',
+                l10n.sectionCurrentEvents,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
