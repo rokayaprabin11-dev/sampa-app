@@ -3,12 +3,15 @@ import 'package:flutter/foundation.dart';
 class ApiEndpoints {
   ApiEndpoints._();
 
-  /// Base URL for the Sampada REST API.
-  /// Use 10.0.2.2 for Android Emulator, localhost for iOS/Web.
+  // Injected at build time via --dart-define=API_BASE_URL=https://...
+  // Falls back to local dev URLs when the constant is not provided.
+  static const String _prodUrl = String.fromEnvironment('API_BASE_URL');
+
   static String get baseUrl {
+    if (_prodUrl.isNotEmpty) return _prodUrl;
     if (kIsWeb) return 'http://localhost:8000/api/v1';
-    // Use local IP for physical device testing
-    return 'http://192.168.0.102:8000/api/v1';
+    // 10.0.2.2 reaches the host machine from an Android emulator
+    return 'http://10.0.2.2:8000/api/v1';
   }
 
   // --- Auth Endpoints ---
@@ -31,6 +34,7 @@ class ApiEndpoints {
   static const String heritageNearby = '/heritage/sites/nearby/';
   static const String heritageSearch = '/heritage/sites/search/';
   static const String districts = '/heritage/districts/';
+  static const String uploadSignature = '/heritage/upload-signature/';
 
   // --- Events Endpoints ---
   static const String events = '/events/';
@@ -59,10 +63,3 @@ class ApiEndpoints {
   static const String guideBookings = '/guides/me/bookings/';
   static String guideBook(int id) => '/guides/$id/book/';
 }
-
-
-
-
-
-
-
