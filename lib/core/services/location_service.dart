@@ -11,7 +11,7 @@ extension PositionMapper on Position {
         altitude: altitude,
         speed: speed,
         heading: heading,
-        timestamp: timestamp ?? DateTime.now(),
+        timestamp: timestamp,
       );
 }
 
@@ -60,7 +60,7 @@ class LocationService {
 
     try {
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
     } catch (e) {
       debugPrint('Error getting current position: $e');

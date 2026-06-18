@@ -169,7 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(28),
                     ),
                     elevation: 0,
-                    disabledBackgroundColor: AppColors.brownDark.withOpacity(0.5),
+                    disabledBackgroundColor: AppColors.brownDark.withValues(alpha: 0.5),
                   ),
                   child: authProvider.isLoading
                       ? const CircularProgressIndicator(color: Colors.white)

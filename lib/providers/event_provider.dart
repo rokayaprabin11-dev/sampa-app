@@ -159,7 +159,7 @@ class EventProvider with ChangeNotifier {
       adYear = "${adStartDate.year} / ${adEndDate.year}";
     }
     
-    return "${selectedMonthName} - ${bsYear} BS / ${adMonth} - ${adYear} AD";
+    return "$selectedMonthName - $bsYear BS / $adMonth - $adYear AD";
   }
 
   String _getEnglishMonth(int month) {

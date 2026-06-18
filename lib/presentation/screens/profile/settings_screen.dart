@@ -234,7 +234,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const Icon(Icons.sync),
                 title: const Text('On'),
                 onTap: () {
-                  // TODO: Call provider to update mode (e.g., provider.setSyncMode('on'))
+                  provider.setSyncMode(AutoSyncMode.dataAndWifi);
                   Navigator.pop(context);
                 },
               ),
@@ -242,7 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const Icon(Icons.wifi),
                 title: const Text('Wi-Fi Only'),
                 onTap: () {
-                  // TODO: Call provider to update mode (e.g., provider.setSyncMode('wifi'))
+                  provider.setSyncMode(AutoSyncMode.wifiOnly);
                   Navigator.pop(context);
                 },
               ),
@@ -250,7 +250,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const Icon(Icons.sync_disabled),
                 title: const Text('Off'),
                 onTap: () {
-                  // TODO: Call provider to update mode (e.g., provider.setSyncMode('off'))
+                  provider.setSyncMode(AutoSyncMode.off);
                   Navigator.pop(context);
                 },
               ),

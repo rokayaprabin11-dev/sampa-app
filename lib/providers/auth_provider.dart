@@ -21,13 +21,9 @@ class AuthProvider with ChangeNotifier {
       _user = user;
       if (user != null) {
         try {
-          // Force a token refresh to verify session is still valid
-          final idToken = await user.getIdToken(true);
-          if (idToken != null) {
-            await _repository.saveToken(idToken);
-          }
+          await _repository.syncWithBackend();
         } catch (e) {
-          debugPrint('Error refreshing token on init: $e');
+          debugPrint('Error syncing with backend on init: $e');
         }
       }
       _isInitialized = true;
@@ -222,7 +218,6 @@ class AuthProvider with ChangeNotifier {
         case 'weak-password':
           return 'The password is too weak.';
         case 'invalid-credential':
-        case 'wrong-password':
           return 'The password you entered is incorrect. Please try again.';
         default:
           return 'Authentication failed: ${e.message}';

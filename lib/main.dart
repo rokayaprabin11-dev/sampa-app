@@ -9,7 +9,6 @@ import 'app.dart';
 import 'core/database/database_helper.dart';
 import 'core/network/api_client.dart';
 import 'core/services/notification_service.dart';
-import 'core/services/offline_pack_download_service.dart';
 
 import 'data/repositories/heritage_repository_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';

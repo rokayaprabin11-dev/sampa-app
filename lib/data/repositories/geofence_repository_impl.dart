@@ -9,21 +9,12 @@ class GeofenceRepositoryImpl implements IGeofenceRepository {
 
   GeofenceRepositoryImpl() {
     Geofencing.instance.addGeofenceStatusChangedListener((region, status, location) async {
-      GeofenceEventType? type;
-      switch (status) {
-        case GeofenceStatus.enter:
-          type = GeofenceEventType.enter;
-          break;
-        case GeofenceStatus.exit:
-          type = GeofenceEventType.exit;
-          break;
-        case GeofenceStatus.dwell:
-          type = GeofenceEventType.dwell;
-          break;
-      }
-      if (type != null) {
-        _eventController.add(GeofenceEvent(region.id, type));
-      }
+      final type = switch (status) {
+        GeofenceStatus.enter => GeofenceEventType.enter,
+        GeofenceStatus.exit => GeofenceEventType.exit,
+        GeofenceStatus.dwell => GeofenceEventType.dwell,
+      };
+      _eventController.add(GeofenceEvent(region.id, type));
     });
   }
 

@@ -182,10 +182,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               _emailController.text,
                               _passwordController.text,
                             );
-                            if (authProvider.isAuthenticated) {
-                              if (mounted) {
-                                Navigator.pushReplacementNamed(context, AppStrings.profilePath);
-                              }
+                            if (authProvider.isAuthenticated && context.mounted) {
+                              Navigator.pushReplacementNamed(context, AppStrings.profilePath);
                             }
                           }
                         },

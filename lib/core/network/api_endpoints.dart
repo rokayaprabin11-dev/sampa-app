@@ -48,6 +48,7 @@ class ApiEndpoints {
   static const String eventsUpcoming = '/events/upcoming/';
   static const String eventsNearby = '/events/nearby/';
   static const String eventsCategories = '/events/categories/';
+  static const String eventsCalendar = '/events/calendar/';
   static String eventDetail(int id) => '/events/$id/';
   static String eventRsvp(int id) => '/events/$id/rsvp/';
 
@@ -75,6 +76,9 @@ class ApiEndpoints {
 
   // --- Guides ---
   static const String guides = '/guides/';
+  static const String guideMe = '/guides/me/';
+  static const String guideApply = '/guides/apply/';
+  static const String guideBookings = '/guides/bookings/';
   static String guideDetail(int id) => '/guides/$id/';
   static String guideAvailability(int id) => '/guides/$id/availability/';
 
@@ -82,6 +86,9 @@ class ApiEndpoints {
   static const String bookings = '/guides/bookings/';
   static String bookingDetail(int id) => '/guides/bookings/$id/';
   static String bookingReview(int id) => '/guides/bookings/$id/review/';
+
+  // --- Offline Downloads ---
+  static const String downloads = '/users/me/downloads/';
 
   // --- Legacy (kept for backward compat) ---
   static const String bookmarks = '/heritage/bookmarks/';

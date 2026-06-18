@@ -127,7 +127,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Wait for AuthProvider to be initialized if not already
     if (mounted) {
       final authProvider = context.read<AuthProvider>();
-      
+      final navigator = Navigator.of(context);
+
       // If Firebase is still checking the session, wait for it
       int retryCount = 0;
       while (!authProvider.isInitialized && retryCount < 10) {
@@ -135,8 +136,9 @@ class _SplashScreenState extends State<SplashScreen>
         retryCount++;
       }
 
+      if (!mounted) return;
       if (authProvider.isAuthenticated) {
-        Navigator.pushReplacementNamed(context, AppStrings.homePath);
+        navigator.pushReplacementNamed(AppStrings.homePath);
       } else {
         widget.onReady?.call();
       }
@@ -327,93 +329,6 @@ class _LogoBadge extends StatelessWidget {
       ),
     );
   }
-}
-/// Draws a simplified pagoda silhouette as a placeholder for the real logo.
-class _TemplePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFD4A017)
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    // Base platform
-    final baseRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.18, h * 0.82, w * 0.64, h * 0.1),
-      const Radius.circular(2),
-    );
-    canvas.drawRRect(baseRect, paint);
-
-    // Steps
-    for (int i = 0; i < 3; i++) {
-      final inset = i * 0.05;
-      canvas.drawRect(
-        Rect.fromLTWH(
-          w * (0.22 + inset),
-          h * (0.72 - i * 0.04),
-          w * (0.56 - inset * 2),
-          h * 0.04,
-        ),
-        paint,
-      );
-    }
-
-    // Roof tiers
-    final roofPaint = Paint()
-      ..color = const Color(0xFFC88A10)
-      ..style = PaintingStyle.fill;
-
-    // Bottom roof
-    final roof1 = Path()
-      ..moveTo(w * 0.08, h * 0.72)
-      ..lineTo(w * 0.5, h * 0.54)
-      ..lineTo(w * 0.92, h * 0.72)
-      ..close();
-    canvas.drawPath(roof1, roofPaint);
-
-    // Middle roof
-    final roof2 = Path()
-      ..moveTo(w * 0.18, h * 0.58)
-      ..lineTo(w * 0.5, h * 0.42)
-      ..lineTo(w * 0.82, h * 0.58)
-      ..close();
-    canvas.drawPath(roof2, roofPaint);
-
-    // Top roof
-    final roof3 = Path()
-      ..moveTo(w * 0.28, h * 0.44)
-      ..lineTo(w * 0.5, h * 0.3)
-      ..lineTo(w * 0.72, h * 0.44)
-      ..close();
-    canvas.drawPath(roof3, roofPaint);
-
-    // Spire
-    final spirePaint = Paint()
-      ..color = const Color(0xFFEAC84A)
-      ..style = PaintingStyle.fill;
-    final spire = Path()
-      ..moveTo(w * 0.46, h * 0.3)
-      ..lineTo(w * 0.5, h * 0.1)
-      ..lineTo(w * 0.54, h * 0.3)
-      ..close();
-    canvas.drawPath(spire, spirePaint);
-
-    // Flag at top
-    canvas.drawCircle(Offset(w * 0.5, h * 0.1), w * 0.02, spirePaint);
-
-    // SAMPADA arc text — drawn manually
-    final _ = Paint()
-      ..color = const Color(0xFFD4A017)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0;
-
-    // Arc text is part of the real logo asset — not drawn in placeholder.
-  }
-
-  @override
-  bool shouldRepaint(_TemplePainter oldDelegate) => false;
 }
 
 // ── Ripple rings ──────────────────────────────────────────────────────────────

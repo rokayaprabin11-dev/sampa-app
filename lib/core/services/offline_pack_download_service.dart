@@ -14,13 +14,13 @@ class OfflinePackDownloadService {
 
   Future<List<Map<String, dynamic>>> getMyDownloads() async {
     if (_apiClient == null) return [];
-    final data = await _apiClient!.get(ApiEndpoints.downloads);
+    final data = await _apiClient.get(ApiEndpoints.downloads);
     return (data as List).cast<Map<String, dynamic>>();
   }
 
   Future<Map<String, dynamic>> initiateDistrictDownload(int districtId) async {
     if (_apiClient == null) throw Exception('ApiClient not provided');
-    final data = await _apiClient!.post(
+    final data = await _apiClient.post(
       ApiEndpoints.downloads,
       data: {'district_id': districtId},
     );
@@ -29,7 +29,7 @@ class OfflinePackDownloadService {
 
   Future<void> removeDistrictDownload(int districtId) async {
     if (_apiClient == null) return;
-    await _apiClient!.delete('${ApiEndpoints.downloads}$districtId/');
+    await _apiClient.delete('${ApiEndpoints.downloads}$districtId/');
   }
 
   /// Downloads [url] to [destPath] in 5MB chunks with resume support.

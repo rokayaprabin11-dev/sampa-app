@@ -25,7 +25,7 @@ class AuthRepositoryImpl implements AuthRepository {
     if (_firebaseAuth == null) {
       throw Exception('Firebase Auth not initialized. Check your configuration.');
     }
-    return _firebaseAuth!;
+    return _firebaseAuth;
   }
 
   Future<void> _ensureGoogleSignInInitialized() async {
@@ -43,7 +43,7 @@ class AuthRepositoryImpl implements AuthRepository {
     if (user != null && _remoteDataSource != null) {
       final idToken = await user.getIdToken();
       if (idToken != null) {
-        final response = await _remoteDataSource!.syncUser(idToken);
+        final response = await _remoteDataSource.syncUser(idToken);
         
         // Save the JWTs returned by our backend
         if (response.containsKey('access') && response.containsKey('refresh')) {
@@ -79,12 +79,9 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserCredential> signInWithGoogle() async {
     await _ensureGoogleSignInInitialized();
-    final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
-    if (googleUser == null) {
-      throw Exception('Google Sign-In was cancelled by the user.');
-    }
+    final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-    final GoogleSignInClientAuthorization authz = 
+    final GoogleSignInClientAuthorization authz =
         await googleUser.authorizationClient.authorizeScopes([]);
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
     

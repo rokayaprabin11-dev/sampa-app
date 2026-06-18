@@ -16,7 +16,7 @@ class ProfileProvider with ChangeNotifier {
 
   List<HeritageSiteModel> _visitHistory = [];
   List<HeritageSiteModel> _bookmarks = [];
-  List<Map<String, dynamic>> _downloads = [];
+  final List<Map<String, dynamic>> _downloads = [];
 
   bool _isLoading = false;
   double _cacheSizeMB = 0.0;
@@ -87,7 +87,7 @@ class ProfileProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final stats = await _apiClient!.get(ApiEndpoints.userMe);
+      final stats = await _apiClient.get(ApiEndpoints.userMe);
       
       _visitHistoryCount = stats['visited_count'] ?? 0;
       _bookmarksCount = stats['bookmarks_count'] ?? 0;
@@ -109,7 +109,7 @@ class ProfileProvider with ChangeNotifier {
   Future<void> fetchBookmarks() async {
     if (_apiClient == null) return;
     try {
-      final data = await _apiClient!.get(ApiEndpoints.bookmarks);
+      final data = await _apiClient.get(ApiEndpoints.bookmarks);
       final List list = data is List ? data : (data['results'] ?? []);
       _bookmarks = list
           .map((item) => HeritageSiteModel.fromJson(item['site_details']))
@@ -123,7 +123,7 @@ class ProfileProvider with ChangeNotifier {
   Future<void> fetchVisits() async {
     if (_apiClient == null) return;
     try {
-      final data = await _apiClient!.get(ApiEndpoints.visits);
+      final data = await _apiClient.get(ApiEndpoints.visits);
       final List list = data is List ? data : (data['results'] ?? []);
       _visitHistory = list
           .map((item) => HeritageSiteModel.fromJson(item['site_details']))
@@ -143,9 +143,9 @@ class ProfileProvider with ChangeNotifier {
     try {
       final isBookmarked = _bookmarks.any((s) => s.id == siteId);
       if (isBookmarked) {
-        await _apiClient!.delete('${ApiEndpoints.bookmarks}$siteId/');
+        await _apiClient.delete('${ApiEndpoints.bookmarks}$siteId/');
       } else {
-        await _apiClient!.post(ApiEndpoints.bookmarks, data: {'site': siteId});
+        await _apiClient.post(ApiEndpoints.bookmarks, data: {'site': siteId});
       }
       await fetchStats();
     } catch (e) {
@@ -156,7 +156,7 @@ class ProfileProvider with ChangeNotifier {
   Future<void> logVisit(String siteId) async {
     if (_apiClient == null) return;
     try {
-      await _apiClient!.post(ApiEndpoints.visits, data: {'site': siteId});
+      await _apiClient.post(ApiEndpoints.visits, data: {'site': siteId});
       await fetchStats();
     } catch (e) {
       debugPrint('Error logging visit: $e');
