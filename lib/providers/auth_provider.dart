@@ -21,7 +21,12 @@ class AuthProvider with ChangeNotifier {
       _user = user;
       if (user != null) {
         try {
-          await _repository.syncWithBackend();
+          // Only hit the backend if we have no stored JWT.
+          // If tokens exist, ApiClient's interceptor will refresh them as needed.
+          final storedToken = await _repository.getToken();
+          if (storedToken == null || storedToken.isEmpty) {
+            await _repository.syncWithBackend();
+          }
         } catch (e) {
           debugPrint('Error syncing with backend on init: $e');
         }
@@ -32,7 +37,7 @@ class AuthProvider with ChangeNotifier {
 
     // Fallback safety: if Firebase doesn't emit a user within 2 seconds, 
     // mark as initialized anyway to prevent splash lock.
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 10), () {
       if (!_isInitialized) {
         _isInitialized = true;
         notifyListeners();

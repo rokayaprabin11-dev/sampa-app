@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 
 class ApiEndpoints {
   ApiEndpoints._();
@@ -9,8 +8,6 @@ class ApiEndpoints {
 
   static String get baseUrl {
     if (_prodUrl.isNotEmpty) return _prodUrl;
-    if (kIsWeb) return 'http://localhost:8000/api/v1';
-    // For local emulator dev: --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
     return 'https://sampada-backend-1.onrender.com/api/v1';
   }
 
