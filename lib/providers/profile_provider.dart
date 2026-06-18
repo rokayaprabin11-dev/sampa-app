@@ -96,7 +96,6 @@ class ProfileProvider with ChangeNotifier {
       await Future.wait([
         fetchBookmarks(),
         fetchVisits(),
-        fetchDownloads(),
       ]);
 
     } catch (e) {
@@ -136,14 +135,7 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> fetchDownloads() async {
-    if (_apiClient == null) return;
-    try {
-      final data = await _apiClient!.get(ApiEndpoints.downloads);
-      _downloads = (data as List).cast<Map<String, dynamic>>();
-      _downloadsCount = _downloads.length;
-    } catch (e) {
-      debugPrint('Error fetching downloads: $e');
-    }
+    _downloadsCount = 0;
   }
 
   Future<void> toggleBookmark(String siteId) async {

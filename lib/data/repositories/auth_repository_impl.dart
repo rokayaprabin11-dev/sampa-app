@@ -100,12 +100,20 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    // Notify backend first (clears FCM token, blacklists refresh token)
+    try {
+      final refreshToken = await _tokenStorage.getRefreshToken();
+      await _remoteDataSource?.logout(refreshToken);
+    } catch (e) {
+      debugPrint('Backend logout failed (continuing): $e');
+    }
+
     try {
       await _tokenStorage.clearTokens();
     } catch (e) {
       debugPrint('Error clearing tokens during logout: $e');
     }
-    
+
     try {
       await _googleSignIn.signOut();
     } catch (e) {

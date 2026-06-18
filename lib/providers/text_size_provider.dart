@@ -35,10 +35,3 @@ class TextSizeProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-
-
-
-
-
-
-
