@@ -70,6 +70,12 @@ class GuideProvider with ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>> createBooking(Map<String, dynamic> data) async {
+    final result = await _apiClient.post(ApiEndpoints.bookings, data: data);
+    await fetchMyBookings();
+    return result as Map<String, dynamic>;
+  }
+
   Future<void> updateBookingStatus(int bookingId, String status) async {
     try {
       await _apiClient.patch(
