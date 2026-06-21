@@ -240,15 +240,20 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount(String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
+      final credential = EmailAuthProvider.credential(
+        email: _user!.email!,
+        password: password,
+      );
+      await _user!.reauthenticateWithCredential(credential);
       await _repository.deleteAccount();
       _user = null;
     } catch (e) {
-      _error = 'Failed to delete account: $e';
+      _error = _handleAuthError(e);
     } finally {
       _isLoading = false;
       notifyListeners();

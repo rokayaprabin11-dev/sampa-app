@@ -426,33 +426,62 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () async {
-                      final confirmed = await showDialog<bool>(
+                      final passwordController = TextEditingController();
+                      bool obscure = true;
+                      final password = await showDialog<String>(
                         context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Delete Account'),
-                          content: const Text(
-                            'This will permanently delete your account and all your data including bookmarks, visits, and bookings. This action cannot be undone.',
+                        builder: (ctx) => StatefulBuilder(
+                          builder: (ctx, setState) => AlertDialog(
+                            title: const Text('Delete Account'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'This will permanently delete your account and all your data including bookmarks, visits, and bookings. This action cannot be undone.',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: passwordController,
+                                  obscureText: obscure,
+                                  decoration: InputDecoration(
+                                    labelText: 'Enter your password to confirm',
+                                    border: const OutlineInputBorder(),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+                                      onPressed: () => setState(() => obscure = !obscure),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, passwordController.text),
+                                child: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                            ),
-                          ],
                         ),
                       );
-                      if (confirmed == true && context.mounted) {
+                      passwordController.dispose();
+                      if (password != null && password.isNotEmpty && context.mounted) {
                         final authProvider = context.read<AuthProvider>();
-                        await authProvider.deleteAccount();
-                        if (context.mounted) {
+                        await authProvider.deleteAccount(password);
+                        if (context.mounted && authProvider.error == null) {
                           Navigator.pushNamedAndRemoveUntil(
                             context,
                             AppStrings.onboardingPath,
                             (route) => false,
+                          );
+                        } else if (context.mounted && authProvider.error != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(authProvider.error!), backgroundColor: Colors.red),
                           );
                         }
                       }
