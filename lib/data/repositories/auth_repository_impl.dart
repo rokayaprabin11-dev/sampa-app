@@ -41,8 +41,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> syncWithBackend() async {
     final user = auth.currentUser;
     if (user != null && _remoteDataSource != null) {
-      final idToken = await user.getIdToken();
+      final idToken = await user.getIdToken(true);
       if (idToken != null) {
+        debugPrint('Firebase ID token: ${idToken.substring(0, 20)}...');
         final response = await _remoteDataSource.syncUser(idToken);
         
         // Save the JWTs returned by our backend

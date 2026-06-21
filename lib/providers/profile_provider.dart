@@ -35,7 +35,6 @@ class ProfileProvider with ChangeNotifier {
 
   ProfileProvider(this._dbHelper, this._apiClient, this._userId) {
     if (_userId != null) {
-      fetchStats();
       calculateCacheSize();
     }
   }
@@ -91,6 +90,8 @@ class ProfileProvider with ChangeNotifier {
 
   Future<void> fetchStats() async {
     if (_userId == null || _apiClient == null) return;
+    final token = await _apiClient.tokenStorage.getAccessToken();
+    if (token == null) return;
 
     _isLoading = true;
     notifyListeners();
