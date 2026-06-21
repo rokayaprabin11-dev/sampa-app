@@ -51,6 +51,7 @@ class AuthProvider with ChangeNotifier {
   String? get error => _error;
   bool get isAuthenticated => _user != null;
   bool get isEmailVerified => _user?.emailVerified ?? false;
+  bool get isGoogleUser => _user?.providerData.any((p) => p.providerId == 'google.com') ?? false;
 
   Future<void> sendEmailVerification() async {
     if (_user != null && !_user!.emailVerified) {
@@ -240,16 +241,20 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteAccount(String password) async {
+  Future<void> deleteAccount({String? password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      final credential = EmailAuthProvider.credential(
-        email: _user!.email!,
-        password: password,
-      );
-      await _user!.reauthenticateWithCredential(credential);
+      if (isGoogleUser) {
+        await _repository.reAuthWithGoogle();
+      } else {
+        final credential = EmailAuthProvider.credential(
+          email: _user!.email!,
+          password: password!,
+        );
+        await _user!.reauthenticateWithCredential(credential);
+      }
       await _repository.deleteAccount();
       _user = null;
     } catch (e) {

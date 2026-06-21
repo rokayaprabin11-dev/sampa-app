@@ -426,9 +426,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () async {
+                      final authProvider = context.read<AuthProvider>();
+                      final isGoogle = authProvider.isGoogleUser;
                       final passwordController = TextEditingController();
                       bool obscure = true;
-                      final password = await showDialog<String>(
+
+                      final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (ctx) => StatefulBuilder(
                           builder: (ctx, setState) => AlertDialog(
@@ -441,38 +444,48 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   'This will permanently delete your account and all your data including bookmarks, visits, and bookings. This action cannot be undone.',
                                   style: TextStyle(fontSize: 13),
                                 ),
-                                const SizedBox(height: 16),
-                                TextField(
-                                  controller: passwordController,
-                                  obscureText: obscure,
-                                  decoration: InputDecoration(
-                                    labelText: 'Enter your password to confirm',
-                                    border: const OutlineInputBorder(),
-                                    suffixIcon: IconButton(
-                                      icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
-                                      onPressed: () => setState(() => obscure = !obscure),
+                                if (!isGoogle) ...[
+                                  const SizedBox(height: 16),
+                                  TextField(
+                                    controller: passwordController,
+                                    obscureText: obscure,
+                                    decoration: InputDecoration(
+                                      labelText: 'Enter your password to confirm',
+                                      border: const OutlineInputBorder(),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+                                        onPressed: () => setState(() => obscure = !obscure),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ] else ...[
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'You will be asked to re-sign in with Google to confirm.',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
                               ],
                             ),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.pop(ctx),
+                                onPressed: () => Navigator.pop(ctx, false),
                                 child: const Text('Cancel'),
                               ),
                               TextButton(
-                                onPressed: () => Navigator.pop(ctx, passwordController.text),
+                                onPressed: () => Navigator.pop(ctx, true),
                                 child: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
                         ),
                       );
+                      final password = passwordController.text;
                       passwordController.dispose();
-                      if (password != null && password.isNotEmpty && context.mounted) {
-                        final authProvider = context.read<AuthProvider>();
-                        await authProvider.deleteAccount(password);
+
+                      if (confirmed == true && context.mounted) {
+                        if (!isGoogle && password.isEmpty) return;
+                        await authProvider.deleteAccount(password: isGoogle ? null : password);
                         if (context.mounted && authProvider.error == null) {
                           Navigator.pushNamedAndRemoveUntil(
                             context,

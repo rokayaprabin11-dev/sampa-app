@@ -113,6 +113,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> reAuthWithGoogle() async {
+    await _googleSignIn.initialize(
+      serverClientId: '813832542964-8c4gut4u9it22dun1lacq0uvk88ak41k.apps.googleusercontent.com',
+    );
+    final googleUser = await _googleSignIn.authenticate();
+    final googleAuth = googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
+    await auth.currentUser!.reauthenticateWithCredential(credential);
+  }
+
+  @override
   Future<void> deleteAccount() async {
     await _remoteDataSource?.deleteAccount();
     await signOut();

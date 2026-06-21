@@ -10,6 +10,7 @@ abstract class AuthRepository {
   User? get currentUser;
   Future<void> syncWithBackend();
   
+  Future<void> reAuthWithGoogle();
   Future<void> deleteAccount();
 
   // Token management for persistence
