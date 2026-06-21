@@ -27,6 +27,7 @@ import 'presentation/screens/heritage/heritage_search_screen.dart';
 import 'presentation/screens/bookmarks/saved_sites_screen.dart';
 import 'presentation/screens/notifications/notifications_screen.dart';
 import 'presentation/screens/heritage/heritage_site_screen.dart';
+import 'presentation/screens/legal/policy_screen.dart';
 
 class SampadaApp extends StatelessWidget {
   const SampadaApp({super.key});
@@ -110,6 +111,7 @@ class SampadaApp extends StatelessWidget {
         AppStrings.visitHistoryPath: (context) => const VisitHistoryScreen(),
         AppStrings.notificationsPath: (context) => const NotificationsScreen(),
         AppStrings.heritageDetailsPath: (context) => const HeritageSiteScreen(),
+        ...policyRoutes,
       },
     );
   }

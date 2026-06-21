@@ -23,6 +23,11 @@ class AppStrings {
   static const String savedSitesPath = '/saved_sites';
   static const String visitHistoryPath = '/visit_history';
   static const String notificationsPath = '/notifications';
+  static const String privacyPolicyPath = '/privacy_policy';
+  static const String termsPath = '/terms';
+  static const String communityPolicyPath = '/community_policy';
+  static const String disclaimerPath = '/disclaimer';
+  static const String copyrightPolicyPath = '/copyright_policy';
 
   // Localization Keys (Internal)
   static const String titleKey = 'title';

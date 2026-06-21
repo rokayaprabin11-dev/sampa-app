@@ -187,6 +187,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () {},
                   ),
 
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'Legal'),
+                  SettingsNavigationTile(
+                    title: 'Privacy Policy',
+                    icon: Icons.privacy_tip_outlined,
+                    onTap: () => Navigator.pushNamed(context, AppStrings.privacyPolicyPath),
+                  ),
+                  SettingsNavigationTile(
+                    title: 'Terms & Conditions',
+                    icon: Icons.description_outlined,
+                    onTap: () => Navigator.pushNamed(context, AppStrings.termsPath),
+                  ),
+                  SettingsNavigationTile(
+                    title: 'Community Guidelines',
+                    icon: Icons.people_outline,
+                    onTap: () => Navigator.pushNamed(context, AppStrings.communityPolicyPath),
+                  ),
+                  SettingsNavigationTile(
+                    title: 'Disclaimer',
+                    icon: Icons.warning_amber_outlined,
+                    onTap: () => Navigator.pushNamed(context, AppStrings.disclaimerPath),
+                  ),
+                  SettingsNavigationTile(
+                    title: 'Copyright Policy',
+                    icon: Icons.copyright_outlined,
+                    onTap: () => Navigator.pushNamed(context, AppStrings.copyrightPolicyPath),
+                  ),
+
                   const SizedBox(height: 40),
                 ],
               ),
