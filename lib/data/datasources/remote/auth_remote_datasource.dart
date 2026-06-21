@@ -4,6 +4,7 @@ import 'package:sampada/core/network/api_constants.dart';
 abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> syncUser(String idToken);
   Future<void> logout(String? refreshToken);
+  Future<void> deleteAccount();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -30,9 +31,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         ApiEndpoints.logout,
         data: refreshToken != null ? {'refresh': refreshToken} : {},
       );
-    } catch (_) {
-      // Best-effort — local cleanup happens regardless
-    }
+    } catch (_) {}
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    await apiClient.delete(ApiEndpoints.account);
   }
 }
 

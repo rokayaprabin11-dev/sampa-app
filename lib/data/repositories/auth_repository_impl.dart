@@ -11,7 +11,6 @@ class AuthRepositoryImpl implements AuthRepository {
   final SecureTokenStorage _tokenStorage;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  bool _isGoogleSignInInitialized = false;
 
   AuthRepositoryImpl({
     FirebaseAuth? firebaseAuth,
@@ -26,15 +25,6 @@ class AuthRepositoryImpl implements AuthRepository {
       throw Exception('Firebase Auth not initialized. Check your configuration.');
     }
     return _firebaseAuth;
-  }
-
-  Future<void> _ensureGoogleSignInInitialized() async {
-    if (!_isGoogleSignInInitialized) {
-      await _googleSignIn.initialize(
-        clientId: '813832542964-8c4gut4u9it22dun1lacq0uvk88ak41k.apps.googleusercontent.com',
-      );
-      _isGoogleSignInInitialized = true;
-    }
   }
 
   @override
@@ -78,15 +68,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserCredential> signInWithGoogle() async {
-    await _ensureGoogleSignInInitialized();
+    await _googleSignIn.initialize(
+      serverClientId: '813832542964-8c4gut4u9it22dun1lacq0uvk88ak41k.apps.googleusercontent.com',
+    );
     final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
-
-    final GoogleSignInClientAuthorization authz =
-        await googleUser.authorizationClient.authorizeScopes([]);
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-    
+
     final AuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: authz.accessToken,
       idToken: googleAuth.idToken,
     );
 
@@ -122,6 +110,12 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (e) {
       debugPrint('Error signing out of Firebase: $e');
     }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    await _remoteDataSource?.deleteAccount();
+    await signOut();
   }
 
   @override

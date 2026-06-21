@@ -10,6 +10,8 @@ abstract class AuthRepository {
   User? get currentUser;
   Future<void> syncWithBackend();
   
+  Future<void> deleteAccount();
+
   // Token management for persistence
   Future<void> saveToken(String token);
   Future<String?> getToken();

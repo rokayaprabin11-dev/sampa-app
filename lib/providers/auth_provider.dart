@@ -143,11 +143,6 @@ class AuthProvider with ChangeNotifier {
     try {
       final credential = await _repository.signInWithGoogle();
       _user = credential.user;
-      
-      final token = await _user?.getIdToken();
-      if (token != null) {
-        await _repository.saveToken(token);
-      }
     } catch (e) {
       _error = e.toString().contains('cancelled') ? null : e.toString();
     } finally {
@@ -239,6 +234,21 @@ class AuthProvider with ChangeNotifier {
       _user = null;
     } catch (e) {
       _error = 'Logout failed: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await _repository.deleteAccount();
+      _user = null;
+    } catch (e) {
+      _error = 'Failed to delete account: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
