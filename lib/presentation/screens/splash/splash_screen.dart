@@ -314,15 +314,20 @@ class _LogoBadge extends StatelessWidget {
             ),
           ),
 
-          // ── Logo placeholder ──────────────────────────────────────────────
-          // Replace this with your actual logo image:
           ClipRRect(
-            borderRadius: BorderRadius.circular(32.0), // Put the radius here
-            child: Image.asset(
-              'assets/images/sampadalogo.png',
+            borderRadius: BorderRadius.circular(32.0),
+            child: Container(
               width: size * 0.72,
               height: size * 0.72,
-              fit: BoxFit.contain, // Keeps your aspect ratio intact
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [Color(0xFF4A1A00), Color(0xFF1A0500)],
+                ),
+              ),
+              child: Image.asset(
+                'assets/images/Sampada-logo.png',
+                fit: BoxFit.contain,
+              ),
             ),
           )
         ],

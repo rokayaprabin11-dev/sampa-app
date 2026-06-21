@@ -20,6 +20,18 @@ class ProfileProvider with ChangeNotifier {
 
   bool _isLoading = false;
   double _cacheSizeMB = 0.0;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
 
   ProfileProvider(this._dbHelper, this._apiClient, this._userId) {
     if (_userId != null) {

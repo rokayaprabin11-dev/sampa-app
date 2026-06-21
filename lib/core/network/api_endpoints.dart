@@ -24,7 +24,6 @@ class ApiEndpoints {
   static const String userMe = '/auth/me/';
   static const String userBookmarks = '/users/me/bookmarks/';
   static const String userHistory = '/users/me/history/';
-  static const String userReviews = '/users/me/reviews/';
   static const String userPreferences = '/users/me/preferences/';
 
   // --- Heritage ---
@@ -36,7 +35,6 @@ class ApiEndpoints {
   static const String districts = '/geo/districts/';
   static const String uploadSignature = '/heritage/upload-signature/';
   static String siteDetail(String slug) => '/heritage/sites/$slug/';
-  static String siteReviews(String slug) => '/heritage/sites/$slug/reviews/';
   static String siteBookmark(String slug) => '/heritage/sites/$slug/bookmark/';
   static String siteVisit(String slug) => '/heritage/sites/$slug/visit/';
 

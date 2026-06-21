@@ -260,17 +260,6 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                         ),
                       const SizedBox(height: 16),
 
-                      // Rating
-                      Text(
-                        '(${(_site!.reviewsCount / 1000).toStringAsFixed(1)}k reviews)',
-                        style: const TextStyle(
-                          color: Color(0xFFD4A017),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
                       // Location
                       Row(
                         children: [

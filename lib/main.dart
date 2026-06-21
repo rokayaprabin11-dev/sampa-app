@@ -79,7 +79,10 @@ void main() async {
   
   final dbHelper = DatabaseHelper();
   final tokenStorage = SecureTokenStorage();
-  final dio = Dio();
+  final dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 60),
+    receiveTimeout: const Duration(seconds: 60),
+  ));
   final apiClient = ApiClient(dio: dio, tokenStorage: tokenStorage);
 
   if (!kIsWeb) {

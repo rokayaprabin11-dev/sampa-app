@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/data/repositories/heritage_repository.dart';
 import 'package:sampada/data/datasources/local/heritage_local_datasource.dart';
@@ -42,8 +43,11 @@ class HeritageRepositoryImpl implements HeritageRepository {
         bbox: bbox,
         sortBy: sortBy,
       );
-      // Cache the result
-      await localDataSource.cacheHeritageSites(remoteSites);
+      try {
+        await localDataSource.cacheHeritageSites(remoteSites);
+      } catch (cacheError) {
+        debugPrint('Cache write failed (non-fatal): $cacheError');
+      }
       return remoteSites;
     } catch (e) {
       // If remote fails, return from local cache

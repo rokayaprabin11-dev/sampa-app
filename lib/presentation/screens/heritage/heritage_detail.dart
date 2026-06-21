@@ -35,8 +35,6 @@ const Color kTagBg        = Color(0xFFF0E6D3);
 class HeritageSite {
   final String name;
   final String category;
-  final double rating;
-  final int reviewCount;
   final String location;
   final String description;
   final Color heroColor;
@@ -47,8 +45,6 @@ class HeritageSite {
   const HeritageSite({
     required this.name,
     required this.category,
-    required this.rating,
-    required this.reviewCount,
     required this.location,
     required this.description,
     required this.heroColor,
@@ -69,8 +65,6 @@ class GalleryItem {
 final HeritageSite kSampleSite = HeritageSite(
   name: 'Pashupatinath Temple',
   category: 'UNESCO Heritage',
-  rating: 4.9,
-  reviewCount: 2400,
   location: 'Pashupati Area, Kathmandu',
   description:
       'Pashupatinath Temple is one of the most sacred Hindu temples dedicated to '
@@ -126,8 +120,6 @@ class _HeritageDetailPageState extends State<HeritageDetailPage> {
                       const SizedBox(height: 10),
                       _buildCategoryTag(context),
                       const SizedBox(height: 10),
-                      _buildRatingRow(context),
-                      const SizedBox(height: 6),
                       _buildLocationRow(context),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -257,32 +249,6 @@ class _HeritageDetailPageState extends State<HeritageDetailPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildRatingRow(BuildContext context) {
-    final reviews = widget.site.reviewCount >= 1000
-        ? '${(widget.site.reviewCount / 1000).toStringAsFixed(1)}k'
-        : '${widget.site.reviewCount}';
-
-    return Row(
-      children: [
-        const Icon(Icons.star_rounded, color: kAccent, size: 17),
-        const SizedBox(width: 4),
-        Text(
-          widget.site.rating.toStringAsFixed(1),
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          '($reviews reviews)',
-          style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? kTextMuted : AppColors.darkTextTertiary, fontSize: 13),
-        ),
-      ],
     );
   }
 

@@ -30,7 +30,7 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSites();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadSites());
     _tryLocate();
   }
 
@@ -241,24 +241,13 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
                           color: AppColors.secondaryText, fontSize: 12),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 14),
-                        const SizedBox(width: 2),
-                        Text(
-                          site.rating.toStringAsFixed(1),
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          site.category,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.primaryBrown,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      site.category,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.primaryBrown,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),

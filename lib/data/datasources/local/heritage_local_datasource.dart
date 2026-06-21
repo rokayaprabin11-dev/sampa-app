@@ -69,39 +69,23 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
 
     try {
       final db = await dbHelper.database;
+      final like = '%$query%';
       final results = await db.rawQuery('''
-        SELECT s.*, f.rank as fts_rank FROM local_heritage_sites s
-        INNER JOIN local_heritage_sites_fts f ON s.id = f.id
-        WHERE local_heritage_sites_fts MATCH ?
-        ORDER BY rank
-      ''', ['$query*']);
+        SELECT * FROM local_heritage_sites
+        WHERE name_en LIKE ? OR name_ne LIKE ? OR district LIKE ?
+      ''', [like, like, like]);
 
-      var sitesAndRanks = results.map((map) {
-        return {
-          'site': HeritageSiteModel.fromMap(map),
-          'rank': map['fts_rank'] as double,
-        };
-      }).toList();
+      var sites = results.map((map) => HeritageSiteModel.fromMap(map)).toList();
 
-      // Local Hybrid Ranking (Text Relevance + Distance)
-      if (lat != null && lng != null && sitesAndRanks.isNotEmpty) {
-        sitesAndRanks.sort((a, b) {
-          final siteA = a['site'] as HeritageSiteModel;
-          final siteB = b['site'] as HeritageSiteModel;
-          
-          final distA = _calculateDistance(lat, lng, siteA.latitude, siteA.longitude);
-          final distB = _calculateDistance(lat, lng, siteB.latitude, siteB.longitude);
-          
-          // Simple hybrid score: (Distance penalty) + (FTS Rank penalty)
-          // Note: FTS5 rank is often negative (more negative = better) depending on weight config.
-          final scoreA = distA + ((a['rank'] as double).abs() * 10);
-          final scoreB = distB + ((b['rank'] as double).abs() * 10);
-          
-          return scoreA.compareTo(scoreB);
+      if (lat != null && lng != null && sites.isNotEmpty) {
+        sites.sort((a, b) {
+          final distA = _calculateDistance(lat, lng, a.latitude, a.longitude);
+          final distB = _calculateDistance(lat, lng, b.latitude, b.longitude);
+          return distA.compareTo(distB);
         });
       }
 
-      return sitesAndRanks.map((e) => e['site'] as HeritageSiteModel).toList();
+      return sites;
     } catch (e) {
       debugPrint('Local search error: $e');
       return [];

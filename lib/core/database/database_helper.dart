@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 
-const int _kDbVersion = 4;
+const int _kDbVersion = 5;
 const String _kDbName = 'sampada.db';
 
 class DatabaseHelper {
@@ -27,7 +27,9 @@ class DatabaseHelper {
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
-        await db.execute('PRAGMA journal_mode = WAL');
+        try {
+          await db.execute('PRAGMA journal_mode = WAL');
+        } catch (_) {}
       },
     );
   }
@@ -46,7 +48,7 @@ class DatabaseHelper {
       'cache_site_reviews', 'cache_bookmarks', 'cache_visit_history',
       'cache_guides', 'cache_bookings', 'cache_notifications',
       'cache_offline_downloads',
-      // v4 names
+      // v4-v5 names
       'local_heritage_sites', 'local_heritage_sites_fts', 'local_site_media',
       'local_events', 'local_bookmarks', 'local_reviews_draft',
       'local_user_profile', 'local_recently_viewed', 'local_search_history',
@@ -86,36 +88,6 @@ class DatabaseHelper {
         is_dirty        INTEGER NOT NULL DEFAULT 0
       )
     ''');
-
-    // FTS5 full-text search over English + Nepali name/description
-    await db.execute('''
-      CREATE VIRTUAL TABLE local_heritage_sites_fts USING fts5(
-        id UNINDEXED,
-        name_en,
-        name_ne,
-        description_en,
-        district,
-        tokenize="unicode61"
-      )
-    ''');
-
-    // Keep FTS in sync with the main table
-    for (final sql in [
-      '''CREATE TRIGGER lhs_ai AFTER INSERT ON local_heritage_sites BEGIN
-           INSERT INTO local_heritage_sites_fts(id,name_en,name_ne,description_en,district)
-           VALUES (new.id,new.name_en,new.name_ne,new.description_en,new.district);
-         END''',
-      '''CREATE TRIGGER lhs_ad AFTER DELETE ON local_heritage_sites BEGIN
-           DELETE FROM local_heritage_sites_fts WHERE id = old.id;
-         END''',
-      '''CREATE TRIGGER lhs_au AFTER UPDATE ON local_heritage_sites BEGIN
-           DELETE FROM local_heritage_sites_fts WHERE id = old.id;
-           INSERT INTO local_heritage_sites_fts(id,name_en,name_ne,description_en,district)
-           VALUES (new.id,new.name_en,new.name_ne,new.description_en,new.district);
-         END''',
-    ]) {
-      await db.execute(sql);
-    }
 
     await db.execute('''
       CREATE TABLE local_site_media (
@@ -171,20 +143,6 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_lb_sync   ON local_bookmarks (is_synced)');
 
     await db.execute('''
-      CREATE TABLE local_reviews_draft (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        site_id     TEXT    NOT NULL,
-        guide_id    TEXT,
-        rating      INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-        comment     TEXT,
-        created_at  INTEGER NOT NULL,
-        is_synced   INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-    await db.execute('CREATE INDEX idx_lrd_site  ON local_reviews_draft (site_id)');
-    await db.execute('CREATE INDEX idx_lrd_sync  ON local_reviews_draft (is_synced)');
-
-    await db.execute('''
       CREATE TABLE local_user_profile (
         firebase_uid   TEXT PRIMARY KEY,
         full_name      TEXT NOT NULL,
@@ -216,41 +174,6 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_sq_status  ON sync_queue (status)');
     await db.execute('CREATE INDEX idx_sq_created ON sync_queue (created_at ASC)');
 
-    // ------------------------------------------------------------------
-    // 4. App state
-    // ------------------------------------------------------------------
-    await db.execute('''
-      CREATE TABLE local_search_history (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        query       TEXT    NOT NULL,
-        searched_at INTEGER NOT NULL
-      )
-    ''');
-    await db.execute('CREATE INDEX idx_lsh_time ON local_search_history (searched_at DESC)');
-
-    await db.execute('''
-      CREATE TABLE local_recently_viewed (
-        site_id   TEXT    PRIMARY KEY,
-        viewed_at INTEGER NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE local_notifications (
-        id        TEXT    PRIMARY KEY,
-        type      TEXT    NOT NULL,
-        title_en  TEXT    NOT NULL,
-        title_ne  TEXT,
-        message   TEXT    NOT NULL,
-        site_id   TEXT,
-        event_id  TEXT,
-        is_read   INTEGER NOT NULL DEFAULT 0,
-        sent_at   INTEGER NOT NULL,
-        cached_at INTEGER NOT NULL
-      )
-    ''');
-    await db.execute('CREATE INDEX idx_ln_unread  ON local_notifications (is_read)');
-    await db.execute('CREATE INDEX idx_ln_sent_at ON local_notifications (sent_at DESC)');
   }
 
   // ---------------------------------------------------------------------------
@@ -262,7 +185,7 @@ class DatabaseHelper {
   Future<void> clearContentCache() async {
     final db = await database;
     final batch = db.batch();
-    for (final t in ['local_heritage_sites', 'local_site_media', 'local_events', 'local_notifications']) {
+    for (final t in ['local_heritage_sites', 'local_site_media', 'local_events']) {
       batch.delete(t);
     }
     await batch.commit(noResult: true);
@@ -273,8 +196,7 @@ class DatabaseHelper {
     final db = await database;
     final batch = db.batch();
     for (final t in [
-      'local_bookmarks', 'local_reviews_draft', 'local_user_profile',
-      'local_recently_viewed', 'local_search_history', 'sync_queue',
+      'local_bookmarks', 'local_user_profile', 'sync_queue',
     ]) {
       batch.delete(t);
     }

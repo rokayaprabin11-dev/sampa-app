@@ -28,23 +28,38 @@ class HeritageSiteModel extends HeritageSite {
   final String? provinceName;
 
   factory HeritageSiteModel.fromJson(Map<String, dynamic> json) {
+    // category is a nested object: {"slug":"lake","name_en":"Lake",...}
+    final categoryRaw = json['category'];
+    final String categoryStr = categoryRaw is Map
+        ? (categoryRaw['name_en'] ?? categoryRaw['slug'] ?? 'heritage').toString()
+        : (categoryRaw ?? 'heritage').toString();
+
+    // district is a nested object: {"id":32,"name_en":"Rasuwa","name_np":"रसुवा"}
+    final districtRaw = json['district'];
+    final String districtStr = districtRaw is Map
+        ? (districtRaw['name_en'] ?? '').toString()
+        : (districtRaw ?? '').toString();
+    final String districtIdStr = districtRaw is Map
+        ? (districtRaw['id'] ?? '').toString()
+        : '';
+
     return HeritageSiteModel(
       id: json['id'].toString(),
-      name: json['name_en'] ?? json['name'] ?? 'Unknown Site',
-      nameNepali: json['name_ne'] ?? json['name_nepali'] ?? '',
-      description: json['description_en'] ?? json['description'] ?? '',
-      descriptionNepali: json['description_ne'] ?? json['description_nepali'] ?? '',
-      location: json['district_name'] ?? json['location_name'] ?? '',
+      name: json['name'] ?? json['name_en'] ?? 'Unknown Site',
+      nameNepali: json['name_np'] ?? json['name_ne'] ?? json['name_nepali'] ?? '',
+      description: json['description'] ?? json['description_en'] ?? '',
+      descriptionNepali: json['description_np'] ?? json['description_ne'] ?? '',
+      location: districtStr,
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
       imageUrl: json['cover_image_url'] ?? json['image_url'],
-      isUnesco: json['is_unesco'] ?? false,
-      rating: (json['avg_rating'] as num?)?.toDouble() ?? (json['rating'] as num?)?.toDouble() ?? 0.0,
+      isUnesco: json['is_unesco_heritage'] ?? json['is_unesco'] ?? false,
+      rating: (json['rating_avg'] as num?)?.toDouble() ?? (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewsCount: json['review_count'] ?? 0,
       avgVisitHours: (json['avg_visit_hours'] as num?)?.toDouble() ?? 1.0,
-      category: json['category_name'] ?? json['category'] ?? 'heritage',
-      district: json['district_name'] ?? json['district'] ?? '',
-      districtId: json['district_name'] ?? '', // Using tag as ID in simplified mode
+      category: categoryStr,
+      district: districtStr,
+      districtId: districtIdStr,
       isFeatured: json['is_featured'] ?? false,
       gallery: (json['gallery'] as List?)?.map((i) => SiteImageModel.fromJson(i)).toList() ?? [],
       provinceName: json['province_name'],

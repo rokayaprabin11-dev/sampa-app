@@ -33,9 +33,8 @@ class HeritageProvider with ChangeNotifier {
         ? _sites
         : _sites.where((s) => s.category.toLowerCase() == category.toLowerCase()).toList();
 
-    // Sort by rating or newest for "Featured" in simplified mode
     final sortedList = List<HeritageSite>.from(filteredList)
-      ..sort((a, b) => b.rating.compareTo(a.rating));
+      ..sort((a, b) => (b.isFeatured ? 1 : 0).compareTo(a.isFeatured ? 1 : 0));
 
     return sortedList.take(6).toList();
   }
@@ -93,12 +92,14 @@ class HeritageProvider with ChangeNotifier {
         district: district,
         sortBy: sortBy,
       );
+      debugPrint('fetchSites OK: ${_sites.length} sites');
       // Districts are now part of site tags, but if a master list is needed,
       // we can extract them from the site list or keep the API call.
       if (_districts.isEmpty) {
         await fetchDistricts();
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('fetchSites ERROR: $e\n$st');
       _error = e.toString();
     } finally {
       _isLoading = false;
