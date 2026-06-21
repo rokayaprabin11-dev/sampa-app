@@ -431,7 +431,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         builder: (ctx) => AlertDialog(
                           title: const Text('Delete Account'),
                           content: const Text(
-                            'This will permanently deactivate your account. This action cannot be undone.',
+                            'This will permanently delete your account and all your data including bookmarks, visits, and bookings. This action cannot be undone.',
                           ),
                           actions: [
                             TextButton(
