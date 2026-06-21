@@ -61,12 +61,12 @@ class ProfileProvider with ChangeNotifier {
   Future<void> calculateCacheSize() async {
     try {
       final db = await _dbHelper.database;
-      final siteResult = await db.rawQuery('SELECT COUNT(*) as count FROM cache_sites');
-      final eventResult = await db.rawQuery('SELECT COUNT(*) as count FROM cache_events');
-      
+      final siteResult = await db.rawQuery('SELECT COUNT(*) as count FROM local_heritage_sites');
+      final eventResult = await db.rawQuery('SELECT COUNT(*) as count FROM local_events');
+
       final siteCount = Sqflite.firstIntValue(siteResult) ?? 0;
       final eventCount = Sqflite.firstIntValue(eventResult) ?? 0;
-      
+
       _cacheSizeMB = (siteCount * 0.1) + (eventCount * 0.05);
       notifyListeners();
     } catch (e) {
@@ -78,10 +78,7 @@ class ProfileProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final db = await _dbHelper.database;
-      await db.delete('cache_sites');
-      await db.delete('cache_events');
-      await db.delete('cache_districts');
+      await _dbHelper.clearContentCache();
       _cacheSizeMB = 0.0;
       notifyListeners();
     } catch (e) {
