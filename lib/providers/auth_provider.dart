@@ -162,20 +162,19 @@ class AuthProvider with ChangeNotifier {
     try {
       debugPrint('Starting profile update. Re-authenticating...');
       
-      // 1. MANDATORY Re-authentication
-      if (password != null && password.isNotEmpty) {
+      // Re-auth only needed for email/password users
+      if (!isGoogleUser) {
+        if (password == null || password.isEmpty) {
+          throw FirebaseAuthException(
+            code: 'wrong-password',
+            message: 'Password is required to confirm changes.',
+          );
+        }
         final credential = EmailAuthProvider.credential(
           email: _user!.email!,
           password: password,
         );
-        // This will throw an exception if the password is wrong
         await _user!.reauthenticateWithCredential(credential);
-        debugPrint('Re-authentication successful.');
-      } else {
-        throw FirebaseAuthException(
-          code: 'wrong-password',
-          message: 'Password is required to confirm changes.',
-        );
       }
 
       // 2. Only if re-auth is successful, perform updates
