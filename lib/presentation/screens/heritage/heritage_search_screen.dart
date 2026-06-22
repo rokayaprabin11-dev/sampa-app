@@ -32,9 +32,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     _searchController = TextEditingController(text: provider.currentQuery);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (provider.sites.isEmpty) {
-        provider.fetchSites();
-      }
+      provider.fetchSites();
     });
   }
 
