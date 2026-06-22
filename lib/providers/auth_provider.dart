@@ -145,7 +145,8 @@ class AuthProvider with ChangeNotifier {
       final credential = await _repository.signInWithGoogle();
       _user = credential.user;
     } catch (e) {
-      _error = e.toString().contains('cancelled') ? null : e.toString();
+      final msg = e.toString().toLowerCase();
+      _error = msg.contains('cancel') ? null : e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
