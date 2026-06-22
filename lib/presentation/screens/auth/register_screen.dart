@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
@@ -128,16 +129,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
               
               // Terms & Conditions
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Checkbox(
                     value: _agreeToTerms,
                     activeColor: AppColors.brownDark,
                     onChanged: (value) => setState(() => _agreeToTerms = value ?? false),
                   ),
-                  const Expanded(
-                    child: Text(
-                      'I agree to the standard terms and conditions',
-                      style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        children: [
+                          const TextSpan(text: 'I agree to the '),
+                          TextSpan(
+                            text: 'Terms & Conditions',
+                            style: const TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => Navigator.pushNamed(context, AppStrings.termsPath),
+                          ),
+                          const TextSpan(text: ', '),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: const TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => Navigator.pushNamed(context, AppStrings.privacyPolicyPath),
+                          ),
+                          const TextSpan(text: ' and '),
+                          TextSpan(
+                            text: 'Community Guidelines',
+                            style: const TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => Navigator.pushNamed(context, AppStrings.communityPolicyPath),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

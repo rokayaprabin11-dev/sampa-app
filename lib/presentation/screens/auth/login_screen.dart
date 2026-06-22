@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
@@ -228,6 +229,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    children: [
+                      TextSpan(
+                        text: 'Privacy Policy',
+                        style: const TextStyle(color: AppColors.brownAccent),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => Navigator.pushNamed(context, AppStrings.privacyPolicyPath),
+                      ),
+                      const TextSpan(text: '  ·  '),
+                      TextSpan(
+                        text: 'Terms & Conditions',
+                        style: const TextStyle(color: AppColors.brownAccent),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => Navigator.pushNamed(context, AppStrings.termsPath),
+                      ),
+                    ],
                   ),
                 ),
               ),
