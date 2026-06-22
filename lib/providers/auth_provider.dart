@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sampada/core/services/notification_service.dart';
 import 'package:sampada/data/repositories/auth_repository.dart';
 
 class AuthProvider with ChangeNotifier {

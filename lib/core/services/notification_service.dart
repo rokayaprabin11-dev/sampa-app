@@ -66,7 +66,7 @@ class NotificationService {
     String? token = await _firebaseMessaging.getToken();
     debugPrint('FCM Token: $token');
     
-    if (token != null && _apiClient != null) {
+    if (token != null && _apiClient != null && await _apiClient!.tokenStorage.getAccessToken() != null) {
       await _syncTokenWithBackend(token);
     }
 
@@ -103,6 +103,13 @@ class NotificationService {
     } catch (e) {
       debugPrint('Error syncing FCM token: $e');
     }
+  }
+
+  /// Call after login to register FCM token with the authenticated backend.
+  Future<void> syncAfterLogin() async {
+    if (_apiClient == null) return;
+    final token = await _firebaseMessaging.getToken();
+    if (token != null) await _syncTokenWithBackend(token);
   }
 
   /// Shows a local notification.
