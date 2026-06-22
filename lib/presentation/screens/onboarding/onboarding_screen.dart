@@ -115,10 +115,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                     ),
 
-                    // Location Text
+                    // Location Text — bottom relative to image Stack (height 0.55×screen)
+                    // Card covers bottom 0.05×screen of image, so sit just above it
                     Positioned(
-                      bottom: size.height * 0.5 + 20,
+                      bottom: size.height * 0.05 + 12,
                       left: 20,
+                      right: 20,
                       child: Row(
                         children: [
                           Image.asset(
@@ -133,6 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               color: Colors.white,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
+                              shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
                             ),
                           ),
                         ],
