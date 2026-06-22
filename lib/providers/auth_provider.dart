@@ -92,13 +92,13 @@ class AuthProvider with ChangeNotifier {
       }
 
       _user = user;
-      
+
       final token = await _user?.getIdToken();
       if (token != null) {
         await _repository.saveToken(token);
       }
-      
-      // Navigate to profile is handled in the UI
+
+      await NotificationService().syncAfterLogin();
     } catch (e) {
       _error = _handleAuthError(e);
     } finally {
@@ -145,6 +145,7 @@ class AuthProvider with ChangeNotifier {
     try {
       final credential = await _repository.signInWithGoogle();
       _user = credential.user;
+      await NotificationService().syncAfterLogin();
     } catch (e) {
       final msg = e.toString().toLowerCase();
       _error = msg.contains('cancel') ? null : e.toString();
