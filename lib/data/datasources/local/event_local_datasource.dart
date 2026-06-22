@@ -46,6 +46,7 @@ class EventLocalDataSourceImpl implements EventLocalDataSource {
     if (kIsWeb) return;
 
     final db = await dbHelper.database;
+    await db.delete('local_events');
     final batch = db.batch();
     
     for (var event in events) {
