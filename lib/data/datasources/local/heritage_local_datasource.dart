@@ -28,6 +28,7 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
     if (kIsWeb) return;
 
     final db = await dbHelper.database;
+    await db.delete('local_heritage_sites');
     final batch = db.batch();
     for (var site in sites) {
       batch.insert(
