@@ -123,11 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       right: 20,
                       child: Row(
                         children: [
-                          Image.asset(
-                            'assets/icons/mark.png',
-                            width: 20,
-                            height: 20,
-                          ),
+                          const Icon(Icons.location_on, color: Colors.redAccent, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             slides[index].location,
