@@ -15,6 +15,9 @@ abstract class HeritageRepository {
   Future<List<HeritageSite>> searchHeritageSites(String query);
   Future<List<DistrictModel>> getDistricts();
   Future<HeritageSite> createHeritageSite(HeritageSite site);
+  Future<HeritageSite> getSiteDetail(String slug);
+  Future<bool> isSiteDownloaded(String id);
+  Future<void> downloadSite(HeritageSite site);
 }
 
 

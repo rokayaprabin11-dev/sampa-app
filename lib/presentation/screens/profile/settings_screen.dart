@@ -164,12 +164,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // --- Data & Storage ---
                   _buildSectionTitle(context, 'Data & Storage'),
                   SettingsNavigationTile(
-                    title: l10n.manageDownloads,
-                    icon: Icons.file_download_outlined,
-                    trailingText: '${profileProvider.downloadsCount} files',
-                    onTap: () => Navigator.pushNamed(context, AppStrings.downloadsPath),
-                  ),
-                  SettingsNavigationTile(
                     title: l10n.autoSync,
                     icon: Icons.sync,
                     trailingText: autoSyncProvider.getSyncModeLabel(context),

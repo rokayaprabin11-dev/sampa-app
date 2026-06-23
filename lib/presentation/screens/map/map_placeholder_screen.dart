@@ -15,7 +15,8 @@ const _defaultZoom = 7.0;
 const _siteZoom = 13.0;
 
 class MapPlaceholderScreen extends StatefulWidget {
-  const MapPlaceholderScreen({super.key});
+  final HeritageSite? focusSite;
+  const MapPlaceholderScreen({super.key, this.focusSite});
 
   @override
   State<MapPlaceholderScreen> createState() => _MapPlaceholderScreenState();
@@ -30,8 +31,18 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadSites());
-    _tryLocate();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadSites();
+      if (widget.focusSite != null) {
+        final site = widget.focusSite!;
+        setState(() => _selectedSite = site);
+        // Slight delay so FlutterMap finishes its own init before we move
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted) _mapController.move(LatLng(site.latitude, site.longitude), _siteZoom);
+      } else {
+        _tryLocate();
+      }
+    });
   }
 
   Future<void> _loadSites() async {

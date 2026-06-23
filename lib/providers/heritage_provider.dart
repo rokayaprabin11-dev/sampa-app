@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/data/repositories/heritage_repository.dart';
 import 'package:sampada/data/models/district_model.dart';
+import 'package:sampada/providers/auto_sync_provider.dart';
 
 class HeritageProvider with ChangeNotifier {
   final HeritageRepository repository;
+  final AutoSyncProvider? autoSyncProvider;
 
   List<HeritageSite> _sites = [];
   List<DistrictModel> _districts = [];
@@ -17,7 +19,7 @@ class HeritageProvider with ChangeNotifier {
   String _currentCategory = 'All';
   Timer? _debounceTimer;
 
-  HeritageProvider({required this.repository});
+  HeritageProvider({required this.repository, this.autoSyncProvider});
 
   List<HeritageSite> get sites => _sites;
   List<DistrictModel> get districts => _districts;
@@ -29,14 +31,32 @@ class HeritageProvider with ChangeNotifier {
   List<HeritageSite> getFeaturedSites({String? category}) {
     if (_sites.isEmpty) return [];
 
-    final filteredList = (category == null || category.isEmpty || category.toLowerCase() == 'all')
+    final slug = _slugify(category ?? '');
+    final filteredList = (slug.isEmpty || slug == 'all')
         ? _sites
-        : _sites.where((s) => s.category.toLowerCase() == category.toLowerCase()).toList();
+        : _sites.where((s) => _slugify(s.category) == slug).toList();
 
     final sortedList = List<HeritageSite>.from(filteredList)
       ..sort((a, b) => (b.isFeatured ? 1 : 0).compareTo(a.isFeatured ? 1 : 0));
 
     return sortedList.take(6).toList();
+  }
+
+  // Normalize plural UI labels + locale strings → backend singular slug
+  String _slugify(String raw) {
+    final s = raw.toLowerCase().trim();
+    const map = {
+      'temples': 'temple',
+      'stupas': 'stupa',
+      'palaces': 'palace',
+      'monasteries': 'monastery',
+      'monuments': 'monument',
+      'lakes': 'lake',
+      'durbar sq.': 'palace',
+      'durbar squares': 'palace',
+      // Nepali equivalents map to same slugs if needed
+    };
+    return map[s] ?? s.replaceAll(RegExp(r's$'), ''); // strip trailing 's' as fallback
   }
 
   // Backwards compatibility getter (unfiltered)
@@ -80,10 +100,25 @@ class HeritageProvider with ChangeNotifier {
     String? district,
     String? province,
     String sortBy = 'name',
+    bool forceRemote = false,
   }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
+
+    // Respect auto-sync setting (only skip for background refresh, not user-initiated search)
+    final canSync = forceRemote || query != null || category != null
+        ? true
+        : await (autoSyncProvider?.shouldSync() ?? Future.value(true));
+
+    if (!canSync) {
+      // Serve from local cache only
+      final cached = await repository.getHeritageSites();
+      _sites = cached;
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
 
     try {
       _sites = await repository.getHeritageSites(
@@ -121,6 +156,27 @@ class HeritageProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> isSiteDownloaded(String id) async {
+    try {
+      return await repository.isSiteDownloaded(id);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> downloadSite(HeritageSite site) async {
+    await repository.downloadSite(site);
+  }
+
+  Future<HeritageSite?> fetchSiteDetail(String slug) async {
+    try {
+      return await repository.getSiteDetail(slug);
+    } catch (e) {
+      debugPrint('fetchSiteDetail ERROR: $e');
+      return null;
     }
   }
 

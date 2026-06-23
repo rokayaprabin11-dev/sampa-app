@@ -156,10 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: () => Navigator.pushNamed(context, AppStrings.savedSitesPath),
                       child: _buildStatItem(context, profileProvider.bookmarksCount.toString(), l10n.bookmarks),
                     ),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, AppStrings.downloadsPath),
-                      child: _buildStatItem(context, profileProvider.downloadsCount.toString(), l10n.manageDownloads),
-                    ),
                   ],
                 ),
               ),
@@ -178,25 +174,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFC8851A), // Keep accent color consistent
+                      color: Color(0xFFC8851A),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const RecentlyVisitedCard(
-                    title: 'Pashupatinath Temple',
-                    timeAgo: '2 days ago',
-                    icon: Icons.temple_hindu,
-                  ),
-                  const RecentlyVisitedCard(
-                    title: 'Boudhanath Stupa',
-                    timeAgo: '1 week ago',
-                    icon: Icons.temple_buddhist,
-                  ),
-                  const RecentlyVisitedCard(
-                    title: '55-Window Palace',
-                    timeAgo: '2 weeks ago',
-                    icon: Icons.castle,
-                  ),
+                  if (profileProvider.visitHistory.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'No visited sites yet',
+                        style: TextStyle(color: Color(0xFF8C7162), fontSize: 13),
+                      ),
+                    )
+                  else
+                    ...profileProvider.visitHistory.take(3).map((site) =>
+                      RecentlyVisitedCard(
+                        title: site.name,
+                        timeAgo: site.location.isNotEmpty ? site.location : site.category,
+                        icon: _categoryIcon(site.category),
+                        imageUrl: site.imageUrl,
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppStrings.heritageDetailsPath,
+                          arguments: site,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -262,28 +266,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Downloads Tile
-                  _buildAccountTile(
-                    context,
-                    icon: Icons.file_download_outlined,
-                    title: l10n.manageDownloads,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("${profileProvider.downloadsCount} files", style: TextStyle(fontSize: 14, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.darkTextSecondary)),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
-                      ],
-                    ),
-                    onTap: () => Navigator.pushNamed(context, AppStrings.downloadsPath),
-                  ),
-
-                  const SizedBox(height: 12),
-
                   // Be a Guide Tile
                   _buildAccountTile(
                     context,
-                    icon: Icons.file_download_outlined, // Matching image placeholder
+                    icon: Icons.tour_outlined,
                     title: 'Be a Guide',
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
                     onTap: () => Navigator.pushNamed(context, AppStrings.becomeGuidePath),
@@ -298,6 +284,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 4),
     );
+  }
+
+  IconData _categoryIcon(String cat) {
+    switch (cat.toLowerCase()) {
+      case 'temple': return Icons.temple_hindu;
+      case 'stupa':  return Icons.temple_buddhist;
+      case 'palace': return Icons.castle;
+      default:       return Icons.account_balance;
+    }
   }
 
   Widget _buildStatItem(BuildContext context, String value, String label) {

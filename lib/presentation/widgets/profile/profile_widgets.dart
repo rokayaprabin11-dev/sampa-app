@@ -8,20 +8,22 @@ class RecentlyVisitedCard extends StatelessWidget {
   final String title;
   final String timeAgo;
   final IconData icon;
+  final String? imageUrl;
+  final VoidCallback? onTap;
 
   const RecentlyVisitedCard({
     super.key,
     required this.title,
     required this.timeAgo,
     required this.icon,
+    this.imageUrl,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, AppStrings.heritageDetailsPath);
-      },
+      onTap: onTap ?? () => Navigator.pushNamed(context, AppStrings.heritageDetailsPath),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -42,13 +44,15 @@ class RecentlyVisitedCard extends StatelessWidget {
             // Use a simple Icon or Image if assets are available. 
             // Based on the image, they look like stylized illustrations.
             // For now, I'll keep the Icon but adjust the styling.
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.light ? AppColors.brownUltraLight : AppColors.darkBgCard,
-                borderRadius: BorderRadius.circular(8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 48, height: 48,
+                child: (imageUrl != null && imageUrl!.isNotEmpty)
+                    ? Image.network(imageUrl!, fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _iconBox(context))
+                    : _iconBox(context),
               ),
-              child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -80,6 +84,11 @@ class RecentlyVisitedCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _iconBox(BuildContext context) => Container(
+    color: Theme.of(context).brightness == Brightness.light ? AppColors.brownUltraLight : AppColors.darkBgCard,
+    child: Center(child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain, size: 28)),
+  );
 }
 
 class AccountOptionTile extends StatelessWidget {

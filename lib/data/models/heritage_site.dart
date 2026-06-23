@@ -3,6 +3,7 @@ import 'package:sampada/data/models/site_image_model.dart';
 
 class HeritageSite extends Equatable {
   final String id;
+  final String slug;
   final String name;
   final String nameNepali;
   final String description;
@@ -24,6 +25,7 @@ class HeritageSite extends Equatable {
 
   const HeritageSite({
     required this.id,
+    this.slug = '',
     required this.name,
     required this.nameNepali,
     required this.description,
@@ -47,6 +49,7 @@ class HeritageSite extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        slug,
         name,
         nameNepali,
         description,

@@ -74,18 +74,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontSize: 18,
                               ),
                             ),
-                            Container(
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF3A241C),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.notifications, color: Color(0xFFDCA73A), size: 22),
-                                onPressed: () {
-                                  Navigator.pushNamed(context, AppStrings.notificationsPath);
-                                },
-                                hoverColor: Colors.white10,
+                            Material(
+                              color: Colors.transparent,
+                              shape: const CircleBorder(),
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onTap: () => Navigator.pushNamed(context, AppStrings.notificationsPath),
                                 splashColor: Colors.white24,
+                                highlightColor: Colors.white10,
+                                child: const Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Icon(Icons.notifications, color: Color(0xFFDCA73A), size: 22),
+                                ),
                               ),
                             ),
                           ],
@@ -490,6 +490,7 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
                 title: site.name,
                 location: site.district,
                 icon: _getIconForCategory(site.category),
+                imageUrl: site.imageUrl,
                 onTap: () {
                   Navigator.pushNamed(
                     context,

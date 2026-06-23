@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 
 import 'app.dart';
@@ -36,6 +38,10 @@ import 'injection.dart' as di;
 void main() async {
   debugPrint('--- APP STARTING ---');
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Cap Flutter image cache: 80MB disk, 40MB memory, 200 images max
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 40 * 1024 * 1024;
+  PaintingBinding.instance.imageCache.maximumSize = 200;
   
   try {
     await di.init();
@@ -70,6 +76,8 @@ void main() async {
     debugPrint('--- Firebase initialization FAILED: $e ---');
   }
 
+  await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
+
   FirebaseAuth? firebaseAuth;
   try {
     firebaseAuth = FirebaseAuth.instance;
@@ -84,6 +92,7 @@ void main() async {
     receiveTimeout: const Duration(seconds: 60),
   ));
   final apiClient = ApiClient(dio: dio, tokenStorage: tokenStorage);
+  await ApiClient.initCache(dio);
 
   if (!kIsWeb) {
     try {
@@ -95,6 +104,7 @@ void main() async {
   }
   
   final heritageLocalDataSource = HeritageLocalDataSourceImpl(dbHelper: dbHelper);
+  unawaited(heritageLocalDataSource.evictStaleCache());
   final heritageRemoteDataSource = HeritageRemoteDataSourceImpl(apiClient: apiClient);
   final heritageRepository = HeritageRepositoryImpl(
     remoteDataSource: heritageRemoteDataSource,
@@ -118,8 +128,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
+        ChangeNotifierProvider(create: (_) => AutoSyncProvider()),
+        ChangeNotifierProxyProvider<AutoSyncProvider, HeritageProvider>(
           create: (_) => HeritageProvider(repository: heritageRepository),
+          update: (_, autoSync, previous) => HeritageProvider(
+            repository: heritageRepository,
+            autoSyncProvider: autoSync,
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(repository: authRepository),
@@ -138,9 +153,6 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => TextSizeProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AutoSyncProvider(),
         ),
         ChangeNotifierProxyProvider<AuthProvider, ProfileProvider>(
           create: (context) => ProfileProvider(dbHelper, apiClient, null),

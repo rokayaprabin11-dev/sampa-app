@@ -77,6 +77,7 @@ class FeaturedSiteCard extends StatelessWidget {
   final String title;
   final String location;
   final IconData icon;
+  final String? imageUrl;
   final VoidCallback onTap;
 
   const FeaturedSiteCard({
@@ -84,16 +85,18 @@ class FeaturedSiteCard extends StatelessWidget {
     required this.title,
     required this.location,
     required this.icon,
+    this.imageUrl,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(24),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFF5D1700), Color(0xFF9E3D1A)],
@@ -102,37 +105,67 @@ class FeaturedSiteCard extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(24),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Align(
-              alignment: Alignment.topCenter,
-              child: Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 100),
-            ),
-            const Spacer(),
-            Text(
-              title.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.1,
-                fontFamily: 'serif',
+            // cover image
+            if (hasImage)
+              Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              )
+            else
+              Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 100),
+                ),
+              ),
+
+            // gradient overlay for text readability
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: hasImage ? 0.65 : 0.3),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.location_on, color: Color(0xFFDCA73A), size: 14),
-                const SizedBox(width: 4),
-                Text(
-                  location,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 13,
+
+            // title + location
+            Positioned(
+              left: 20, right: 20, bottom: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                      fontFamily: 'serif',
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    const Icon(Icons.location_on, color: Color(0xFFDCA73A), size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      location,
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+                    ),
+                  ]),
+                ],
+              ),
             ),
           ],
         ),

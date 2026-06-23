@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/providers/profile_provider.dart';
+import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/data/models/heritage_site_model.dart';
 import 'package:sampada/data/models/site_image_model.dart';
 
@@ -16,6 +18,9 @@ class HeritageSiteScreen extends StatefulWidget {
 class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
   HeritageSiteModel? _site;
   bool _isInit = false;
+  bool _loadingDetail = false;
+  bool _isDownloaded = false;
+  bool _downloading = false;
   int _carouselIndex = 0;
   bool _descExpanded = false;
   final PageController _pageController = PageController();
@@ -27,11 +32,41 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is HeritageSiteModel) {
         _site = args;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           context.read<ProfileProvider>().addToVisitHistory(_site!.id);
+          _fetchFullDetail();
+          final downloaded = await context.read<HeritageProvider>().isSiteDownloaded(_site!.id);
+          if (mounted) setState(() => _isDownloaded = downloaded);
         });
       }
       _isInit = true;
+    }
+  }
+
+  Future<void> _downloadSite() async {
+    if (_site == null) return;
+    setState(() => _downloading = true);
+    try {
+      await context.read<HeritageProvider>().downloadSite(_site!);
+      if (mounted) setState(() { _isDownloaded = true; _downloading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  Future<void> _fetchFullDetail() async {
+    if (_site == null || _site!.slug.isEmpty) return;
+    final hasDescription = _site!.description.isNotEmpty;
+    // Only show spinner when description is missing (first-ever open)
+    if (!hasDescription) setState(() => _loadingDetail = true);
+    final full = await context.read<HeritageProvider>().fetchSiteDetail(_site!.slug);
+    if (mounted && full is HeritageSiteModel) {
+      setState(() {
+        _site = full;
+        _loadingDetail = false;
+      });
+    } else {
+      if (mounted) setState(() => _loadingDetail = false);
     }
   }
 
@@ -178,6 +213,13 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                             const Text('About this Site',
                                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF331609))),
                             const SizedBox(height: 8),
+                            if (_loadingDetail)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                child: Center(child: SizedBox(width: 20, height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF9E3D1A)))),
+                              )
+                            else
                             LayoutBuilder(
                               builder: (context, constraints) {
                                 const style = TextStyle(color: Color(0xFF6B5041), fontSize: 14, height: 1.65);
@@ -256,17 +298,17 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                           Image.network(img.imageUrl, fit: BoxFit.cover,
                                               errorBuilder: (_, __, ___) => const Icon(
                                                   Icons.broken_image_outlined, color: Color(0xFF8C7162))),
-                                          if (img.caption.isNotEmpty)
-                                            Positioned(
-                                              bottom: 0, left: 0, right: 0,
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-                                                color: Colors.black.withValues(alpha: 0.55),
-                                                child: Text(img.caption,
-                                                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                                                    style: const TextStyle(color: Colors.white, fontSize: 9)),
-                                              ),
+                                          Positioned(
+                                            bottom: 0, left: 0, right: 0,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                                              color: Colors.black.withValues(alpha: 0.55),
+                                              child: Text(
+                                                img.name.isNotEmpty ? img.name : img.caption,
+                                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(color: Colors.white, fontSize: 9)),
                                             ),
+                                          ),
                                         ]),
                                       ),
                                     );
@@ -291,13 +333,15 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Row(children: [
-                              Expanded(child: _actionBtn(Icons.map_outlined, 'View Map', () {})),
+                              Expanded(child: _actionBtn(Icons.map_outlined, 'View Map', () {
+                                Navigator.pushNamed(context, AppStrings.mapPath, arguments: _site);
+                              })),
                               const SizedBox(width: 12),
                               Expanded(child: _actionBtn(Icons.near_me_outlined, 'Directions', () {})),
                             ]),
                             const SizedBox(height: 8),
                             Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(Icons.check_circle_outline, color: Colors.green.shade700, size: 14),
+                              Icon(Icons.check_circle, color: Colors.green.shade700, size: 14),
                               const SizedBox(width: 5),
                               Text('Available Offline',
                                   style: TextStyle(color: Colors.green.shade700, fontSize: 12, fontWeight: FontWeight.w500)),
@@ -433,7 +477,7 @@ class _SubHeritageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final size  = MediaQuery.of(context).size;
     final top   = MediaQuery.of(context).padding.top;
-    final title = image.caption.isNotEmpty ? image.caption : siteName;
+    final title = image.name.isNotEmpty ? image.name : (image.caption.isNotEmpty ? image.caption : siteName);
 
     return Scaffold(
       backgroundColor: const Color(0xFF7B1E00),
@@ -499,7 +543,8 @@ class _SubHeritageScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF331609))),
                   const SizedBox(height: 8),
                   Text(
-                    image.caption.isNotEmpty ? image.caption : 'No description available.',
+                    image.description.isNotEmpty ? image.description
+                        : (image.caption.isNotEmpty ? image.caption : 'No description available.'),
                     style: const TextStyle(color: Color(0xFF6B5041), fontSize: 14, height: 1.65),
                   ),
                 ]),

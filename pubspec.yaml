@@ -17,8 +17,12 @@ dependencies:
   firebase_core: ^4.10.0
   firebase_auth: ^6.5.2
   firebase_messaging: ^16.3.0
+  firebase_performance: ^0.11.4+2
   sqflite: ^2.3.2
   path: ^1.9.0
+  dio_cache_interceptor: ^3.5.0
+  dio_cache_interceptor_db_store: ^6.0.0
+  path_provider: ^2.1.5
   get_it: ^9.2.1
   flutter_secure_storage: ^10.3.1
   dartz: ^0.10.1
@@ -36,6 +40,8 @@ dependencies:
   intl: ^0.20.2
   shimmer: ^3.0.0
   geofencing_api: ^2.0.0
+  connectivity_plus: ^7.1.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

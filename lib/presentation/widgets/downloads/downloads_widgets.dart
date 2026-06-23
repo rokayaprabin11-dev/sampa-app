@@ -63,6 +63,7 @@ class DownloadItemCard extends StatelessWidget {
   final int sitesCount;
   final String size;
   final IconData icon;
+  final String? imageUrl;
   final bool isReady;
   final VoidCallback? onDelete;
   final VoidCallback? onDownload;
@@ -73,6 +74,7 @@ class DownloadItemCard extends StatelessWidget {
     required this.sitesCount,
     required this.size,
     required this.icon,
+    this.imageUrl,
     this.isReady = true,
     this.onDelete,
     this.onDownload,
@@ -91,14 +93,15 @@ class DownloadItemCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Icon Placeholder (In real app, use Image.asset or customized icons)
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF5EFEC) : AppColors.darkBgCard,
-              borderRadius: BorderRadius.circular(8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 56, height: 56,
+              child: (imageUrl != null && imageUrl!.isNotEmpty)
+                  ? Image.network(imageUrl!, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _iconFallback(context))
+                  : _iconFallback(context),
             ),
-            child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain, size: 32),
           ),
           const SizedBox(width: 16),
           // Content
@@ -197,6 +200,11 @@ class DownloadItemCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _iconFallback(BuildContext context) => Container(
+    color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF5EFEC) : AppColors.darkBgCard,
+    child: Center(child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain, size: 32)),
+  );
 }
 
 class TipCard extends StatelessWidget {

@@ -4,6 +4,7 @@ import 'package:sampada/data/models/heritage_site_model.dart';
 import 'package:sampada/data/models/district_model.dart';
 
 abstract class HeritageRemoteDataSource {
+  Future<HeritageSiteModel> getHeritageSiteDetail(String slug);
   Future<List<HeritageSiteModel>> getHeritageSites({
     String? query,
     String? category,
@@ -25,6 +26,12 @@ class HeritageRemoteDataSourceImpl implements HeritageRemoteDataSource {
   final ApiClient apiClient;
   
   HeritageRemoteDataSourceImpl({required this.apiClient});
+
+  @override
+  Future<HeritageSiteModel> getHeritageSiteDetail(String slug) async {
+    final data = await apiClient.get('/heritage/sites/$slug/');
+    return HeritageSiteModel.fromJson(data as Map<String, dynamic>);
+  }
 
   @override
   Future<List<HeritageSiteModel>> searchHeritageSites(String query) async {

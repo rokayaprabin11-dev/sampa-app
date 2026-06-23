@@ -7,9 +7,12 @@ import 'package:sampada/data/models/heritage_site_model.dart';
 
 abstract class HeritageLocalDataSource {
   Future<void> cacheHeritageSites(List<HeritageSiteModel> sites);
+  Future<void> saveSite(HeritageSiteModel site);
+  Future<bool> isSiteDownloaded(String id);
   Future<List<HeritageSiteModel>> getLastHeritageSites();
   Future<List<HeritageSiteModel>> searchSites(String query, {double? lat, double? lng});
   Future<void> clearCache();
+  Future<void> evictStaleCache({int maxAgeDays = 7});
 }
 
 class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
@@ -49,6 +52,23 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
         );
       }
     }
+  }
+
+  @override
+  Future<void> saveSite(HeritageSiteModel site) async {
+    if (kIsWeb) return;
+    final db = await dbHelper.database;
+    await db.insert('local_heritage_sites', site.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<bool> isSiteDownloaded(String id) async {
+    if (kIsWeb) return false;
+    final db = await dbHelper.database;
+    final rows = await db.query('local_heritage_sites',
+        where: 'id = ?', whereArgs: [id], limit: 1);
+    return rows.isNotEmpty;
   }
 
   @override
@@ -113,6 +133,24 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
     if (kIsWeb) return;
     final db = await dbHelper.database;
     await db.delete('local_heritage_sites');
+  }
+
+  @override
+  Future<void> evictStaleCache({int maxAgeDays = 7}) async {
+    if (kIsWeb) return;
+    try {
+      final db = await dbHelper.database;
+      final cutoff = DateTime.now()
+          .subtract(Duration(days: maxAgeDays))
+          .millisecondsSinceEpoch ~/ 1000;
+      await db.delete(
+        'local_heritage_sites',
+        where: 'cached_at < ?',
+        whereArgs: [cutoff],
+      );
+    } catch (e) {
+      debugPrint('Cache eviction error: $e');
+    }
   }
 }
 

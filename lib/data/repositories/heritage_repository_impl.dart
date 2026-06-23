@@ -87,6 +87,42 @@ class HeritageRepositoryImpl implements HeritageRepository {
   }
 
   @override
+  Future<HeritageSite> getSiteDetail(String slug) async {
+    return await remoteDataSource.getHeritageSiteDetail(slug);
+  }
+
+  @override
+  Future<bool> isSiteDownloaded(String id) async {
+    return await localDataSource.isSiteDownloaded(id);
+  }
+
+  @override
+  Future<void> downloadSite(HeritageSite site) async {
+    final model = HeritageSiteModel(
+      id: site.id,
+      slug: site.slug,
+      name: site.name,
+      nameNepali: site.nameNepali,
+      description: site.description,
+      descriptionNepali: site.descriptionNepali,
+      location: site.location,
+      latitude: site.latitude,
+      longitude: site.longitude,
+      imageUrl: site.imageUrl,
+      isUnesco: site.isUnesco,
+      rating: site.rating,
+      reviewsCount: site.reviewsCount,
+      avgVisitHours: site.avgVisitHours,
+      category: site.category,
+      district: site.district,
+      districtId: site.districtId,
+      isFeatured: site.isFeatured,
+      createdAt: site.createdAt,
+    );
+    await localDataSource.saveSite(model);
+  }
+
+  @override
   Future<List<HeritageSite>> searchHeritageSites(String query) async {
     try {
       return await remoteDataSource.searchHeritageSites(query);

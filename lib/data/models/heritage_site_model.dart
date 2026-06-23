@@ -4,6 +4,7 @@ import 'site_image_model.dart';
 class HeritageSiteModel extends HeritageSite {
   const HeritageSiteModel({
     required super.id,
+    super.slug,
     required super.name,
     required super.nameNepali,
     required super.description,
@@ -45,6 +46,7 @@ class HeritageSiteModel extends HeritageSite {
 
     return HeritageSiteModel(
       id: json['id'].toString(),
+      slug: json['slug'] ?? '',
       name: json['name'] ?? json['name_en'] ?? 'Unknown Site',
       nameNepali: json['name_np'] ?? json['name_ne'] ?? json['name_nepali'] ?? '',
       description: json['description'] ?? json['description_en'] ?? '',

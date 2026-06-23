@@ -78,6 +78,11 @@ class ProfileProvider with ChangeNotifier {
     notifyListeners();
     try {
       await _dbHelper.clearContentCache();
+      // Clear Flutter image memory cache
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
+      // Clear Dio HTTP cache
+      await ApiClient.clearCache();
       _cacheSizeMB = 0.0;
       notifyListeners();
     } catch (e) {
@@ -136,7 +141,7 @@ class ProfileProvider with ChangeNotifier {
       final data = await _apiClient.get(ApiEndpoints.visits);
       final List list = data is List ? data : (data['results'] ?? []);
       _visitHistory = list
-          .map((item) => HeritageSiteModel.fromJson(item['site_details']))
+          .map((item) => HeritageSiteModel.fromJson(item['site'] as Map<String, dynamic>))
           .toList();
       _visitHistoryCount = _visitHistory.length;
     } catch (e) {

@@ -136,6 +136,7 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
                             location: site.location,
                             type: site.category,
                             icon: _getIconForCategory(site.category),
+                            imageUrl: site.imageUrl,
                             onTap: () {
                               Navigator.pushNamed(
                                 context,
@@ -195,6 +196,7 @@ class _SavedSiteCard extends StatelessWidget {
   final String location;
   final String type;
   final IconData icon;
+  final String? imageUrl;
   final VoidCallback onTap;
 
   const _SavedSiteCard({
@@ -202,11 +204,13 @@ class _SavedSiteCard extends StatelessWidget {
     required this.location,
     required this.type,
     required this.icon,
+    this.imageUrl,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -218,26 +222,19 @@ class _SavedSiteCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Left Image/Icon Placeholder
-            Container(
-              width: 100,
-              height: 100,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF5D1700),
-                    Color(0xFF9E3D1A),
-                  ],
-                ),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                ),
+            // Left Image
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
               ),
-              child: Center(
-                child: Icon(icon, color: Colors.white38, size: 40),
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: hasImage
+                    ? Image.network(imageUrl!, fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _iconFallback(icon))
+                    : _iconFallback(icon),
               ),
             ),
             // Content
@@ -301,6 +298,11 @@ class _SavedSiteCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _iconFallback(IconData icon) => Container(
+    color: const Color(0xFF5D1700),
+    child: Center(child: Icon(icon, color: Colors.white38, size: 40)),
+  );
 }
 
 

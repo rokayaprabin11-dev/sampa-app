@@ -27,6 +27,7 @@ import 'presentation/screens/heritage/heritage_search_screen.dart';
 import 'presentation/screens/bookmarks/saved_sites_screen.dart';
 import 'presentation/screens/notifications/notifications_screen.dart';
 import 'presentation/screens/heritage/heritage_site_screen.dart';
+import 'data/models/heritage_site.dart';
 import 'presentation/screens/legal/policy_screen.dart';
 
 class SampadaApp extends StatelessWidget {
@@ -104,7 +105,12 @@ class SampadaApp extends StatelessWidget {
         AppStrings.becomeGuidePath: (context) => const BecomeGuideScreen(),
         AppStrings.downloadsPath: (context) => const DownloadsScreen(),
         AppStrings.eventsPath: (context) => const EventsScreen(),
-        AppStrings.mapPath: (context) => const MapPlaceholderScreen(),
+        AppStrings.mapPath: (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          return MapPlaceholderScreen(
+            focusSite: args is HeritageSite ? args : null,
+          );
+        },
         AppStrings.guidePath: (context) => const GuideScreen(),
         AppStrings.searchPath: (context) => const HeritageSearchScreen(),
         AppStrings.savedSitesPath: (context) => const SavedSitesScreen(),
