@@ -8,7 +8,7 @@ import 'package:sqflite/sqflite.dart';
 class ProfileProvider with ChangeNotifier {
   final DatabaseHelper _dbHelper;
   final ApiClient? _apiClient;
-  final String? _userId;
+  String? _userId;
 
   int _visitHistoryCount = 0;
   int _bookmarksCount = 0;
@@ -21,6 +21,19 @@ class ProfileProvider with ChangeNotifier {
   bool _isLoading = false;
   double _cacheSizeMB = 0.0;
   bool _disposed = false;
+
+  void updateUserId(String? userId) {
+    if (_userId == userId) return;
+    _userId = userId;
+    if (userId != null) fetchStats();
+    else {
+      _visitHistory = [];
+      _bookmarks = [];
+      _visitHistoryCount = 0;
+      _bookmarksCount = 0;
+      notifyListeners();
+    }
+  }
 
   @override
   void dispose() {

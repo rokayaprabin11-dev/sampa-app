@@ -7,7 +7,7 @@ import 'package:sampada/providers/auto_sync_provider.dart';
 
 class HeritageProvider with ChangeNotifier {
   final HeritageRepository repository;
-  final AutoSyncProvider? autoSyncProvider;
+  AutoSyncProvider? autoSyncProvider;
 
   List<HeritageSite> _sites = [];
   List<DistrictModel> _districts = [];

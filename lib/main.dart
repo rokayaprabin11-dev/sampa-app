@@ -131,10 +131,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AutoSyncProvider()),
         ChangeNotifierProxyProvider<AutoSyncProvider, HeritageProvider>(
           create: (_) => HeritageProvider(repository: heritageRepository),
-          update: (_, autoSync, previous) => HeritageProvider(
-            repository: heritageRepository,
-            autoSyncProvider: autoSync,
-          ),
+          update: (_, autoSync, previous) {
+            previous!.autoSyncProvider = autoSync;
+            return previous;
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => AuthProvider(repository: authRepository),
@@ -155,8 +155,11 @@ void main() async {
           create: (_) => TextSizeProvider(),
         ),
         ChangeNotifierProxyProvider<AuthProvider, ProfileProvider>(
-          create: (context) => ProfileProvider(dbHelper, apiClient, null),
-          update: (context, authProvider, previous) => ProfileProvider(dbHelper, apiClient, authProvider.user?.uid),
+          create: (_) => ProfileProvider(dbHelper, apiClient, null),
+          update: (_, authProvider, previous) {
+            previous!.updateUserId(authProvider.user?.uid);
+            return previous;
+          },
         ),
       ],
       child: const SampadaApp(),
