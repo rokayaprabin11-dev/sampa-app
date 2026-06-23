@@ -122,7 +122,7 @@ class ProfileProvider with ChangeNotifier {
       final data = await _apiClient.get(ApiEndpoints.bookmarks);
       final List list = data is List ? data : (data['results'] ?? []);
       _bookmarks = list
-          .map((item) => HeritageSiteModel.fromJson(item['site_details']))
+          .map((item) => HeritageSiteModel.fromJson(item as Map<String, dynamic>))
           .toList();
       _bookmarksCount = _bookmarks.length;
     } catch (e) {
@@ -155,7 +155,7 @@ class ProfileProvider with ChangeNotifier {
       if (isBookmarked) {
         await _apiClient.delete('${ApiEndpoints.bookmarks}$siteId/');
       } else {
-        await _apiClient.post(ApiEndpoints.bookmarks, data: {'site': siteId});
+        await _apiClient.post(ApiEndpoints.bookmarkToggle, data: {'site_id': siteId});
       }
       await fetchStats();
     } catch (e) {
@@ -166,7 +166,7 @@ class ProfileProvider with ChangeNotifier {
   Future<void> logVisit(String siteId) async {
     if (_apiClient == null) return;
     try {
-      await _apiClient.post(ApiEndpoints.visits, data: {'site': siteId});
+      await _apiClient.post(ApiEndpoints.visitsLog, data: {'site': siteId});
       await fetchStats();
     } catch (e) {
       debugPrint('Error logging visit: $e');

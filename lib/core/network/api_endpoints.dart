@@ -85,7 +85,8 @@ class ApiEndpoints {
   // --- Offline Downloads ---
   static const String downloads = '/users/me/downloads/';
 
-  // --- Legacy (kept for backward compat) ---
   static const String bookmarks = '/heritage/bookmarks/';
+  static const String bookmarkToggle = '/heritage/bookmarks/toggle/';
+  static const String visitsLog = '/heritage/visits/';
   static const String visits = '/heritage/visits/recent/';
 }

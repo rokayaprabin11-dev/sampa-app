@@ -17,9 +17,9 @@ class SiteImageModel {
     return SiteImageModel(
       id: json['id'].toString(),
       siteId: json['site_id']?.toString() ?? '',
-      imageUrl: json['image_url'],
-      caption: json['caption'] ?? '',
-      order: json['order'] ?? 0,
+      imageUrl: json['image_url'] ?? '',
+      caption: json['caption_en'] ?? json['title_en'] ?? json['caption'] ?? '',
+      order: json['sort_order'] ?? json['order'] ?? 0,
     );
   }
 
