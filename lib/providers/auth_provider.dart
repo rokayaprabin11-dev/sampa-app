@@ -207,6 +207,18 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updatePhotoUrl(String photoUrl) async {
+    if (_user == null) return;
+    try {
+      await _user!.updatePhotoURL(photoUrl);
+      await _user!.reload();
+      _user = FirebaseAuth.instance.currentUser;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('updatePhotoUrl failed: $e');
+    }
+  }
+
   String _handleAuthError(dynamic e) {
     if (e is FirebaseAuthException) {
       switch (e.code) {

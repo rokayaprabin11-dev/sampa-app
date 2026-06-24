@@ -4,6 +4,11 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:sampada/injection.dart' as di;
+import 'package:sampada/core/network/api_client.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
@@ -79,6 +84,97 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  bool _uploadingPhoto = false;
+
+  Future<void> _pickAndUploadImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source, imageQuality: 80, maxWidth: 800);
+    if (picked == null) return;
+
+    setState(() => _uploadingPhoto = true);
+    try {
+      final apiClient = di.sl<ApiClient>();
+
+      // Get Cloudinary signature
+      final sig = await apiClient.post(
+        '/heritage/upload-signature/',
+        data: {'folder': 'sampada/avatars'},
+      );
+
+      final file = File(picked.path);
+      final bytes = await file.readAsBytes();
+
+      final formData = <String, dynamic>{
+        'file': 'data:image/jpeg;base64,${_base64Encode(bytes)}',
+        'api_key': sig['api_key'],
+        'timestamp': sig['timestamp'].toString(),
+        'signature': sig['signature'],
+        'folder': sig['folder'],
+      };
+
+      final uploadRes = await apiClient.dio.post(
+        'https://api.cloudinary.com/v1_1/${sig['cloud_name']}/image/upload',
+        data: formData,
+        options: Options(contentType: 'application/x-www-form-urlencoded'),
+      );
+
+      final url = uploadRes.data['secure_url'] as String;
+      if (!mounted) return;
+      await context.read<AuthProvider>().updatePhotoUrl(url);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
+
+  String _base64Encode(List<int> bytes) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    final result = StringBuffer();
+    for (var i = 0; i < bytes.length; i += 3) {
+      final b0 = bytes[i];
+      final b1 = i + 1 < bytes.length ? bytes[i + 1] : 0;
+      final b2 = i + 2 < bytes.length ? bytes[i + 2] : 0;
+      result.write(chars[(b0 >> 2) & 0x3F]);
+      result.write(chars[((b0 << 4) | (b1 >> 4)) & 0x3F]);
+      result.write(i + 1 < bytes.length ? chars[((b1 << 2) | (b2 >> 6)) & 0x3F] : '=');
+      result.write(i + 2 < bytes.length ? chars[b2 & 0x3F] : '=');
+    }
+    return result.toString();
+  }
+
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadImage(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -167,33 +263,42 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   Center(
                     child: Column(
                       children: [
-                        Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF7B1E00),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFFF7EED3), width: 2),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  authProvider.user?.displayName?.substring(0, 1).toUpperCase() ?? 'P',
-                                  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                        GestureDetector(
+                          onTap: _showImageSourceSheet,
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF7B1E00),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: const Color(0xFFF7EED3), width: 2),
+                                ),
+                                child: ClipOval(
+                                  child: _uploadingPhoto
+                                      ? const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                      : authProvider.user?.photoURL != null
+                                          ? Image.network(authProvider.user!.photoURL!, fit: BoxFit.cover)
+                                          : Center(
+                                              child: Text(
+                                                authProvider.user?.displayName?.substring(0, 1).toUpperCase() ?? 'P',
+                                                style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
                                 ),
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFC89932),
-                                shape: BoxShape.circle,
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFC89932),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                               ),
-                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(

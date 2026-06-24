@@ -28,6 +28,7 @@ class AppStrings {
   static const String communityPolicyPath = '/community_policy';
   static const String disclaimerPath = '/disclaimer';
   static const String copyrightPolicyPath = '/copyright_policy';
+  static const String districtDetailPath = '/district_detail';
 
   // Localization Keys (Internal)
   static const String titleKey = 'title';

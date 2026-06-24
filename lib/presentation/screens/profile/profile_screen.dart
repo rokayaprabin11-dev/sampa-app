@@ -94,19 +94,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 // Avatar
                 Positioned(
-                  bottom: -45, // Adjusted from -60 to -45 to match smaller header
+                  bottom: -45,
                   child: Container(
-                    width: 100, // Reduced from 120 to 100
-                    height: 100, // Reduced from 120 to 100
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFC89932), // Goldish color from image
+                      color: const Color(0xFFC89932),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 70, // Reduced from 80 to 70
-                      color: Color(0xFF7197C7), // Blue silhouette color
+                    child: ClipOval(
+                      child: user?.photoURL != null
+                          ? Image.network(user!.photoURL!, fit: BoxFit.cover)
+                          : const Icon(
+                              Icons.person,
+                              size: 70,
+                              color: Color(0xFF7197C7),
+                            ),
                     ),
                   ),
                 ),

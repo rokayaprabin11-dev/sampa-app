@@ -25,8 +25,9 @@ class ProfileProvider with ChangeNotifier {
   void updateUserId(String? userId) {
     if (_userId == userId) return;
     _userId = userId;
-    if (userId != null) fetchStats();
-    else {
+    if (userId != null) {
+      fetchStats();
+    } else {
       _visitHistory = [];
       _bookmarks = [];
       _visitHistoryCount = 0;

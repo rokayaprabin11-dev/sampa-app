@@ -25,8 +25,9 @@ Duration? _ttlFor(String path) {
   if (path.contains('/categories/'))          return _ttlCategories;
   if (path.contains('/districts/'))           return _ttlDistricts;
   if (RegExp(r'/sites/[^/]+/$').hasMatch(path)) return _ttlSiteDetail;
-  if (path.contains('/sites/') || path.contains('/search/') || path.contains('/featured/') || path.contains('/nearby/'))
+  if (path.contains('/sites/') || path.contains('/search/') || path.contains('/featured/') || path.contains('/nearby/')) {
     return _ttlSiteList;
+  }
   return null;
 }
 

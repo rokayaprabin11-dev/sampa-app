@@ -243,7 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 final districts = heritageProvider.districts;
-                if (districts.isEmpty) {
+                final visible = districts.where((d) => d.sitesCount > 0).take(8).toList();
+                if (visible.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
@@ -252,8 +253,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 }
-
-                final visible = districts.take(8).toList();
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: GridView.builder(
@@ -269,12 +268,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final d = visible[index];
                       final info = _districtInfo(d.name);
-                      return DistrictCard(
-                        name: d.name,
-                        sitesCount: d.sitesCount,
-                        icon: info.icon,
-                        iconColor: info.color,
-                        iconBgColor: info.bgColor,
+                      return GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppStrings.districtDetailPath,
+                          arguments: d,
+                        ),
+                        child: DistrictCard(
+                          name: d.name,
+                          sitesCount: d.sitesCount,
+                          coverImageUrl: d.coverImageUrl.isNotEmpty ? d.coverImageUrl : null,
+                          icon: info.icon,
+                          iconColor: info.color,
+                          iconBgColor: info.bgColor,
+                        ),
                       );
                     },
                   ),

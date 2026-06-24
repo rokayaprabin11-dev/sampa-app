@@ -27,7 +27,9 @@ import 'presentation/screens/heritage/heritage_search_screen.dart';
 import 'presentation/screens/bookmarks/saved_sites_screen.dart';
 import 'presentation/screens/notifications/notifications_screen.dart';
 import 'presentation/screens/heritage/heritage_site_screen.dart';
+import 'presentation/screens/heritage/district_detail_screen.dart';
 import 'data/models/heritage_site.dart';
+import 'data/models/district_model.dart';
 import 'presentation/screens/legal/policy_screen.dart';
 
 class SampadaApp extends StatelessWidget {
@@ -117,6 +119,10 @@ class SampadaApp extends StatelessWidget {
         AppStrings.visitHistoryPath: (context) => const VisitHistoryScreen(),
         AppStrings.notificationsPath: (context) => const NotificationsScreen(),
         AppStrings.heritageDetailsPath: (context) => const HeritageSiteScreen(),
+        AppStrings.districtDetailPath: (context) {
+          final district = ModalRoute.of(context)?.settings.arguments as DistrictModel;
+          return DistrictDetailScreen(district: district);
+        },
         ...policyRoutes,
       },
     );

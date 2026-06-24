@@ -297,6 +297,7 @@ class _FeaturedSiteCarouselState extends State<FeaturedSiteCarousel> {
 class DistrictCard extends StatelessWidget {
   final String name;
   final int sitesCount;
+  final String? coverImageUrl;
   final IconData icon;
   final Color iconColor;
   final Color iconBgColor;
@@ -305,6 +306,7 @@ class DistrictCard extends StatelessWidget {
     super.key,
     required this.name,
     required this.sitesCount,
+    this.coverImageUrl,
     required this.icon,
     this.iconColor = const Color(0xFF4A342B),
     this.iconBgColor = const Color(0xFFF5EFEC),
@@ -328,14 +330,27 @@ class DistrictCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: (coverImageUrl != null && coverImageUrl!.isNotEmpty)
+                ? Image.network(
+                    coverImageUrl!,
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 44,
+                      height: 44,
+                      color: iconBgColor,
+                      child: Icon(icon, color: iconColor, size: 24),
+                    ),
+                  )
+                : Container(
+                    width: 44,
+                    height: 44,
+                    color: iconBgColor,
+                    child: Icon(icon, color: iconColor, size: 24),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(

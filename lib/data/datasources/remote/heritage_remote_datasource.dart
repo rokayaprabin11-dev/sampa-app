@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/network/api_constants.dart';
 import 'package:sampada/data/models/heritage_site_model.dart';
@@ -51,12 +52,18 @@ class HeritageRemoteDataSourceImpl implements HeritageRemoteDataSource {
   Future<List<DistrictModel>> getDistricts() async {
     try {
       final data = await apiClient.get(ApiEndpoints.districts);
-      final List list = (data is List) ? data : [];
-      return list
+      debugPrint('DBG districts: type=${data.runtimeType} isList=${data is List} isMap=${data is Map}');
+      if (data is Map) debugPrint('DBG districts map keys: ${data.keys.toList()}');
+      if (data is List) debugPrint('DBG districts list len=${data.length} first=${data.isNotEmpty ? data.first : "empty"}');
+      final List list = (data is List) ? data : (data is Map && data['results'] is List ? data['results'] as List : []);
+      final result = list
           .whereType<Map<String, dynamic>>()
           .map((json) => DistrictModel.fromJson(json))
           .toList();
-    } catch (e) {
+      debugPrint('DBG districts parsed: ${result.length}, withSites=${result.where((d) => d.sitesCount > 0).length}');
+      return result;
+    } catch (e, st) {
+      debugPrint('DBG districts ERROR: $e\n$st');
       return [];
     }
   }
