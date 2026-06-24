@@ -41,9 +41,16 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
 
   Future<void> _fetchFullDetail() async {
     if (_site == null || _site!.slug.isEmpty) return;
+    debugPrint('DBG _fetchFullDetail: slug=${_site!.slug} gallery_before=${_site!.gallery.length}');
     final hasDescription = _site!.description.isNotEmpty;
     if (!hasDescription) setState(() => _loadingDetail = true);
     final full = await context.read<HeritageProvider>().fetchSiteDetail(_site!.slug);
+    debugPrint('DBG _fetchFullDetail: full=$full gallery_after=${full is HeritageSiteModel ? full.gallery.length : "null"}');
+    if (full is HeritageSiteModel) {
+      for (final g in full.gallery) {
+        debugPrint('  gallery item id=${g.imageUrl.substring(g.imageUrl.length-20)} name="${g.name}"');
+      }
+    }
     if (mounted && full is HeritageSiteModel) {
       setState(() {
         _site = full;
@@ -60,14 +67,21 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     super.dispose();
   }
 
-  List<String> get _images {
+  // Hero carousel: cover image + gallery items with no title (main site photos)
+  List<String> get _carouselImages {
     final list = <String>[];
     if (_site!.imageUrl?.isNotEmpty == true) list.add(_site!.imageUrl!);
     for (final g in _site!.gallery) {
-      if (g.imageUrl.isNotEmpty && !list.contains(g.imageUrl)) list.add(g.imageUrl);
+      if (g.name.isEmpty && g.imageUrl.isNotEmpty && !list.contains(g.imageUrl)) {
+        list.add(g.imageUrl);
+      }
     }
     return list;
   }
+
+  // Gallery row: only sub-heritage items (those with a name/title)
+  List<SiteImageModel> get _galleryItems =>
+      _site!.gallery.where((g) => g.name.isNotEmpty).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +92,9 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     final size     = MediaQuery.of(context).size;
     final top      = MediaQuery.of(context).padding.top;
     final provider = context.watch<ProfileProvider>();
-    final images   = _images;
+    final images   = _carouselImages;
+    final gallery  = _galleryItems;
+    debugPrint('DBG build: images=${images.length} gallery=${gallery.length}');
     final cs       = Theme.of(context).colorScheme;
     final isDark   = cs.brightness == Brightness.dark;
 
@@ -107,37 +123,22 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                       itemBuilder: (_, i) => _netImg(images[i]),
                     ),
 
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.2),
-                        ],
+                  IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.5),
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.2),
+                          ],
+                        ),
                       ),
                     ),
                   ),
 
-                  if (images.length > 1)
-                    Positioned(
-                      bottom: 20, left: 0, right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(images.length, (i) => Container(
-                          width: 8, height: 8,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _carouselIndex == i
-                                ? AppColors.goldMain
-                                : Colors.white.withValues(alpha: 0.5),
-                          ),
-                        )),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -253,7 +254,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                             Text('Gallery',
                                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
                             const SizedBox(height: 10),
-                            if (_site!.gallery.isEmpty)
+                            if (gallery.isEmpty)
                               Row(children: [
                                 Icon(Icons.photo_library_outlined, size: 18,
                                     color: cs.onSurface.withValues(alpha: 0.35)),
@@ -266,9 +267,9 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                 height: 100,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: _site!.gallery.length,
+                                  itemCount: gallery.length,
                                   itemBuilder: (_, i) {
-                                    final img = _site!.gallery[i];
+                                    final img = gallery[i];
                                     return GestureDetector(
                                       onTap: () => Navigator.push(context, MaterialPageRoute(
                                         builder: (_) => _SubHeritageScreen(image: img, siteName: _site!.name),
@@ -342,6 +343,26 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                 ),
               ),
             ),
+
+            // ── Carousel dots (above card, below back button) ─────────────
+            if (images.length > 1)
+              Positioned(
+                top: size.height * 0.45 - 24,
+                left: 0, right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(images.length, (i) => Container(
+                    width: 8, height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _carouselIndex == i
+                          ? AppColors.goldMain
+                          : Colors.white.withValues(alpha: 0.5),
+                    ),
+                  )),
+                ),
+              ),
 
             // ── Back + Bookmark overlay ────────────────────────────────────
             Positioned(
