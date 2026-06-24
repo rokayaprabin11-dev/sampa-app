@@ -26,16 +26,15 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
   }
 
   Future<void> _loadSites() async {
-    final provider = context.read<HeritageProvider>();
+    final repo = context.read<HeritageProvider>().repository;
     final slug = widget.district.slug.isNotEmpty
         ? widget.district.slug
         : widget.district.name.toLowerCase();
-    await provider.fetchSites(district: slug, forceRemote: true);
-    if (mounted) {
-      setState(() {
-        _sites = provider.sites;
-        _loading = false;
-      });
+    try {
+      final results = await repo.getHeritageSites(district: slug);
+      if (mounted) setState(() { _sites = results; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _loading = false; });
     }
   }
 
