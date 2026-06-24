@@ -19,8 +19,6 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
   HeritageSiteModel? _site;
   bool _isInit = false;
   bool _loadingDetail = false;
-  bool _isDownloaded = false;
-  bool _downloading = false;
   int _carouselIndex = 0;
   bool _descExpanded = false;
   final PageController _pageController = PageController();
@@ -32,32 +30,18 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is HeritageSiteModel) {
         _site = args;
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<ProfileProvider>().addToVisitHistory(_site!.id);
           _fetchFullDetail();
-          final downloaded = await context.read<HeritageProvider>().isSiteDownloaded(_site!.id);
-          if (mounted) setState(() => _isDownloaded = downloaded);
         });
       }
       _isInit = true;
     }
   }
 
-  Future<void> _downloadSite() async {
-    if (_site == null) return;
-    setState(() => _downloading = true);
-    try {
-      await context.read<HeritageProvider>().downloadSite(_site!);
-      if (mounted) setState(() { _isDownloaded = true; _downloading = false; });
-    } catch (_) {
-      if (mounted) setState(() => _downloading = false);
-    }
-  }
-
   Future<void> _fetchFullDetail() async {
     if (_site == null || _site!.slug.isEmpty) return;
     final hasDescription = _site!.description.isNotEmpty;
-    // Only show spinner when description is missing (first-ever open)
     if (!hasDescription) setState(() => _loadingDetail = true);
     final full = await context.read<HeritageProvider>().fetchSiteDetail(_site!.slug);
     if (mounted && full is HeritageSiteModel) {
@@ -95,6 +79,8 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     final top      = MediaQuery.of(context).padding.top;
     final provider = context.watch<ProfileProvider>();
     final images   = _images;
+    final cs       = Theme.of(context).colorScheme;
+    final isDark   = cs.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -102,7 +88,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
         child: Stack(
           children: [
 
-            // ── Hero 48% — extends behind card corners ─────────────────────
+            // ── Hero 48% ──────────────────────────────────────────────────
             Positioned(
               top: 0, left: 0, right: 0,
               height: size.height * 0.48,
@@ -156,14 +142,14 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
               ),
             ),
 
-            // ── Card starts at 45% — corners overlap hero image ────────────
+            // ── Card at 45% ───────────────────────────────────────────────
             Positioned(
               top: size.height * 0.45,
               left: 0, right: 0, bottom: 0,
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                decoration: BoxDecoration(
+                  color: cs.surface,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,28 +163,28 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                         children: [
                           Text(
                             _site!.name.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF331609),
+                              color: cs.onSurface,
                               letterSpacing: 0.8,
                             ),
                           ),
                           const SizedBox(height: 8),
                           if (_site!.isUnesco) ...[
-                            _unescoTag(),
+                            _unescoTag(cs, isDark),
                             const SizedBox(height: 8),
                           ],
                           Row(children: [
-                            const Icon(Icons.location_on, color: Color(0xFF331609), size: 15),
+                            Icon(Icons.location_on, color: cs.onSurface, size: 15),
                             const SizedBox(width: 4),
                             Expanded(child: Text(
                               _site!.location,
-                              style: const TextStyle(color: Color(0xFF331609), fontSize: 13),
+                              style: TextStyle(color: cs.onSurface, fontSize: 13),
                             )),
                           ]),
                           const SizedBox(height: 12),
-                          const Divider(color: Color(0xFFF7EED3), thickness: 1.5),
+                          Divider(color: cs.outline, thickness: 1.5),
                         ],
                       ),
                     ),
@@ -210,8 +196,8 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('About this Site',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF331609))),
+                            Text('About this Site',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
                             const SizedBox(height: 8),
                             if (_loadingDetail)
                               const Padding(
@@ -222,7 +208,8 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                             else
                             LayoutBuilder(
                               builder: (context, constraints) {
-                                const style = TextStyle(color: Color(0xFF6B5041), fontSize: 14, height: 1.65);
+                                final bodyColor = cs.onSurface.withValues(alpha: 0.75);
+                                final style = TextStyle(color: bodyColor, fontSize: 14, height: 1.65);
                                 final desc = _site!.description.isNotEmpty
                                     ? _site!.description
                                     : 'No description available.';
@@ -263,16 +250,16 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                               },
                             ),
                             const SizedBox(height: 18),
-                            const Text('Gallery',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF331609))),
+                            Text('Gallery',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
                             const SizedBox(height: 10),
                             if (_site!.gallery.isEmpty)
                               Row(children: [
                                 Icon(Icons.photo_library_outlined, size: 18,
-                                    color: const Color(0xFF8C7162).withValues(alpha: 0.5)),
+                                    color: cs.onSurface.withValues(alpha: 0.35)),
                                 const SizedBox(width: 8),
-                                const Text('No sub heritage available',
-                                    style: TextStyle(color: Color(0xFF8C7162), fontSize: 13)),
+                                Text('No sub heritage available',
+                                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.55), fontSize: 13)),
                               ])
                             else
                               SizedBox(
@@ -292,12 +279,13 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                         clipBehavior: Clip.antiAlias,
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(14),
-                                          color: const Color(0xFFEEE4D8),
+                                          color: isDark ? AppColors.darkBgCard : const Color(0xFFEEE4D8),
                                         ),
                                         child: Stack(fit: StackFit.expand, children: [
                                           Image.network(img.imageUrl, fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => const Icon(
-                                                  Icons.broken_image_outlined, color: Color(0xFF8C7162))),
+                                              errorBuilder: (_, __, ___) => Icon(
+                                                  Icons.broken_image_outlined,
+                                                  color: cs.onSurface.withValues(alpha: 0.4))),
                                           Positioned(
                                             bottom: 0, left: 0, right: 0,
                                             child: Container(
@@ -323,9 +311,9 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                     // fixed footer
                     Container(
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        border: Border(top: BorderSide(color: Color(0xFFF7EED3))),
+                      decoration: BoxDecoration(
+                        color: cs.surface,
+                        border: Border(top: BorderSide(color: cs.outline)),
                       ),
                       child: SafeArea(
                         top: false,
@@ -333,11 +321,11 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Row(children: [
-                              Expanded(child: _actionBtn(Icons.map_outlined, 'View Map', () {
+                              Expanded(child: _actionBtn(Icons.map_outlined, 'View Map', cs, () {
                                 Navigator.pushNamed(context, AppStrings.mapPath, arguments: _site);
                               })),
                               const SizedBox(width: 12),
-                              Expanded(child: _actionBtn(Icons.near_me_outlined, 'Directions', () {})),
+                              Expanded(child: _actionBtn(Icons.near_me_outlined, 'Directions', cs, () {})),
                             ]),
                             const SizedBox(height: 8),
                             Row(mainAxisSize: MainAxisSize.min, children: [
@@ -419,38 +407,38 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
         ),
       );
 
-  Widget _unescoTag() => Container(
+  Widget _unescoTag(ColorScheme cs, bool isDark) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
     decoration: BoxDecoration(
-      color: const Color(0xFFFDF8E8),
+      color: isDark ? AppColors.darkBgCard : AppColors.goldSurface,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: const Color(0xFFF7EED3)),
+      border: Border.all(color: cs.outline),
     ),
     child: const Row(mainAxisSize: MainAxisSize.min, children: [
       Icon(Icons.emoji_events, color: Color(0xFFD4520A), size: 13),
       SizedBox(width: 5),
       Text('UNESCO Heritage',
-          style: TextStyle(color: Color(0xFFB48325), fontWeight: FontWeight.bold, fontSize: 11)),
+          style: TextStyle(color: AppColors.goldDark, fontWeight: FontWeight.bold, fontSize: 11)),
     ]),
   );
 
-  Widget _actionBtn(IconData icon, String label, VoidCallback onTap) =>
+  Widget _actionBtn(IconData icon, String label, ColorScheme cs, VoidCallback onTap) =>
       GestureDetector(
         onTap: onTap,
         child: Container(
           height: 46,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cs.surface,
             borderRadius: BorderRadius.circular(23),
-            border: Border.all(color: const Color(0xFFE0CEB0)),
+            border: Border.all(color: cs.outline),
             boxShadow: [BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
           ),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, color: const Color(0xFF331609), size: 16),
+            Icon(icon, color: cs.onSurface, size: 16),
             const SizedBox(width: 6),
-            Text(label, style: const TextStyle(
-                color: Color(0xFF331609), fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(label, style: TextStyle(
+                color: cs.onSurface, fontWeight: FontWeight.bold, fontSize: 13)),
           ]),
         ),
       );
@@ -478,6 +466,7 @@ class _SubHeritageScreen extends StatelessWidget {
     final size  = MediaQuery.of(context).size;
     final top   = MediaQuery.of(context).padding.top;
     final title = image.name.isNotEmpty ? image.name : (image.caption.isNotEmpty ? image.caption : siteName);
+    final cs    = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: const Color(0xFF7B1E00),
@@ -526,26 +515,26 @@ class _SubHeritageScreen extends StatelessWidget {
           ),
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(title.toUpperCase(),
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900,
-                          color: Color(0xFF331609), letterSpacing: 0.8)),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900,
+                          color: cs.onSurface, letterSpacing: 0.8)),
                   const SizedBox(height: 12),
-                  const Divider(color: Color(0xFFF7EED3), thickness: 1.5),
+                  Divider(color: cs.outline, thickness: 1.5),
                   const SizedBox(height: 12),
-                  const Text('About this Site',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF331609))),
+                  Text('About this Site',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
                   const SizedBox(height: 8),
                   Text(
                     image.description.isNotEmpty ? image.description
                         : (image.caption.isNotEmpty ? image.caption : 'No description available.'),
-                    style: const TextStyle(color: Color(0xFF6B5041), fontSize: 14, height: 1.65),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.75), fontSize: 14, height: 1.65),
                   ),
                 ]),
               ),
