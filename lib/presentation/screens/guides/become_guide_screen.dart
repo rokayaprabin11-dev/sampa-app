@@ -1,8 +1,12 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/network/api_client.dart';
+import 'package:sampada/core/network/api_endpoints.dart';
+import 'package:sampada/injection.dart' as di;
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/features/auth/presentation/providers/auth_provider.dart';
 
@@ -43,6 +47,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   final _emergencyController = TextEditingController();
   final _referralController  = TextEditingController();
   bool _confirmedAccuracy = false;
+  bool _isUploading = false;
 
   final _picker = ImagePicker();
 
@@ -86,6 +91,42 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     'Trekking Tours':    Icons.terrain,
     'Educational Tours': Icons.school_outlined,
   };
+
+  Future<String?> _uploadToCloudinary(XFile file, String folder) async {
+    final apiClient = di.sl<ApiClient>();
+    final sig = await apiClient.post(
+      ApiEndpoints.uploadSignature,
+      data: {'folder': folder},
+    ) as Map<String, dynamic>;
+
+    final bytes = await File(file.path).readAsBytes();
+    final ext   = file.name.split('.').last.toLowerCase();
+    final res   = await apiClient.dio.post<Map<String, dynamic>>(
+      'https://api.cloudinary.com/v1_1/${sig['cloud_name']}/image/upload',
+      data: {
+        'file':      'data:image/$ext;base64,${_b64(bytes)}',
+        'api_key':   sig['api_key'],
+        'timestamp': sig['timestamp'].toString(),
+        'signature': sig['signature'],
+        'folder':    sig['folder'],
+      },
+      options: Options(contentType: 'application/x-www-form-urlencoded'),
+    );
+    return res.data?['secure_url'] as String?;
+  }
+
+  String _b64(List<int> bytes) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    final out = StringBuffer();
+    for (var i = 0; i < bytes.length; i += 3) {
+      final b0 = bytes[i], b1 = i + 1 < bytes.length ? bytes[i + 1] : 0, b2 = i + 2 < bytes.length ? bytes[i + 2] : 0;
+      out.write(chars[(b0 >> 2) & 0x3F]);
+      out.write(chars[((b0 << 4) | (b1 >> 4)) & 0x3F]);
+      out.write(i + 1 < bytes.length ? chars[((b1 << 2) | (b2 >> 6)) & 0x3F] : '=');
+      out.write(i + 2 < bytes.length ? chars[b2 & 0x3F] : '=');
+    }
+    return out.toString();
+  }
 
   Future<void> _pickImage(void Function(XFile) onPicked) async {
     final file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
@@ -195,49 +236,74 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_confirmedAccuracy) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please confirm that the information is true and accurate.')),
-      );
-      return;
-    }
-
-    await context.read<GuideProvider>().applyAsGuide({
-      'bio':               _introController.text.trim(),
-      'languages':         _languages.toList(),
-      'specialties':       _specializations.toList(),
-      'areas':             _areas.toList(),
-      'tour_types':        _tourTypes.toList(),
-      'knowledge_level':   _knowledgeLevel,
-      'years_experience':  _yearsExperience,
-      'emergency_contact': _emergencyController.text.trim(),
-      'referral_code':     _referralController.text.trim(),
-      'hourly_rate':       2500.0,
-      'message': [
-        'Name: ${_fullNameController.text.trim()}',
-        'Phone: +977 ${_phoneController.text.trim()}',
-        'Email: ${_emailController.text.trim()}',
-        'Location: $_selectedLocation',
-        'Experience: $_yearsExperience',
-        'Languages: ${_languages.join(', ')}',
-        'Specializations: ${_specializations.join(', ')}',
-        'Areas: ${_areas.join(', ')}',
-        'Tour Types: ${_tourTypes.join(', ')}',
-        'Knowledge Level: $_knowledgeLevel',
-        'Bio: ${_introController.text.trim()}',
-      ].join('\n'),
-    });
-
-    if (!mounted) return;
+    setState(() => _isUploading = true);
     final gp = context.read<GuideProvider>();
-    if (gp.error == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Application submitted! You\'ll be notified within 1–2 business days.')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(gp.error!), backgroundColor: Colors.red),
-      );
+    try {
+      // Upload all images to Cloudinary concurrently
+      final results = await Future.wait([
+        _pickedProfilePhoto != null
+            ? _uploadToCloudinary(_pickedProfilePhoto!, 'sampada/guides/photos')
+            : Future.value(_existingPhotoUrl),
+        _uploadToCloudinary(_idFront!, 'sampada/guides/id'),
+        _uploadToCloudinary(_idBack!,  'sampada/guides/id'),
+        _certification != null
+            ? _uploadToCloudinary(_certification!, 'sampada/guides/certs')
+            : Future.value(null),
+      ]);
+
+      final photoUrl   = results[0];
+      final idFrontUrl = results[1];
+      final idBackUrl  = results[2];
+      final certUrl    = results[3];
+
+      await gp.applyAsGuide({
+        'bio':               _introController.text.trim(),
+        'languages':         _languages.toList(),
+        'specialties':       _specializations.toList(),
+        'areas':             _areas.toList(),
+        'tour_types':        _tourTypes.toList(),
+        'knowledge_level':   _knowledgeLevel,
+        'years_experience':  _yearsExperience,
+        'emergency_contact': _emergencyController.text.trim(),
+        'referral_code':     _referralController.text.trim(),
+        'hourly_rate':       2500.0,
+        if (photoUrl   != null) 'photo_url':        photoUrl,
+        if (idFrontUrl != null) 'id_front_url':     idFrontUrl,
+        if (idBackUrl  != null) 'id_back_url':      idBackUrl,
+        if (certUrl    != null) 'certification_url': certUrl,
+        'message': [
+          'Name: ${_fullNameController.text.trim()}',
+          'Phone: +977 ${_phoneController.text.trim()}',
+          'Email: ${_emailController.text.trim()}',
+          'Location: $_selectedLocation',
+          'Experience: $_yearsExperience',
+          'Languages: ${_languages.join(', ')}',
+          'Specializations: ${_specializations.join(', ')}',
+          'Areas: ${_areas.join(', ')}',
+          'Tour Types: ${_tourTypes.join(', ')}',
+          'Knowledge Level: $_knowledgeLevel',
+          'Bio: ${_introController.text.trim()}',
+        ].join('\n'),
+      });
+
+      if (!mounted) return;
+      if (gp.error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Application submitted! You\'ll be notified within 1–2 business days.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(gp.error!), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
@@ -269,13 +335,13 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: gp.isLoading ? null : _nextStep,
+                      onPressed: gp.isLoading || _isUploading ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
                         foregroundColor: isDark ? Colors.black : Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: gp.isLoading
+                      child: gp.isLoading || _isUploading
                           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
