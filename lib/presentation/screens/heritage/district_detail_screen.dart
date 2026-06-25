@@ -100,21 +100,19 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                   ),
                 ),
                 // Nav buttons
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.near_me_outlined, color: Colors.white),
-                          onPressed: () {},
-                        ),
-                      ],
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _NavBtn(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -315,6 +313,28 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
   }
 }
 
+class _NavBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _NavBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.35),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
+}
+
 class _SiteListTile extends StatelessWidget {
   final HeritageSite site;
   const _SiteListTile({required this.site});
@@ -328,6 +348,14 @@ class _SiteListTile extends StatelessWidget {
       default: return Icons.museum;
     }
   }
+
+  Widget _iconPlaceholder(bool isDark) => Container(
+    width: 56,
+    height: 56,
+    color: isDark ? AppColors.darkBgPage : const Color(0xFFF5EFEC),
+    child: Icon(_icon(site.category),
+        color: isDark ? AppColors.goldMain : const Color(0xFF5C4033), size: 22),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -359,18 +387,17 @@ class _SiteListTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkBgPage : const Color(0xFFF5EFEC),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                _icon(site.category),
-                color: isDark ? AppColors.goldMain : const Color(0xFF5C4033),
-                size: 22,
-              ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: site.imageUrl != null && site.imageUrl!.isNotEmpty
+                  ? Image.network(
+                      site.imageUrl!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _iconPlaceholder(isDark),
+                    )
+                  : _iconPlaceholder(isDark),
             ),
             const SizedBox(width: 12),
             Expanded(

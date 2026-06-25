@@ -146,25 +146,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 48),
 
-            // --- Categories ---
-            SizedBox(
-              height: 45,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                children: [
-                  l10n.all,
-                  l10n.temples,
-                  l10n.stupas,
-                  l10n.palaces,
-                  l10n.monuments
-                ].map((cat) => CategoryChip(
-                  label: cat,
-                  isSelected: _selectedCategory == cat || (_selectedCategory == 'All' && cat == l10n.all),
-                  onTap: () => setState(() => _selectedCategory = cat),
-                  isDesignStyle: true,
-                )).toList(),
-              ),
+            // --- Categories (only show categories with actual sites) ---
+            Consumer<HeritageProvider>(
+              builder: (context, hp, _) {
+                final siteCategories = hp.sites.map((s) => s.category.toLowerCase()).toSet();
+                const slugMap = {
+                  'temple': 'temples', 'stupa': 'stupas',
+                  'palace': 'palaces', 'monastery': 'monasteries',
+                  'monument': 'monuments', 'lake': 'lakes',
+                };
+                final allCats = <String>[l10n.all];
+                final candidates = [
+                  (l10n.temples,   'temple'),
+                  (l10n.stupas,    'stupa'),
+                  (l10n.palaces,   'palace'),
+                  (l10n.monuments, 'monument'),
+                ];
+                for (final (label, slug) in candidates) {
+                  if (siteCategories.any((c) => c == slug || slugMap[c] == slug || c.startsWith(slug))) {
+                    allCats.add(label);
+                  }
+                }
+                return SizedBox(
+                  height: 45,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    children: allCats.map((cat) => CategoryChip(
+                      label: cat,
+                      isSelected: _selectedCategory == cat || (_selectedCategory == 'All' && cat == l10n.all),
+                      onTap: () => setState(() => _selectedCategory = cat),
+                      isDesignStyle: true,
+                    )).toList(),
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 32),
