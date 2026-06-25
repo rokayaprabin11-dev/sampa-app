@@ -1,9 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/features/auth/presentation/providers/auth_provider.dart';
-import 'guide_terms_screen.dart';
 
 class BecomeGuideScreen extends StatefulWidget {
   const BecomeGuideScreen({super.key});
@@ -13,53 +14,123 @@ class BecomeGuideScreen extends StatefulWidget {
 }
 
 class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
-  final _fullNameController    = TextEditingController();
-  final _phoneController       = TextEditingController();
-  final _locationController    = TextEditingController();
-  final _bioController         = TextEditingController();
-  final _yearsController       = TextEditingController();
-  final _halfDayController     = TextEditingController();
-  final _fullDayController     = TextEditingController();
+  int _step = 0;
 
-  final Set<String> _languages       = {'Nepali', 'English'};
+  // Step 1 – Personal Details
+  final _fullNameController   = TextEditingController();
+  final _phoneController      = TextEditingController();
+  final _emailController      = TextEditingController();
+  final _introController      = TextEditingController();
+  String _selectedLocation    = 'Kathmandu';
+  DateTime? _dateOfBirth;
+  final Set<String> _languages = {'Nepali', 'English'};
+
+  // Step 2 – Expertise
   final Set<String> _specializations = {'Temples', 'Stupas'};
-  bool _agreedToTerms = false;
-  bool _submitted = false;
+  String _yearsExperience = '3 – 5 years';
+  final Set<String> _areas     = {'Kathmandu', 'Lalitpur', 'Bhaktapur'};
+  final Set<String> _tourTypes = {'Walking Tours', 'Heritage Tours', 'Cultural Tours'};
+  String _knowledgeLevel = 'Expert';
 
-  static const _allLanguages = ['Nepali', 'English', 'Hindi', 'Tibetan', 'Chinese', 'Japanese'];
+  // Profile photo (step 1)
+  String? _existingPhotoUrl;
+  XFile? _pickedProfilePhoto;
+
+  // Step 3 – Verify
+  XFile? _idFront;
+  XFile? _idBack;
+  XFile? _certification;
+  final _emergencyController = TextEditingController();
+  final _referralController  = TextEditingController();
+  bool _confirmedAccuracy = false;
+
+  final _picker = ImagePicker();
+
+  static const _allLanguages = ['Nepali', 'English', 'Hindi', 'Chinese', 'Japanese'];
   static const _allSpecializations = [
-    'Temples', 'Stupas', 'Palaces', 'Durbar Squares',
-    'Newari Culture', 'Trekking', 'Photography', 'Buddhism',
+    'Heritage Sites', 'Temples', 'Stupas', 'Durbar Squares',
+    'Museums', 'Newari Culture', 'Festivals & Rituals', 'Local Food & Cuisine',
   ];
+  static const _allAreas = [
+    'Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Lumbini', 'Mustang', 'Everest Region',
+  ];
+  static const _allTourTypes = [
+    'Walking Tours', 'Heritage Tours', 'Cultural Tours', 'Food Tours',
+    'Photography Tours', 'Trekking Tours', 'Educational Tours',
+  ];
+  static const _locations = [
+    'Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Chitwan', 'Lumbini', 'Mustang',
+  ];
+  static const _experienceLevels = [
+    'Less than 1 year', '1 – 2 years', '3 – 5 years', '5 – 10 years', '10+ years',
+  ];
+  static const _knowledgeLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+
+  static const Map<String, IconData> _specIcons = {
+    'Heritage Sites':       Icons.account_balance,
+    'Temples':              Icons.temple_hindu,
+    'Stupas':               Icons.account_balance_wallet,
+    'Durbar Squares':       Icons.location_city,
+    'Museums':              Icons.museum,
+    'Newari Culture':       Icons.people_outline,
+    'Festivals & Rituals':  Icons.celebration_outlined,
+    'Local Food & Cuisine': Icons.restaurant_outlined,
+  };
+
+  static const Map<String, IconData> _tourIcons = {
+    'Walking Tours':     Icons.directions_walk,
+    'Heritage Tours':    Icons.account_balance,
+    'Cultural Tours':    Icons.palette_outlined,
+    'Food Tours':        Icons.restaurant_outlined,
+    'Photography Tours': Icons.camera_alt_outlined,
+    'Trekking Tours':    Icons.terrain,
+    'Educational Tours': Icons.school_outlined,
+  };
+
+  Future<void> _pickImage(void Function(XFile) onPicked) async {
+    final file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (file == null) return;
+
+    // 5 MB size check
+    final bytes = await file.length();
+    if (bytes > 5 * 1024 * 1024) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('File must be 5 MB or less.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // Type check: jpg / jpeg / png only
+    final ext = file.name.split('.').last.toLowerCase();
+    if (!['jpg', 'jpeg', 'png'].contains(ext)) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Only JPG or PNG files are allowed.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    setState(() => onPicked(file));
+  }
 
   @override
   void initState() {
     super.initState();
     final user = context.read<AuthProvider>().user;
     _fullNameController.text = user?.displayName ?? '';
+    _emailController.text    = user?.email ?? '';
+    _existingPhotoUrl        = user?.photoURL;
 
-    // Check if already applied
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gp = context.read<GuideProvider>();
       await gp.fetchMyProfile();
-      if (mounted && gp.myProfile != null) {
-        final p = gp.myProfile!;
-        _bioController.text = p['bio'] ?? '';
-        final langs = p['languages'];
-        if (langs is List) {
-          _languages.clear();
-          _languages.addAll(langs.cast<String>());
-        }
-        final specs = p['specialties'];
-        if (specs is List) {
-          _specializations.clear();
-          _specializations.addAll(specs.cast<String>());
-        }
-        if (p['hourly_rate'] != null) {
-          _halfDayController.text = p['hourly_rate'].toString();
-        }
-        setState(() => _submitted = p['status'] != null);
-      }
+      if (!mounted || gp.myProfile == null) return;
+      final p = gp.myProfile!;
+      _introController.text = p['bio'] ?? '';
+      final langs = p['languages'];
+      if (langs is List) { _languages.clear(); _languages.addAll(langs.cast<String>()); }
+      final specs = p['specialties'];
+      if (specs is List) { _specializations.clear(); _specializations.addAll(specs.cast<String>()); }
+      setState(() {});
     });
   }
 
@@ -67,58 +138,101 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   void dispose() {
     _fullNameController.dispose();
     _phoneController.dispose();
-    _locationController.dispose();
-    _bioController.dispose();
-    _yearsController.dispose();
-    _halfDayController.dispose();
-    _fullDayController.dispose();
+    _emailController.dispose();
+    _introController.dispose();
+    _emergencyController.dispose();
+    _referralController.dispose();
     super.dispose();
   }
 
+  void _nextStep() {
+    final error = _validateStep(_step);
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+      return;
+    }
+    if (_step < 2) {
+      setState(() => _step++);
+    } else {
+      _submit();
+    }
+  }
+
+  String? _validateStep(int step) {
+    switch (step) {
+      case 0:
+        if (_existingPhotoUrl == null && _pickedProfilePhoto == null) return 'Upload a profile photo.';
+        if (_fullNameController.text.trim().isEmpty) return 'Enter your full name.';
+        if (_phoneController.text.trim().isEmpty)    return 'Enter your phone number.';
+        if (!RegExp(r'^\d{10}$').hasMatch(_phoneController.text.trim())) return 'Phone number must be 10 digits.';
+        if (_emailController.text.trim().isEmpty) return 'Enter your email address.';
+        if (!RegExp(r'^\S+@\S+\.\S+$').hasMatch(_emailController.text.trim())) return 'Enter a valid email address.';
+        if (_dateOfBirth == null) return 'Select your date of birth.';
+        if (_dateOfBirth!.isAfter(DateTime.now())) return 'Birthdate cannot be in the future.';
+        if (DateTime.now().difference(_dateOfBirth!).inDays < 365 * 18) return 'You must be at least 18 years old.';
+        if (_languages.isEmpty)                      return 'Select at least one language.';
+        if (_introController.text.trim().isEmpty)    return 'Write a short introduction.';
+        return null;
+      case 1:
+        if (_specializations.isEmpty) return 'Select at least one specialization.';
+        if (_areas.isEmpty)           return 'Select at least one area you guide in.';
+        if (_tourTypes.isEmpty)       return 'Select at least one tour type.';
+        return null;
+      case 2:
+        if (_idFront == null) return 'Upload government ID front side.';
+        if (_idBack == null)  return 'Upload government ID back side.';
+        if (_emergencyController.text.trim().isEmpty) return 'Enter emergency contact number.';
+        if (!RegExp(r'^\d{10}$').hasMatch(_emergencyController.text.trim())) return 'Emergency contact must be 10 digits.';
+        if (!_confirmedAccuracy) return 'Confirm that the information is true and accurate.';
+        return null;
+    }
+    return null;
+  }
+
+  void _prevStep() {
+    if (_step > 0) setState(() => _step--);
+    else Navigator.pop(context);
+  }
+
   Future<void> _submit() async {
-    if (!_agreedToTerms) {
+    if (!_confirmedAccuracy) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please agree to the Terms & Code of Conduct.')),
+        const SnackBar(content: Text('Please confirm that the information is true and accurate.')),
       );
       return;
     }
-    if (_bioController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please write a guide bio.')),
-      );
-      return;
-    }
-
-    final message = '''
-Name: ${_fullNameController.text.trim()}
-Phone: ${_phoneController.text.trim()}
-Location: ${_locationController.text.trim()}
-Experience: ${_yearsController.text.trim()} years
-Languages: ${_languages.join(', ')}
-Specializations: ${_specializations.join(', ')}
-Half Day Rate (NPR): ${_halfDayController.text.trim()}
-Full Day Rate (NPR): ${_fullDayController.text.trim()}
-
-Bio:
-${_bioController.text.trim()}
-'''.trim();
-
-    final hourly = double.tryParse(_halfDayController.text.trim().replaceAll(',', ''));
 
     await context.read<GuideProvider>().applyAsGuide({
-      'message': message,
-      'bio': _bioController.text.trim(),
-      'languages': _languages.toList(),
-      'specialties': _specializations.toList(),
-      if (hourly != null) 'hourly_rate': hourly,
+      'bio':               _introController.text.trim(),
+      'languages':         _languages.toList(),
+      'specialties':       _specializations.toList(),
+      'areas':             _areas.toList(),
+      'tour_types':        _tourTypes.toList(),
+      'knowledge_level':   _knowledgeLevel,
+      'years_experience':  _yearsExperience,
+      'emergency_contact': _emergencyController.text.trim(),
+      'referral_code':     _referralController.text.trim(),
+      'hourly_rate':       2500.0,
+      'message': [
+        'Name: ${_fullNameController.text.trim()}',
+        'Phone: +977 ${_phoneController.text.trim()}',
+        'Email: ${_emailController.text.trim()}',
+        'Location: $_selectedLocation',
+        'Experience: $_yearsExperience',
+        'Languages: ${_languages.join(', ')}',
+        'Specializations: ${_specializations.join(', ')}',
+        'Areas: ${_areas.join(', ')}',
+        'Tour Types: ${_tourTypes.join(', ')}',
+        'Knowledge Level: $_knowledgeLevel',
+        'Bio: ${_introController.text.trim()}',
+      ].join('\n'),
     });
 
     if (!mounted) return;
     final gp = context.read<GuideProvider>();
     if (gp.error == null) {
-      setState(() => _submitted = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Application submitted! You\'ll be notified within 3–5 business days.')),
+        const SnackBar(content: Text('Application submitted! You\'ll be notified within 1–2 business days.')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -127,214 +241,35 @@ ${_bioController.text.trim()}
     }
   }
 
+  // ─── Build ────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final size  = MediaQuery.of(context).size;
+    final size   = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final gp    = context.watch<GuideProvider>();
+    final gp     = context.watch<GuideProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          // Header
-          Stack(
-            children: [
-              Container(
-                height: size.height * 0.15,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
-                      isDark ? AppColors.brownDark : const Color(0xFF9E3D1A),
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
-                ),
-              ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 16),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Become a Guide', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                          Text('Share your heritage knowledge', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-
+          _buildHeader(context, isDark, size),
+          _buildStepIndicator(context, isDark),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Info bar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Join verified guides', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                          Text('Earn from sharing Nepal\'s\nliving heritage', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey)),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
-                          borderRadius: BorderRadius.circular(20),
-                          border: isDark ? Border.all(color: AppColors.darkBorder) : null,
-                        ),
-                        child: Text(
-                          'NPR 2,500 / day avg',
-                          style: TextStyle(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), fontWeight: FontWeight.bold, fontSize: 11),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Already applied banner
-                  if (_submitted) ...[
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1B3A26) : const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: isDark ? const Color(0xFF2E7D32) : const Color(0xFF3DA35D)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.check_circle, color: Color(0xFF3DA35D)),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Application Submitted', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF3DA35D))),
-                                Text(
-                                  gp.myProfile?['status'] == 'approved'
-                                      ? 'Your guide profile is active!'
-                                      : 'Under review. You\'ll be notified via push notification.',
-                                  style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 32),
-
-                  // Personal Details
-                  _sectionHeader(context, isDark, 'Personal Details'),
-                  const SizedBox(height: 16),
-                  _field(context, isDark, 'Full Name', 'Enter your full name', _fullNameController),
-                  const SizedBox(height: 16),
-                  _field(context, isDark, 'Phone Number', '+977-XXXXXXXXXX', _phoneController, type: TextInputType.phone),
-                  const SizedBox(height: 16),
-                  _field(context, isDark, 'Location / District', 'e.g. Kathmandu', _locationController),
-                  const SizedBox(height: 16),
-
-                  Text('Languages Spoken', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: [
-                      ..._allLanguages.map((l) => _chip(context, isDark, l, _languages.contains(l), () => setState(() => _languages.contains(l) ? _languages.remove(l) : _languages.add(l)))),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Expertise
-                  _sectionHeader(context, isDark, 'Guide Expertise'),
-                  const SizedBox(height: 16),
-                  Text('Specializations', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: [
-                      ..._allSpecializations.map((s) => _chip(context, isDark, s, _specializations.contains(s), () => setState(() => _specializations.contains(s) ? _specializations.remove(s) : _specializations.add(s)))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _field(context, isDark, 'Years of Experience', 'e.g. 3', _yearsController, type: TextInputType.number),
-                  const SizedBox(height: 16),
-                  _field(context, isDark, 'Guide Bio', 'Describe your experience with Nepal\'s heritage...', _bioController, maxLines: 4),
-
+                  if (_step == 0) _buildStep1(context, isDark),
+                  if (_step == 1) _buildStep2(context, isDark),
+                  if (_step == 2) _buildStep3(context, isDark),
                   const SizedBox(height: 24),
-                  Text('Pricing (NPR)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(child: _field(context, isDark, 'Half Day', '2,500', _halfDayController, type: TextInputType.number)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _field(context, isDark, 'Full Day', '3,000–6,000', _fullDayController, type: TextInputType.number)),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Terms
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _agreedToTerms,
-                        onChanged: (v) => setState(() => _agreedToTerms = v ?? false),
-                        activeColor: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
-                        side: isDark ? BorderSide(color: AppColors.darkBorder) : null,
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GuideTermsScreen())),
-                          child: Text.rich(
-                            TextSpan(
-                              text: 'I agree to ',
-                              children: [
-                                TextSpan(
-                                  text: 'Sampada\'s Guide Terms & Code of Conduct',
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), decoration: TextDecoration.underline),
-                                ),
-                              ],
-                            ),
-                            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: gp.isLoading ? null : _submit,
+                      onPressed: gp.isLoading ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
                         foregroundColor: isDark ? Colors.black : Colors.white,
@@ -342,19 +277,21 @@ ${_bioController.text.trim()}
                       ),
                       child: gp.isLoading
                           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Text(_submitted ? 'Update Application' : 'Submit Guide Application', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _step == 2 ? 'Submit for Review' : 'Save & Continue',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(_step == 2 ? Icons.send_outlined : Icons.arrow_forward, size: 18),
+                              ],
+                            ),
                     ),
                   ),
-
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Column(
-                      children: [
-                        Text('Applications reviewed within 3–5 business days.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
-                        Text('You will be notified via push notification.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 20),
+                  _buildFooter(context, isDark),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -365,13 +302,533 @@ ${_bioController.text.trim()}
     );
   }
 
-  Widget _sectionHeader(BuildContext context, bool isDark, String title) {
+  Widget _buildHeader(BuildContext context, bool isDark, Size size) {
+    return Stack(
+      children: [
+        Container(
+          height: size.height * 0.14,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
+                isDark ? AppColors.brownDark : const Color(0xFF9E3D1A),
+              ],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                  onPressed: _prevStep,
+                ),
+                const SizedBox(width: 8),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Become a Guide', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                    Text('Share your heritage knowledge', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepIndicator(BuildContext context, bool isDark) {
+    const steps = ['Profile', 'Expertise', 'Verify'];
+    final activeColor = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final inactiveColor = isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        children: List.generate(steps.length * 2 - 1, (i) {
+          if (i.isOdd) {
+            final stepIndex = i ~/ 2;
+            return Expanded(
+              child: Container(height: 2, color: _step > stepIndex ? activeColor : inactiveColor),
+            );
+          }
+          final stepIndex = i ~/ 2;
+          final isActive    = _step == stepIndex;
+          final isCompleted = _step > stepIndex;
+          return Column(
+            children: [
+              Container(
+                width: 32, height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: (isActive || isCompleted) ? activeColor : Colors.transparent,
+                  border: Border.all(
+                    color: (isActive || isCompleted) ? activeColor : inactiveColor,
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: isCompleted
+                      ? Icon(Icons.check, size: 16, color: isDark ? Colors.black : Colors.white)
+                      : Text(
+                          '${stepIndex + 1}',
+                          style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.bold,
+                            color: isActive
+                                ? (isDark ? Colors.black : Colors.white)
+                                : (isDark ? AppColors.darkTextTertiary : Colors.grey),
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                steps[stepIndex],
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  color: isActive ? activeColor : (isDark ? AppColors.darkTextTertiary : Colors.grey),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ─── Step 1: Personal Details ─────────────────────────────────
+
+  Widget _buildStep1(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _infoBar(context, isDark),
+        const SizedBox(height: 24),
+
+        // Profile photo
+        Center(
+          child: GestureDetector(
+            onTap: () => _pickImage((f) => _pickedProfilePhoto = f),
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 48,
+                  backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFFF0EAE4),
+                  backgroundImage: _pickedProfilePhoto != null
+                      ? FileImage(File(_pickedProfilePhoto!.path))
+                      : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
+                  child: (_pickedProfilePhoto == null && _existingPhotoUrl == null)
+                      ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : Colors.grey[400])
+                      : null,
+                ),
+                Positioned(
+                  bottom: 0, right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.camera_alt, size: 16, color: isDark ? Colors.black : Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        _field(context, isDark, 'Full Name', 'Enter your full name', _fullNameController),
+        const SizedBox(height: 16),
+
+        _label(context, isDark, 'Phone Number'),
+        const SizedBox(height: 8),
+        _phoneRow(context, isDark, _phoneController, '98XXXXXXXX'),
+        const SizedBox(height: 16),
+
+        _field(context, isDark, 'Email Address', 'your@email.com', _emailController, type: TextInputType.emailAddress),
+        const SizedBox(height: 16),
+
+        _label(context, isDark, 'Location / District'),
+        const SizedBox(height: 8),
+        _dropdown(context, isDark, _selectedLocation, _locations, (v) => setState(() => _selectedLocation = v!)),
+        const SizedBox(height: 16),
+
+        _label(context, isDark, 'Date of Birth'),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _dateOfBirth ?? DateTime(1995),
+              firstDate: DateTime(1940),
+              lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+            );
+            if (picked != null) setState(() => _dateOfBirth = picked);
+          },
+          child: _dateTile(context, isDark),
+        ),
+        const SizedBox(height: 24),
+
+        _secHeader(context, isDark, 'Languages Spoken', Icons.language),
+        const SizedBox(height: 4),
+        Text('Select all that apply', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8, runSpacing: 8,
+          children: [
+            ..._allLanguages.map((l) => _chip(
+              context, isDark, l, _languages.contains(l),
+              () => setState(() => _languages.contains(l) ? _languages.remove(l) : _languages.add(l)),
+              showCheck: true,
+            )),
+            _outlineChip(context, isDark, '+ Add Other'),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        _secHeader(context, isDark, 'Short Introduction', Icons.edit_outlined),
+        const SizedBox(height: 4),
+        Text(
+          'Tell us a little about yourself and your passion for heritage.',
+          style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _introController,
+          maxLines: 4,
+          maxLength: 300,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+          decoration: _inputDecor(isDark, 'Write a short introduction...').copyWith(
+            counterStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 11),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Step 2: Guide Expertise ──────────────────────────────────
+
+  Widget _buildStep2(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _infoBar(context, isDark),
+        const SizedBox(height: 24),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.star_outline, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Guide Expertise', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                  Text('Tell us about your knowledge and experience.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Primary Specialization
+        _rowLabel(context, isDark, 'Primary Specialization', '(Select up to 3)'),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8, runSpacing: 8,
+          children: [
+            ..._allSpecializations.map((s) {
+              final sel = _specializations.contains(s);
+              return _iconChip(context, isDark, s, _specIcons[s] ?? Icons.place, sel, () {
+                setState(() {
+                  if (sel) _specializations.remove(s);
+                  else if (_specializations.length < 3) _specializations.add(s);
+                });
+              });
+            }),
+            _outlineChip(context, isDark, '+ More'),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        Text('Years of Experience', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        const SizedBox(height: 8),
+        _dropdown(context, isDark, _yearsExperience, _experienceLevels,
+            (v) => setState(() => _yearsExperience = v!), prefixIcon: Icons.bar_chart),
+        const SizedBox(height: 24),
+
+        _rowLabel(context, isDark, 'Areas You Guide In', '(Select all that apply)'),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8, runSpacing: 8,
+          children: [
+            ..._allAreas.map((a) => _iconChip(
+              context, isDark, a, Icons.location_on_outlined, _areas.contains(a),
+              () => setState(() => _areas.contains(a) ? _areas.remove(a) : _areas.add(a)),
+            )),
+            _outlineChip(context, isDark, '+ Other'),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        _rowLabel(context, isDark, 'Tour Types', '(Select all that apply)'),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8, runSpacing: 8,
+          children: _allTourTypes.map((t) => _iconChip(
+            context, isDark, t, _tourIcons[t] ?? Icons.tour, _tourTypes.contains(t),
+            () => setState(() => _tourTypes.contains(t) ? _tourTypes.remove(t) : _tourTypes.add(t)),
+          )).toList(),
+        ),
+        const SizedBox(height: 24),
+
+        Text('Knowledge Level', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        const SizedBox(height: 8),
+        _dropdown(context, isDark, _knowledgeLevel, _knowledgeLevels,
+            (v) => setState(() => _knowledgeLevel = v!), prefixIcon: Icons.bar_chart),
+      ],
+    );
+  }
+
+  // ─── Step 3: Verification ─────────────────────────────────────
+
+  Widget _buildStep3(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _infoBar(context, isDark),
+        const SizedBox(height: 24),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.shield_outlined, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Verification', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                  Text('Help us verify your identity to build trust with travelers.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        Text('Government ID', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        const SizedBox(height: 4),
+        Text('Upload a clear photo of your government ID.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: _uploadBox(context, isDark, 'Upload ID Front Side', Icons.credit_card, _idFront != null, () => _pickImage((f) => _idFront = f))),
+            const SizedBox(width: 12),
+            Expanded(child: _uploadBox(context, isDark, 'Upload ID Back Side', Icons.credit_card_outlined, _idBack != null, () => _pickImage((f) => _idBack = f))),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        Text('Profile Photo', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        const SizedBox(height: 4),
+        Text('Preview from your profile.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        const SizedBox(height: 12),
+        Center(
+          child: CircleAvatar(
+            radius: 48,
+            backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFFF0EAE4),
+            backgroundImage: _pickedProfilePhoto != null
+                ? FileImage(File(_pickedProfilePhoto!.path))
+                : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
+            child: (_pickedProfilePhoto == null && _existingPhotoUrl == null)
+                ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : Colors.grey[400])
+                : null,
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        Row(
+          children: [
+            Text('Certification', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+            const SizedBox(width: 6),
+            Text('(Optional)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text('Upload any guiding license or certification.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        const SizedBox(height: 12),
+        _uploadBox(context, isDark, 'Upload Certificate', Icons.workspace_premium_outlined, _certification != null, () => _pickImage((f) => _certification = f)),
+        const SizedBox(height: 24),
+
+        Text('Additional Information', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        const SizedBox(height: 16),
+
+        _label(context, isDark, 'Emergency Contact Number'),
+        const SizedBox(height: 8),
+        _phoneRow(context, isDark, _emergencyController, '98XXXXXXXX'),
+        const SizedBox(height: 16),
+
+        _field(context, isDark, 'Referral Code (Optional)', 'Enter referral code (if any)', _referralController),
+        const SizedBox(height: 24),
+
+        GestureDetector(
+          onTap: () => setState(() => _confirmedAccuracy = !_confirmedAccuracy),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 20, height: 20,
+                margin: const EdgeInsets.only(top: 1),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: _confirmedAccuracy
+                        ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
+                        : (isDark ? AppColors.darkBorder : Colors.grey),
+                  ),
+                  color: _confirmedAccuracy
+                      ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
+                      : Colors.transparent,
+                ),
+                child: _confirmedAccuracy
+                    ? Icon(Icons.check, size: 14, color: isDark ? Colors.black : Colors.white)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'I confirm that the information provided is true and accurate.',
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Shared Widgets ───────────────────────────────────────────
+
+  Widget _infoBar(BuildContext context, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+              child: Icon(Icons.people_outline, size: 16, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Join 248 verified guides', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                Text('Earn from sharing Nepal\'s living heritage', style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : Colors.grey)),
+              ],
+            ),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+            borderRadius: BorderRadius.circular(20),
+            border: isDark ? Border.all(color: AppColors.darkBorder) : null,
+          ),
+          child: Text(
+            'NPR 2,500 / day avg',
+            style: TextStyle(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), fontWeight: FontWeight.bold, fontSize: 11),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter(BuildContext context, bool isDark) {
+    const data = [
+      (Icons.list_alt_outlined, 'What happens next?', 'Our team will review your application and verify your details.'),
+      (Icons.access_time_outlined, 'What happens next?', 'You\'ll be notified within 1 – 2 business days via email or app.'),
+      (Icons.bookmark_outline, 'What happens next?', 'Once approved, you can start receiving bookings and earning!'),
+    ];
+    final (icon, title, body) = data[_step];
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+        borderRadius: BorderRadius.circular(12),
+        border: isDark ? Border.all(color: AppColors.darkBorder) : null,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                Text(body, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : Colors.grey)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _secHeader(BuildContext context, bool isDark, String title, IconData icon) {
     return Row(
       children: [
-        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF8C7162), letterSpacing: 0.5)),
-        const SizedBox(width: 16),
-        Expanded(child: Divider(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+        Icon(icon, size: 18, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+        const SizedBox(width: 8),
+        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
       ],
+    );
+  }
+
+  Widget _rowLabel(BuildContext context, bool isDark, String main, String sub) {
+    return Row(
+      children: [
+        Text(main, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        const SizedBox(width: 6),
+        Text(sub, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+      ],
+    );
+  }
+
+  Widget _label(BuildContext context, bool isDark, String text) {
+    return Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : Colors.grey));
+  }
+
+  InputDecoration _inputDecor(bool isDark, String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      filled: isDark,
+      fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
+      border:        OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
     );
   }
 
@@ -379,47 +836,221 @@ ${_bioController.text.trim()}
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        _label(context, isDark, label),
         const SizedBox(height: 8),
         TextField(
           controller: ctrl,
           maxLines: maxLines,
           keyboardType: type,
           style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            filled: isDark,
-            fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
+          decoration: _inputDecor(isDark, hint),
+        ),
+      ],
+    );
+  }
+
+  Widget _phoneRow(BuildContext context, bool isDark, TextEditingController ctrl, String hint) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+          decoration: BoxDecoration(
+            border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+            borderRadius: BorderRadius.circular(12),
+            color: isDark ? AppColors.darkBgCard : Colors.transparent,
+          ),
+          child: Row(
+            children: [
+              Text('+977', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
+              const SizedBox(width: 4),
+              Icon(Icons.arrow_drop_down, size: 16, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextField(
+            controller: ctrl,
+            keyboardType: TextInputType.phone,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+            decoration: _inputDecor(isDark, hint),
           ),
         ),
       ],
     );
   }
 
-  Widget _chip(BuildContext context, bool isDark, String label, bool selected, VoidCallback onTap) {
+  Widget _dateTile(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      decoration: BoxDecoration(
+        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+        borderRadius: BorderRadius.circular(12),
+        color: isDark ? AppColors.darkBgCard : Colors.transparent,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.calendar_today_outlined, size: 16, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+          const SizedBox(width: 8),
+          Text(
+            _dateOfBirth != null
+                ? '${_dateOfBirth!.year}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}'
+                : 'Select your date of birth',
+            style: TextStyle(
+              fontSize: 14,
+              color: _dateOfBirth != null
+                  ? Theme.of(context).colorScheme.onSurface
+                  : (isDark ? AppColors.darkTextTertiary : Colors.grey),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dropdown(BuildContext context, bool isDark, String value, List<String> items, ValueChanged<String?> onChanged, {IconData? prefixIcon}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+        borderRadius: BorderRadius.circular(12),
+        color: isDark ? AppColors.darkBgCard : Colors.transparent,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down),
+          iconEnabledColor: Colors.grey,
+          dropdownColor: isDark ? AppColors.darkBgCard : Colors.white,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+          items: items.map((e) => DropdownMenuItem(
+            value: e,
+            child: Row(
+              children: [
+                if (prefixIcon != null) ...[
+                  Icon(prefixIcon, size: 16, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+                  const SizedBox(width: 8),
+                ],
+                Text(e),
+              ],
+            ),
+          )).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _chip(BuildContext context, bool isDark, String label, bool selected, VoidCallback onTap, {bool showCheck = false}) {
     final activeBg   = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
     final inactiveBg = isDark ? AppColors.darkBgCard : Colors.white;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
           color: selected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC))),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : Colors.grey),
-            fontSize: 12,
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12, fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : Colors.grey[700]),
+              ),
+            ),
+            if (selected && showCheck) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.check, size: 12, color: isDark ? Colors.black : Colors.white),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _iconChip(BuildContext context, bool isDark, String label, IconData icon, bool selected, VoidCallback onTap) {
+    final activeBg   = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final inactiveBg = isDark ? AppColors.darkBgCard : Colors.white;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? activeBg : inactiveBg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC))),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon, size: 14,
+              color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextTertiary : Colors.grey[600]),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12, fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : Colors.grey[700]),
+              ),
+            ),
+            if (selected) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.check, size: 12, color: isDark ? Colors.black : Colors.white),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _outlineChip(BuildContext context, bool isDark, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkBgCard : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey[600])),
+    );
+  }
+
+  Widget _uploadBox(BuildContext context, bool isDark, String label, IconData icon, bool uploaded, VoidCallback onTap) {
+    final accentColor = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkBgCard : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: uploaded ? accentColor : (isDark ? AppColors.darkBorder : const Color(0xFFCCBCAF)),
+            style: BorderStyle.solid,
           ),
+        ),
+        child: Column(
+          children: [
+            Icon(uploaded ? Icons.check_circle : icon, color: accentColor, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              uploaded ? 'Uploaded' : label,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: accentColor, fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+            if (!uploaded) ...[
+              const SizedBox(height: 4),
+              Text('JPG, PNG or PDF (Max 5MB)', textAlign: TextAlign.center, style: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 10)),
+            ],
+          ],
         ),
       ),
     );
