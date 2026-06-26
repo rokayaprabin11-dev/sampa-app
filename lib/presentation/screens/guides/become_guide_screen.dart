@@ -135,18 +135,22 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     // 5 MB size check
     final bytes = await file.length();
     if (bytes > 5 * 1024 * 1024) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File must be 5 MB or less.'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('File must be 5 MB or less.'), backgroundColor: Colors.red),
+        );
+      }
       return;
     }
 
     // Type check: jpg / jpeg / png only
     final ext = file.name.split('.').last.toLowerCase();
     if (!['jpg', 'jpeg', 'png'].contains(ext)) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Only JPG or PNG files are allowed.'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Only JPG or PNG files are allowed.'), backgroundColor: Colors.red),
+        );
+      }
       return;
     }
 
@@ -231,8 +235,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   }
 
   void _prevStep() {
-    if (_step > 0) setState(() => _step--);
-    else Navigator.pop(context);
+    if (_step > 0) {
+      setState(() => _step--);
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _submit() async {
@@ -622,8 +629,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
               final sel = _specializations.contains(s);
               return _iconChip(context, isDark, s, _specIcons[s] ?? Icons.place, sel, () {
                 setState(() {
-                  if (sel) _specializations.remove(s);
-                  else if (_specializations.length < 3) _specializations.add(s);
+                  if (sel) {
+                    _specializations.remove(s);
+                  } else if (_specializations.length < 3) {
+                    _specializations.add(s);
+                  }
                 });
               });
             }),
