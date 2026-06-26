@@ -182,7 +182,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (profileProvider.visitHistory.isEmpty)
+                  if (profileProvider.isLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
+                  else if (profileProvider.visitHistory.isEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       alignment: Alignment.center,

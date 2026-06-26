@@ -140,10 +140,16 @@ class ProfileProvider with ChangeNotifier {
     try {
       final data = await _apiClient.get(ApiEndpoints.bookmarks);
       final List list = data is List ? data : (data['results'] ?? []);
-      _bookmarks = list
-          .map((item) => HeritageSiteModel.fromJson(item as Map<String, dynamic>))
-          .toList();
+      _bookmarks = list.map((item) {
+        final map = item as Map<String, dynamic>;
+        // Backend may wrap: {"site": {...}} or return flat site object
+        final siteData = map.containsKey('site') && map['site'] is Map
+            ? map['site'] as Map<String, dynamic>
+            : map;
+        return HeritageSiteModel.fromJson(siteData);
+      }).toList();
       _bookmarksCount = _bookmarks.length;
+      notifyListeners();
     } catch (e) {
       debugPrint('Error fetching bookmarks: $e');
     }
@@ -154,10 +160,17 @@ class ProfileProvider with ChangeNotifier {
     try {
       final data = await _apiClient.get(ApiEndpoints.visits);
       final List list = data is List ? data : (data['results'] ?? []);
-      _visitHistory = list
-          .map((item) => HeritageSiteModel.fromJson(item['site'] as Map<String, dynamic>))
-          .toList();
+      _visitHistory = list.map((item) {
+        final map = item as Map<String, dynamic>;
+        // Backend returns {site: {...}, visited_at: "..."} — extract nested site.
+        // Fall back to flat object if 'site' key absent (defensive).
+        final siteData = map.containsKey('site') && map['site'] is Map
+            ? map['site'] as Map<String, dynamic>
+            : map;
+        return HeritageSiteModel.fromJson(siteData);
+      }).toList();
       _visitHistoryCount = _visitHistory.length;
+      notifyListeners();
     } catch (e) {
       debugPrint('Error fetching visits: $e');
     }
