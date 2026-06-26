@@ -95,10 +95,12 @@ class NotificationService {
     try {
       final info = DeviceInfoPlugin();
       if (Platform.isAndroid) {
-        final android = await info.androidInfo;
+        final android = await info.androidInfo
+            .timeout(const Duration(seconds: 3));
         return android.id;
       } else if (Platform.isIOS) {
-        final ios = await info.iosInfo;
+        final ios = await info.iosInfo
+            .timeout(const Duration(seconds: 3));
         return ios.identifierForVendor ?? 'unknown';
       }
     } catch (_) {}
