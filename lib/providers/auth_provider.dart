@@ -22,12 +22,7 @@ class AuthProvider with ChangeNotifier {
       _user = user;
       if (user != null) {
         try {
-          // Only hit the backend if we have no stored JWT.
-          // If tokens exist, ApiClient's interceptor will refresh them as needed.
-          final storedToken = await _repository.getToken();
-          if (storedToken == null || storedToken.isEmpty) {
-            await _repository.syncWithBackend();
-          }
+          await _repository.syncWithBackend();
         } catch (e) {
           debugPrint('Error syncing with backend on init: $e');
         }
@@ -93,11 +88,6 @@ class AuthProvider with ChangeNotifier {
 
       _user = user;
 
-      final token = await _user?.getIdToken();
-      if (token != null) {
-        await _repository.saveToken(token);
-      }
-
       await NotificationService().syncAfterLogin();
     } catch (e) {
       _error = _handleAuthError(e);
@@ -115,12 +105,7 @@ class AuthProvider with ChangeNotifier {
     try {
       final credential = await _repository.signUpWithEmail(email, password);
       _user = credential.user;
-      
-      final token = await _user?.getIdToken();
-      if (token != null) {
-        await _repository.saveToken(token);
-      }
-      
+
       if (fullName != null && _user != null) {
         await _user!.updateDisplayName(fullName);
         await _user!.reload();
