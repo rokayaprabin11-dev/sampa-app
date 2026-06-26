@@ -101,6 +101,7 @@ class AppColors {
   @Deprecated('Use kColorTextOnPrimary') static const Color textInverted = kColorTextOnPrimary;
 
   // legacy names some widgets still reference
+  static const Color darkBrown      = kColorDeep;   // was brownDeep alias
   static const Color primaryBrown   = kColorPrimary;
   static const Color darkText       = kColorTextHeading;
   static const Color offWhite       = kColorBgPage;
