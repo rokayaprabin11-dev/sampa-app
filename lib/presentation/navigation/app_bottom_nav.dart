@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/generated/app_localizations.dart';
 
@@ -75,17 +77,17 @@ class AppBottomNav extends StatelessWidget {
 
   Widget _buildNavItem(BuildContext context, int index, IconData icon, String label) {
     final isSelected = currentIndex == index;
-    final color = isSelected ? const Color(0xFFD4520A) : const Color(0xFF8C7162);
+    final color = isSelected ? AppColors.kColorNavActive : AppColors.kColorNavInactive;
 
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _onItemTapped(context, index),
-          borderRadius: BorderRadius.circular(16),
-          splashColor: const Color(0xFFD4520A).withValues(alpha: 0.05),
-          highlightColor: const Color(0xFFD4520A).withValues(alpha: 0.02),
-          hoverColor: const Color(0xFFD4520A).withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+          splashColor: AppColors.kColorNavActive.withValues(alpha: 0.05),
+          highlightColor: AppColors.kColorNavActive.withValues(alpha: 0.02),
+          hoverColor: AppColors.kColorNavActive.withValues(alpha: 0.05),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -94,16 +96,10 @@ class AppBottomNav extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? const Color(0xFFD4520A).withValues(alpha: 0.1) 
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
+                  color: isSelected ? AppColors.kColorNavActiveBg : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 4),
               Text(
@@ -111,7 +107,7 @@ class AppBottomNav extends StatelessWidget {
                 style: TextStyle(
                   color: color,
                   fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ],

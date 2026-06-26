@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'core/constants/app_colors.dart';
 import 'core/constants/app_strings.dart';
+import 'core/theme/app_theme.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/text_size_provider.dart';
@@ -64,30 +64,8 @@ class SampadaApp extends StatelessWidget {
         Locale('en'), 
         Locale('ne'), 
       ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.brownDark,
-          brightness: Brightness.light,
-          surface: AppColors.bgSurface,
-          onSurface: AppColors.textPrimary,
-        ),
-        scaffoldBackgroundColor: AppColors.bgPage,
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.brownDark,
-          brightness: Brightness.dark,
-          surface: AppColors.darkBgSurface,
-          onSurface: AppColors.darkTextPrimary,
-          outline: AppColors.darkBorder,
-        ),
-        scaffoldBackgroundColor: AppColors.darkBgPage,
-        cardTheme: const CardThemeData(
-          color: AppColors.darkBgCard,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       initialRoute: AppStrings.rootPath,
       routes: {
         AppStrings.rootPath: (context) => SplashScreen(

@@ -43,6 +43,7 @@ dependencies:
   connectivity_plus: ^7.1.1
   shared_preferences: ^2.5.5
   image_picker: ^1.1.2
+  google_fonts: ^6.2.1
 
 dependency_overrides:
   win32: 5.5.4
