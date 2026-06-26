@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
@@ -36,9 +37,62 @@ class ApiClient {
   final SecureTokenStorage tokenStorage;
   static CacheStore? _cacheStore;
 
+  bool _isRefreshing = false;
+
   ApiClient({required this.dio, required this.tokenStorage}) {
     _addPerformanceInterceptor();
     _addAuthInterceptor();
+  }
+
+  // Returns true if the JWT is expired or expires within 2 minutes.
+  static bool _isTokenExpiringSoon(String jwt) {
+    try {
+      final parts = jwt.split('.');
+      if (parts.length != 3) return true;
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      ) as Map<String, dynamic>;
+      final exp = payload['exp'] as int?;
+      if (exp == null) return true;
+      return DateTime.now().isAfter(
+        DateTime.fromMillisecondsSinceEpoch(exp * 1000)
+            .subtract(const Duration(minutes: 2)),
+      );
+    } catch (_) {
+      return true;
+    }
+  }
+
+  // Proactively refresh before the token expires. Returns new access token or null.
+  Future<String?> _proactiveRefresh() async {
+    if (_isRefreshing) {
+      // Another request is already refreshing — wait briefly then return current token.
+      await Future.delayed(const Duration(milliseconds: 300));
+      return tokenStorage.getAccessToken();
+    }
+    _isRefreshing = true;
+    try {
+      final refreshToken = await tokenStorage.getRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) return null;
+      final response = await dio.post(
+        '${ApiEndpoints.baseUrl}${ApiEndpoints.tokenRefresh}',
+        data: {'refresh': refreshToken},
+      );
+      final newAccess = response.data['access'] as String?;
+      final newRefresh = response.data['refresh'] as String?;
+      if (newAccess != null) {
+        await tokenStorage.saveTokens(
+          accessToken: newAccess,
+          refreshToken: newRefresh ?? refreshToken,
+        );
+        return newAccess;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    } finally {
+      _isRefreshing = false;
+    }
   }
 
   static Future<void> initCache(Dio dio) async {
@@ -95,7 +149,12 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final accessToken = await tokenStorage.getAccessToken();
+          var accessToken = await tokenStorage.getAccessToken();
+          // Proactively refresh if token is missing or expiring within 2 min.
+          if (accessToken == null || _isTokenExpiringSoon(accessToken)) {
+            final refreshed = await _proactiveRefresh();
+            if (refreshed != null) accessToken = refreshed;
+          }
           if (accessToken != null) {
             options.headers['Authorization'] = 'Bearer $accessToken';
           }

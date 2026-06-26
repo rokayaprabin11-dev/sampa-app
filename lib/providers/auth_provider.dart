@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sampada/core/network/network_exceptions.dart';
 import 'package:sampada/core/services/notification_service.dart';
 import 'package:sampada/data/repositories/auth_repository.dart';
 
@@ -22,7 +24,19 @@ class AuthProvider with ChangeNotifier {
       _user = user;
       if (user != null) {
         try {
-          await _repository.syncWithBackend();
+          final stored = await _repository.getToken();
+          if (!_isTokenValidAndFresh(stored)) {
+            await _repository.syncWithBackend();
+          }
+        } on ServerException catch (e) {
+          // 401/403 = account disabled or banned on backend.
+          if (e.statusCode == 401 || e.statusCode == 403) {
+            debugPrint('Account revoked/disabled (${e.statusCode}). Forcing logout.');
+            await _repository.signOut();
+            _user = null;
+          } else {
+            debugPrint('Error syncing with backend on init: $e');
+          }
         } catch (e) {
           debugPrint('Error syncing with backend on init: $e');
         }
@@ -201,6 +215,26 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('updatePhotoUrl failed: $e');
+    }
+  }
+
+  // Returns true if the stored Django JWT has > 2 min remaining.
+  bool _isTokenValidAndFresh(String? token) {
+    if (token == null || token.isEmpty) return false;
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return false;
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      ) as Map<String, dynamic>;
+      final exp = payload['exp'] as int?;
+      if (exp == null) return false;
+      return DateTime.now().isBefore(
+        DateTime.fromMillisecondsSinceEpoch(exp * 1000)
+            .subtract(const Duration(minutes: 2)),
+      );
+    } catch (_) {
+      return false;
     }
   }
 

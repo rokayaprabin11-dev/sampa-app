@@ -1,6 +1,8 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
 import '../network/api_client.dart';
 import '../network/api_constants.dart';
@@ -89,14 +91,35 @@ class NotificationService {
     });
   }
 
+  Future<String> _getDeviceId() async {
+    try {
+      final info = DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        final android = await info.androidInfo;
+        return android.id;
+      } else if (Platform.isIOS) {
+        final ios = await info.iosInfo;
+        return ios.identifierForVendor ?? 'unknown';
+      }
+    } catch (_) {}
+    return 'unknown';
+  }
+
   Future<void> _syncTokenWithBackend(String token) async {
     try {
       final deviceType = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+      final deviceId = await _getDeviceId();
+      final packageInfo = await PackageInfo.fromPlatform();
+      final appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
+
       await _apiClient?.post(
         ApiEndpoints.fcmToken,
         data: {
           'token': token,
           'device_type': deviceType,
+          'device_id': deviceId,
+          'app_version': appVersion,
+          'last_seen': DateTime.now().toUtc().toIso8601String(),
         },
       );
       debugPrint('FCM Token synced with backend');
