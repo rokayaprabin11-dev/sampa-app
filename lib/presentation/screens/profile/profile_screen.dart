@@ -5,6 +5,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/profile_widgets.dart';
+import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/profile_provider.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import 'package:sampada/core/providers/locale_provider.dart';
@@ -149,18 +150,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, AppStrings.visitHistoryPath),
-                      child: _buildStatItem(context, profileProvider.visitHistoryCount.toString(), l10n.visitHistory),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, AppStrings.savedSitesPath),
-                      child: _buildStatItem(context, profileProvider.bookmarksCount.toString(), l10n.bookmarks),
-                    ),
-                  ],
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, anim) =>
+                      FadeTransition(opacity: anim, child: child),
+                  child: profileProvider.isLoading
+                      ? const ProfileStatsSkeleton(key: ValueKey('stats-sk'))
+                      : Row(
+                          key: const ValueKey('stats-real'),
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.pushNamed(context, AppStrings.visitHistoryPath),
+                              child: _buildStatItem(context, profileProvider.visitHistoryCount.toString(), l10n.visitHistory),
+                            ),
+                            GestureDetector(
+                              onTap: () => Navigator.pushNamed(context, AppStrings.savedSitesPath),
+                              child: _buildStatItem(context, profileProvider.bookmarksCount.toString(), l10n.bookmarks),
+                            ),
+                          ],
+                        ),
                 ),
               ),
             ),
@@ -182,34 +191,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (profileProvider.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                    )
-                  else if (profileProvider.visitHistory.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'No visited sites yet',
-                        style: TextStyle(color: Color(0xFF8C7162), fontSize: 13),
-                      ),
-                    )
-                  else
-                    ...profileProvider.visitHistory.take(3).map((site) =>
-                      RecentlyVisitedCard(
-                        title: site.name,
-                        timeAgo: site.location.isNotEmpty ? site.location : site.category,
-                        icon: _categoryIcon(site.category),
-                        imageUrl: site.imageUrl,
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppStrings.heritageDetailsPath,
-                          arguments: site,
-                        ),
-                      ),
-                    ),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 350),
+                    transitionBuilder: (child, anim) =>
+                        FadeTransition(opacity: anim, child: child),
+                    child: profileProvider.isLoading
+                        ? const Column(
+                            key: ValueKey('visits-sk'),
+                            children: [
+                              RecentlyVisitedSkeleton(),
+                              RecentlyVisitedSkeleton(),
+                              RecentlyVisitedSkeleton(),
+                            ],
+                          )
+                        : profileProvider.visitHistory.isEmpty
+                            ? Container(
+                                key: const ValueKey('visits-empty'),
+                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'No visited sites yet',
+                                  style: TextStyle(color: Color(0xFF8C7162), fontSize: 13),
+                                ),
+                              )
+                            : Column(
+                                key: const ValueKey('visits-real'),
+                                children: profileProvider.visitHistory.take(3).map((site) =>
+                                  RecentlyVisitedCard(
+                                    title: site.name,
+                                    timeAgo: site.location.isNotEmpty ? site.location : site.category,
+                                    icon: _categoryIcon(site.category),
+                                    imageUrl: site.imageUrl,
+                                    onTap: () => Navigator.pushNamed(
+                                      context,
+                                      AppStrings.heritageDetailsPath,
+                                      arguments: site,
+                                    ),
+                                  ),
+                                ).toList(),
+                              ),
+                  ),
                 ],
               ),
             ),

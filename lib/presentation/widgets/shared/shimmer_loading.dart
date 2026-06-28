@@ -101,6 +101,106 @@ class HeritageGridSkeleton extends StatelessWidget {
   }
 }
 
+class DistrictCardSkeleton extends StatelessWidget {
+  const DistrictCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.light
+              ? const Color(0xFFEED5BE)
+              : AppColors.darkBorder,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: const Row(
+        children: [
+          ShimmerSkeleton(width: 44, height: 44, borderRadius: 10),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ShimmerSkeleton(width: double.infinity, height: 13),
+                SizedBox(height: 6),
+                ShimmerSkeleton(width: 48, height: 10),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class RecentlyVisitedSkeleton extends StatelessWidget {
+  const RecentlyVisitedSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.light
+              ? const Color(0xFFEED5BE)
+              : AppColors.darkBorder,
+        ),
+      ),
+      child: const Row(
+        children: [
+          ShimmerSkeleton(width: 48, height: 48, borderRadius: 10),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerSkeleton(width: double.infinity, height: 14),
+                SizedBox(height: 6),
+                ShimmerSkeleton(width: 100, height: 11),
+              ],
+            ),
+          ),
+          SizedBox(width: 8),
+          ShimmerSkeleton(width: 16, height: 16, borderRadius: 4),
+        ],
+      ),
+    );
+  }
+}
+
+class ProfileStatsSkeleton extends StatelessWidget {
+  const ProfileStatsSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _statSkeleton(),
+        _statSkeleton(),
+      ],
+    );
+  }
+
+  Widget _statSkeleton() => const Column(
+    children: [
+      ShimmerSkeleton(width: 48, height: 26, borderRadius: 6),
+      SizedBox(height: 6),
+      ShimmerSkeleton(width: 64, height: 12, borderRadius: 4),
+    ],
+  );
+}
+
 class EventCardSkeleton extends StatelessWidget {
   const EventCardSkeleton({super.key});
 

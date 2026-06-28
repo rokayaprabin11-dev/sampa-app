@@ -91,14 +91,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'EXPLORE HERITAGE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                            fontFamily: 'serif',
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: const Text(
+                            'EXPLORE HERITAGE',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                              fontFamily: 'serif',
+                            ),
                           ),
                         ),
                       ],
@@ -251,56 +255,83 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             Consumer<HeritageProvider>(
               builder: (context, heritageProvider, child) {
-                if (heritageProvider.isLoading && heritageProvider.districts.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
+                final loading = heritageProvider.isLoading && heritageProvider.districts.isEmpty;
+                final visible = heritageProvider.districts
+                    .where((d) => d.sitesCount > 0)
+                    .take(8)
+                    .toList();
 
-                final districts = heritageProvider.districts;
-                final visible = districts.where((d) => d.sitesCount > 0).take(8).toList();
-                if (visible.isEmpty) {
-                  return const Padding(
+                final Widget content;
+                if (loading) {
+                  content = Padding(
+                    key: const ValueKey('districts-skeleton'),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      childAspectRatio: 2.2,
+                      children: const [
+                        DistrictCardSkeleton(),
+                        DistrictCardSkeleton(),
+                        DistrictCardSkeleton(),
+                        DistrictCardSkeleton(),
+                      ],
+                    ),
+                  );
+                } else if (visible.isEmpty) {
+                  content = const Padding(
+                    key: ValueKey('districts-empty'),
                     padding: EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
                       'No districts available',
                       style: TextStyle(color: Color(0xFF8C7162), fontSize: 14),
                     ),
                   );
-                }
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: visible.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      childAspectRatio: 2.2,
+                } else {
+                  content = Padding(
+                    key: const ValueKey('districts-content'),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: visible.length,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 14,
+                        crossAxisSpacing: 14,
+                        childAspectRatio: 2.2,
+                      ),
+                      itemBuilder: (context, index) {
+                        final d = visible[index];
+                        final info = _districtInfo(d.name);
+                        return GestureDetector(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppStrings.districtDetailPath,
+                            arguments: d,
+                          ),
+                          child: DistrictCard(
+                            name: d.name,
+                            sitesCount: d.sitesCount,
+                            coverImageUrl: d.coverImageUrl.isNotEmpty ? d.coverImageUrl : null,
+                            icon: info.icon,
+                            iconColor: info.color,
+                            iconBgColor: info.bgColor,
+                          ),
+                        );
+                      },
                     ),
-                    itemBuilder: (context, index) {
-                      final d = visible[index];
-                      final info = _districtInfo(d.name);
-                      return GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppStrings.districtDetailPath,
-                          arguments: d,
-                        ),
-                        child: DistrictCard(
-                          name: d.name,
-                          sitesCount: d.sitesCount,
-                          coverImageUrl: d.coverImageUrl.isNotEmpty ? d.coverImageUrl : null,
-                          icon: info.icon,
-                          iconColor: info.color,
-                          iconBgColor: info.bgColor,
-                        ),
-                      );
-                    },
-                  ),
+                  );
+                }
+
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, anim) =>
+                      FadeTransition(opacity: anim, child: child),
+                  child: content,
                 );
               },
             ),
@@ -326,35 +357,45 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             Consumer<EventProvider>(
               builder: (context, eventProvider, child) {
-                if (eventProvider.isLoading) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.0),
-                    child: EventCardSkeleton(),
-                  );
-                }
-
                 final nearbyEvents = eventProvider.nearbyEvents;
 
-                if (nearbyEvents.isEmpty) {
-                  return const Padding(
+                final Widget content;
+                if (eventProvider.isLoading) {
+                  content = const Padding(
+                    key: ValueKey('events-skeleton'),
+                    padding: EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [EventCardSkeleton(), EventCardSkeleton()],
+                    ),
+                  );
+                } else if (nearbyEvents.isEmpty) {
+                  content = const Padding(
+                    key: ValueKey('events-empty'),
                     padding: EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
                       'No upcoming nearby events found.',
                       style: TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   );
+                } else {
+                  content = Column(
+                    key: const ValueKey('events-content'),
+                    children: nearbyEvents.take(2).map((event) => Padding(
+                      padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 12),
+                      child: EventCard(
+                        title: event.title,
+                        date: '${_getMonthName(event.startDate.month)} ${event.startDate.day}',
+                        distance: '1.2 km away',
+                      ),
+                    )).toList(),
+                  );
                 }
 
-                // Show only the top 2 nearby events on the home screen
-                return Column(
-                  children: nearbyEvents.take(2).map((event) => Padding(
-                    padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 12),
-                    child: EventCard(
-                      title: event.title,
-                      date: '${_getMonthName(event.startDate.month)} ${event.startDate.day}',
-                      distance: '1.2 km away', // Simulated
-                    ),
-                  )).toList(),
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, anim) =>
+                      FadeTransition(opacity: anim, child: child),
+                  child: content,
                 );
               },
             ),
@@ -480,8 +521,10 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
       builder: (context, provider, child) {
         final featured = provider.getFeaturedSites(category: widget.selectedCategory);
 
+        final Widget content;
         if (provider.isLoading && featured.isEmpty) {
-          return SizedBox(
+          content = SizedBox(
+            key: const ValueKey('featured-skeleton'),
             height: 200,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -492,38 +535,45 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
               ),
             ),
           );
-        }
-
-        if (featured.isEmpty) {
-          return const SizedBox(
+        } else if (featured.isEmpty) {
+          content = const SizedBox(
+            key: ValueKey('featured-empty'),
             height: 200,
             child: Center(child: Text('No featured heritage sites found')),
           );
+        } else {
+          content = SizedBox(
+            key: const ValueKey('featured-content'),
+            height: 200,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: featured.length,
+              onPageChanged: (index) => setState(() => _currentPage = index),
+              itemBuilder: (context, index) {
+                final site = featured[index];
+                return FeaturedSiteCard(
+                  title: site.name,
+                  location: site.district,
+                  icon: _getIconForCategory(site.category),
+                  imageUrl: site.imageUrl,
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      AppStrings.heritageDetailsPath,
+                      arguments: site,
+                    );
+                  },
+                );
+              },
+            ),
+          );
         }
 
-        return SizedBox(
-          height: 200,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: featured.length,
-            onPageChanged: (index) => setState(() => _currentPage = index),
-            itemBuilder: (context, index) {
-              final site = featured[index];
-              return FeaturedSiteCard(
-                title: site.name,
-                location: site.district,
-                icon: _getIconForCategory(site.category),
-                imageUrl: site.imageUrl,
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    AppStrings.heritageDetailsPath,
-                    arguments: site,
-                  );
-                },
-              );
-            },
-          ),
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          transitionBuilder: (child, anim) =>
+              FadeTransition(opacity: anim, child: child),
+          child: content,
         );
       },
     );
