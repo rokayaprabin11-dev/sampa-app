@@ -8,7 +8,7 @@ class ApiEndpoints {
 
   static String get baseUrl {
     if (_prodUrl.isNotEmpty) return _prodUrl;
-    return 'https://sampada-backend-yyr9.onrender.com/api/v1';
+    return 'https://sampada-backend-8svi.onrender.com/api/v1';
   }
 
   // --- Auth ---
