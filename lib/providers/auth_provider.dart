@@ -23,13 +23,23 @@ class AuthProvider with ChangeNotifier {
     _repository.authStateChanges.listen((user) async {
       _user = user;
       if (user != null) {
+        // Email/password users who haven't verified yet — force sign-out.
+        final isGoogleProvider = user.providerData.any((p) => p.providerId == 'google.com');
+        if (!isGoogleProvider && !user.emailVerified) {
+          await _repository.signOut();
+          _user = null;
+          _isInitialized = true;
+          notifyListeners();
+          return;
+        }
+
         try {
           final stored = await _repository.getToken();
           if (!_isTokenValidAndFresh(stored)) {
             await _repository.syncWithBackend();
           }
         } on ServerException catch (e) {
-          // 401/403 = account disabled or banned on backend.
+          // 401/403 = account disabled, banned, or email not verified on backend.
           if (e.statusCode == 401 || e.statusCode == 403) {
             debugPrint('Account revoked/disabled (${e.statusCode}). Forcing logout.');
             await _repository.signOut();
@@ -92,15 +102,18 @@ class AuthProvider with ChangeNotifier {
       final credential = await _repository.signInWithEmail(email, password);
       final user = credential.user;
 
-      if (user != null && !user.emailVerified) {
-        // Sign out immediately if email is not verified
+      // Reload to get latest emailVerified status from Firebase.
+      await user?.reload();
+      final freshUser = _repository.currentUser;
+
+      if (freshUser != null && !freshUser.emailVerified) {
         await _repository.signOut();
         _user = null;
         _error = 'Please verify your email before logging in. Check your inbox for the verification link.';
         return;
       }
 
-      _user = user;
+      _user = freshUser;
 
       await NotificationService().syncAfterLogin();
     } catch (e) {
