@@ -143,10 +143,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                 ),
+                maxLength: 12,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter your password';
+                  if (value.length < 8) return 'Password must be at least 8 characters';
+                  if (value.length > 12) return 'Password must be at most 12 characters';
                   return null;
                 },
               ),

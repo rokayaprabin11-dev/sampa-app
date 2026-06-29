@@ -87,7 +87,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _nameController,
                 style: const TextStyle(color: AppColors.textHeadline),
                 decoration: _buildInputDecoration(l10n.fullName, Icons.person_outline),
-                validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                maxLength: 12,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return 'Required';
+                  if (value.trim().length < 8) return 'Name must be at least 8 characters';
+                  if (value.trim().length > 12) return 'Name must be at most 12 characters';
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
               
@@ -119,9 +125,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
+                maxLength: 12,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Required';
-                  if (value.length < 6) return 'Too short';
+                  if (value.length < 8) return 'Password must be at least 8 characters';
+                  if (value.length > 12) return 'Password must be at most 12 characters';
                   return null;
                 },
               ),
