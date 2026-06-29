@@ -8,6 +8,7 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 
 import 'app.dart';
+import 'core/constants/app_strings.dart';
 import 'core/database/database_helper.dart';
 import 'core/network/api_client.dart';
 import 'core/services/notification_service.dart';
@@ -85,13 +86,24 @@ void main() async {
     debugPrint('--- FirebaseAuth.instance FAILED: $e ---');
   }
   
+  final navigatorKey = GlobalKey<NavigatorState>();
+
   final dbHelper = DatabaseHelper();
   final tokenStorage = SecureTokenStorage();
   final dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 60),
     receiveTimeout: const Duration(seconds: 60),
   ));
-  final apiClient = ApiClient(dio: dio, tokenStorage: tokenStorage);
+  final apiClient = ApiClient(
+    dio: dio,
+    tokenStorage: tokenStorage,
+    onSessionExpired: () {
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        AppStrings.loginPath,
+        (_) => false,
+      );
+    },
+  );
   await ApiClient.initCache(dio);
 
   if (!kIsWeb) {
@@ -162,7 +174,7 @@ void main() async {
           },
         ),
       ],
-      child: const SampadaApp(),
+      child: SampadaApp(navigatorKey: navigatorKey),
     ),
   );
 }

@@ -33,7 +33,8 @@ import 'data/models/district_model.dart';
 import 'presentation/screens/legal/policy_screen.dart';
 
 class SampadaApp extends StatelessWidget {
-  const SampadaApp({super.key});
+  final GlobalKey<NavigatorState> navigatorKey;
+  const SampadaApp({super.key, required this.navigatorKey});
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,7 @@ class SampadaApp extends StatelessWidget {
     final textSizeProvider = context.watch<TextSizeProvider>();
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       locale: localeProvider.locale,
