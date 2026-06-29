@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
@@ -6,6 +7,7 @@ import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.da
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sampada/data/datasources/local/secure_token_storage.dart';
 import 'network_exceptions.dart';
 import 'api_endpoints.dart';
@@ -37,9 +39,12 @@ class ApiClient {
   final SecureTokenStorage tokenStorage;
   static CacheStore? _cacheStore;
 
-  bool _isRefreshing = false;
+  Completer<String?>? _refreshCompleter;
 
-  ApiClient({required this.dio, required this.tokenStorage}) {
+  // Called by AuthProvider after forced logout so the UI navigates to login.
+  void Function()? onSessionExpired;
+
+  ApiClient({required this.dio, required this.tokenStorage, this.onSessionExpired}) {
     _addPerformanceInterceptor();
     _addAuthInterceptor();
   }
@@ -63,17 +68,24 @@ class ApiClient {
     }
   }
 
-  // Proactively refresh before the token expires. Returns new access token or null.
-  Future<String?> _proactiveRefresh() async {
-    if (_isRefreshing) {
-      // Another request is already refreshing — wait briefly then return current token.
-      await Future.delayed(const Duration(milliseconds: 300));
-      return tokenStorage.getAccessToken();
+  // Refresh the access token. Concurrent callers await the same in-flight
+  // request instead of each independently hitting the refresh endpoint —
+  // prevents the race where two calls both consume (and invalidate) the
+  // same rotating refresh token before either can save the new one.
+  Future<String?> _doRefresh() async {
+    if (_refreshCompleter != null) {
+      return _refreshCompleter!.future;
     }
-    _isRefreshing = true;
+
+    final completer = Completer<String?>();
+    _refreshCompleter = completer;
+
     try {
       final refreshToken = await tokenStorage.getRefreshToken();
-      if (refreshToken == null || refreshToken.isEmpty) return null;
+      if (refreshToken == null || refreshToken.isEmpty) {
+        completer.complete(null);
+        return null;
+      }
       final response = await dio.post(
         '${ApiEndpoints.baseUrl}${ApiEndpoints.tokenRefresh}',
         data: {'refresh': refreshToken},
@@ -85,14 +97,26 @@ class ApiClient {
           accessToken: newAccess,
           refreshToken: newRefresh ?? refreshToken,
         );
+        completer.complete(newAccess);
         return newAccess;
       }
+      completer.complete(null);
       return null;
     } catch (_) {
+      completer.complete(null);
       return null;
     } finally {
-      _isRefreshing = false;
+      _refreshCompleter = null;
     }
+  }
+
+  Future<void> _handleSessionExpired(ErrorInterceptorHandler handler, DioException error) async {
+    await tokenStorage.clearTokens();
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {}
+    onSessionExpired?.call();
+    return handler.reject(error);
   }
 
   static Future<void> initCache(Dio dio) async {
@@ -150,9 +174,8 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           var accessToken = await tokenStorage.getAccessToken();
-          // Proactively refresh if token is missing or expiring within 2 min.
           if (accessToken == null || _isTokenExpiringSoon(accessToken)) {
-            final refreshed = await _proactiveRefresh();
+            final refreshed = await _doRefresh();
             if (refreshed != null) accessToken = refreshed;
           }
           if (accessToken != null) {
@@ -162,29 +185,17 @@ class ApiClient {
         },
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
-            final refreshToken = await tokenStorage.getRefreshToken();
-            if (refreshToken != null) {
+            final newAccess = await _doRefresh();
+            if (newAccess != null) {
+              e.requestOptions.headers['Authorization'] = 'Bearer $newAccess';
               try {
-                final response = await dio.post(
-                  '${ApiEndpoints.baseUrl}${ApiEndpoints.tokenRefresh}',
-                  data: {'refresh': refreshToken},
-                );
-                
-                final newAccess = response.data['access'];
-                final newRefresh = response.data['refresh'];
-                
-                await tokenStorage.saveTokens(
-                  accessToken: newAccess,
-                  refreshToken: newRefresh,
-                );
-
-                e.requestOptions.headers['Authorization'] = 'Bearer $newAccess';
-                final responseRetry = await dio.fetch(e.requestOptions);
-                return handler.resolve(responseRetry);
-              } catch (refreshError) {
-                await tokenStorage.clearTokens();
+                final retried = await dio.fetch(e.requestOptions);
+                return handler.resolve(retried);
+              } catch (_) {
+                return _handleSessionExpired(handler, e);
               }
             }
+            return _handleSessionExpired(handler, e);
           }
           return handler.next(e);
         },
