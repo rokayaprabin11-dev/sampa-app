@@ -306,6 +306,17 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                 initialDate: DateTime.now().add(const Duration(days: 1)),
                 firstDate: DateTime.now(),
                 lastDate: DateTime.now().add(const Duration(days: 90)),
+                initialEntryMode: DatePickerEntryMode.calendarOnly,
+                builder: (context, child) => Theme(
+                  data: Theme.of(context).copyWith(
+                    datePickerTheme: DatePickerThemeData(
+                      headerBackgroundColor: const Color(0xFF7B1E00),
+                      headerForegroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                  ),
+                  child: child!,
+                ),
               );
               if (picked != null) setState(() => _selectedDate = picked);
             },

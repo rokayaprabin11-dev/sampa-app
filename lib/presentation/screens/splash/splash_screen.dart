@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/providers/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// SplashScreen for Sampada — Nepal's Heritage in Your Pocket
 ///
@@ -140,7 +141,14 @@ class _SplashScreenState extends State<SplashScreen>
       if (authProvider.isAuthenticated) {
         navigator.pushReplacementNamed(AppStrings.homePath);
       } else {
-        widget.onReady?.call();
+        final prefs = await SharedPreferences.getInstance();
+        final seen = prefs.getBool('hasSeenOnboarding') ?? false;
+        if (seen) {
+          navigator.pushReplacementNamed(AppStrings.homePath);
+        } else {
+          await prefs.setBool('hasSeenOnboarding', true);
+          widget.onReady?.call();
+        }
       }
     }
   }

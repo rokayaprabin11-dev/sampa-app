@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 
-const int _kDbVersion = 5;
+const int _kDbVersion = 6;
 const String _kDbName = 'sampada.db';
 
 class DatabaseHelper {
@@ -48,7 +48,7 @@ class DatabaseHelper {
       'cache_site_reviews', 'cache_bookmarks', 'cache_visit_history',
       'cache_guides', 'cache_bookings', 'cache_notifications',
       'cache_offline_downloads',
-      // v4-v5 names
+      // v4-v6 names
       'local_heritage_sites', 'local_heritage_sites_fts', 'local_site_media',
       'local_events', 'local_bookmarks', 'local_reviews_draft',
       'local_user_profile', 'local_recently_viewed', 'local_search_history',
@@ -85,7 +85,24 @@ class DatabaseHelper {
         is_featured     INTEGER NOT NULL DEFAULT 0,
         geofence_radius_m INTEGER NOT NULL DEFAULT 500,
         cached_at       INTEGER NOT NULL,
+        updated_at      INTEGER,
         is_dirty        INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_lhs_district  ON local_heritage_sites (district)');
+    await db.execute('CREATE INDEX idx_lhs_name_en   ON local_heritage_sites (name_en)');
+    await db.execute('CREATE INDEX idx_lhs_rating    ON local_heritage_sites (rating_avg DESC)');
+    await db.execute('CREATE INDEX idx_lhs_featured  ON local_heritage_sites (is_featured)');
+    await db.execute('CREATE INDEX idx_lhs_cached    ON local_heritage_sites (cached_at)');
+
+    await db.execute('''
+      CREATE VIRTUAL TABLE local_heritage_sites_fts USING fts5(
+        id,
+        name_en,
+        name_ne,
+        district,
+        category,
+        tokenize = "unicode61"
       )
     ''');
 
@@ -201,6 +218,13 @@ class DatabaseHelper {
       batch.delete(t);
     }
     await batch.commit(noResult: true);
+  }
+
+  Future<void> vacuumAndCheckpoint() async {
+    if (kIsWeb) return;
+    final db = await database;
+    await db.execute('PRAGMA wal_checkpoint(TRUNCATE)');
+    await db.execute('VACUUM');
   }
 
   Future<void> close() async {

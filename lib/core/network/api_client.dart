@@ -185,6 +185,12 @@ class ApiClient {
         },
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
+            // Guest users (no refresh token) hitting a public-but-auth-preferred
+            // endpoint should NOT trigger session expiry — they were never logged in.
+            final refreshToken = await tokenStorage.getRefreshToken();
+            if (refreshToken == null || refreshToken.isEmpty) {
+              return handler.next(e);
+            }
             final newAccess = await _doRefresh();
             if (newAccess != null) {
               e.requestOptions.headers['Authorization'] = 'Bearer $newAccess';

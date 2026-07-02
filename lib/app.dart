@@ -49,11 +49,14 @@ class SampadaApp extends StatelessWidget {
       locale: localeProvider.locale,
       themeMode: themeProvider.themeMode,
       builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(textSizeProvider.textScaleFactor),
+        return Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(textSizeProvider.textScaleFactor),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
       localizationsDelegates: [

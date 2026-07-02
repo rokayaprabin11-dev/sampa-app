@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/data/repositories/heritage_repository.dart';
 import 'package:sampada/data/datasources/local/heritage_local_datasource.dart';
@@ -32,8 +31,7 @@ class HeritageRepositoryImpl implements HeritageRepository {
     String? sortBy,
   }) async {
     try {
-      // Try fetching from remote
-      final remoteSites = await remoteDataSource.getHeritageSites(
+      return await remoteDataSource.getHeritageSites(
         query: query,
         category: category,
         district: district,
@@ -43,20 +41,11 @@ class HeritageRepositoryImpl implements HeritageRepository {
         bbox: bbox,
         sortBy: sortBy,
       );
-      try {
-        await localDataSource.cacheHeritageSites(remoteSites);
-      } catch (cacheError) {
-        debugPrint('Cache write failed (non-fatal): $cacheError');
-      }
-      return remoteSites;
     } catch (e) {
-      // If remote fails, return from local cache
-      final localSites = await localDataSource.getLastHeritageSites();
-      if (localSites.isNotEmpty) {
-        return localSites;
-      } else {
-        rethrow;
-      }
+      // Offline: return previously viewed sites
+      final cached = await localDataSource.getLastHeritageSites(limit: 50);
+      if (cached.isNotEmpty) return cached;
+      rethrow;
     }
   }
 
@@ -88,7 +77,11 @@ class HeritageRepositoryImpl implements HeritageRepository {
 
   @override
   Future<HeritageSite> getSiteDetail(String slug) async {
-    return await remoteDataSource.getHeritageSiteDetail(slug);
+    final site = await remoteDataSource.getHeritageSiteDetail(slug);
+    try {
+      await localDataSource.saveSite(site);
+    } catch (_) {}
+    return site;
   }
 
   @override
@@ -127,12 +120,7 @@ class HeritageRepositoryImpl implements HeritageRepository {
     try {
       return await remoteDataSource.searchHeritageSites(query);
     } catch (e) {
-      // Fallback to local search on failure
-      final allSites = await localDataSource.getLastHeritageSites();
-      return allSites.where((site) => 
-        site.name.toLowerCase().contains(query.toLowerCase()) ||
-        site.district.toLowerCase().contains(query.toLowerCase())
-      ).toList();
+      return localDataSource.searchSites(query);
     }
   }
 }

@@ -132,13 +132,7 @@ class _Header extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-            hoverColor: Colors.white.withValues(alpha: 0.1),
-            splashColor: Colors.white.withValues(alpha: 0.2),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           const Text(
             'Calendar & Cultural\nEvents',
             style: TextStyle(

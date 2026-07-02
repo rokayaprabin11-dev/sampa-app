@@ -92,6 +92,9 @@ class HeritageSiteModel extends HeritageSite {
       'is_featured':      isFeatured ? 1 : 0,
       'geofence_radius_m': 500,
       'cached_at':        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'updated_at':       createdAt?.millisecondsSinceEpoch != null
+                            ? createdAt!.millisecondsSinceEpoch ~/ 1000
+                            : null,
       'is_dirty':         0,
     };
   }

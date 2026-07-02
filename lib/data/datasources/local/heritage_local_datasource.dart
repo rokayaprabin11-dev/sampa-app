@@ -6,11 +6,12 @@ import 'package:sampada/core/services/content_translator.dart';
 import 'package:sampada/data/models/heritage_site_model.dart';
 
 abstract class HeritageLocalDataSource {
-  Future<void> cacheHeritageSites(List<HeritageSiteModel> sites);
   Future<void> saveSite(HeritageSiteModel site);
   Future<bool> isSiteDownloaded(String id);
-  Future<List<HeritageSiteModel>> getLastHeritageSites();
+  Future<List<HeritageSiteModel>> getLastHeritageSites({int limit = 20, int offset = 0});
+  Future<HeritageSiteModel?> getSiteById(String id);
   Future<List<HeritageSiteModel>> searchSites(String query, {double? lat, double? lng});
+  Future<List<HeritageSiteModel>> getNearbySites(double lat, double lng, {int limit = 20});
   Future<void> clearCache();
   Future<void> evictStaleCache({int maxAgeDays = 7});
 }
@@ -27,39 +28,24 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
   });
 
   @override
-  Future<void> cacheHeritageSites(List<HeritageSiteModel> sites) async {
-    if (kIsWeb) return;
-
-    final db = await dbHelper.database;
-    await db.delete('local_heritage_sites');
-    final batch = db.batch();
-    for (var site in sites) {
-      batch.insert(
-        'local_heritage_sites',
-        site.toJson(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    await batch.commit(noResult: true);
-
-    if (contentTranslator != null && userLang != 'en') {
-      for (final site in sites) {
-        await contentTranslator!.translateAndCacheSiteDescriptions(
-          siteId: site.id,
-          shortDescEn: '',           // HeritageSite has no separate short desc field
-          descriptionEn: site.description,
-          targetLang: userLang,
-        );
-      }
-    }
-  }
-
-  @override
   Future<void> saveSite(HeritageSiteModel site) async {
     if (kIsWeb) return;
     final db = await dbHelper.database;
-    await db.insert('local_heritage_sites', site.toJson(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.transaction((txn) async {
+      await txn.insert('local_heritage_sites', site.toJson(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+      await txn.insert(
+        'local_heritage_sites_fts',
+        {
+          'id': site.id,
+          'name_en': site.name,
+          'name_ne': site.nameNepali,
+          'district': site.district,
+          'category': site.category,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
   }
 
   @override
@@ -67,42 +53,83 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
     if (kIsWeb) return false;
     final db = await dbHelper.database;
     final rows = await db.query('local_heritage_sites',
-        where: 'id = ?', whereArgs: [id], limit: 1);
+        columns: ['id'], where: 'id = ?', whereArgs: [id], limit: 1);
     return rows.isNotEmpty;
   }
 
   @override
-  Future<List<HeritageSiteModel>> getLastHeritageSites() async {
+  Future<List<HeritageSiteModel>> getLastHeritageSites({
+    int limit = 20,
+    int offset = 0,
+  }) async {
     if (kIsWeb) return [];
-
     try {
       final db = await dbHelper.database;
-      final List<Map<String, dynamic>> maps = await db.query('local_heritage_sites');
-      return maps.map((map) => HeritageSiteModel.fromMap(map)).toList();
+      final maps = await db.query(
+        'local_heritage_sites',
+        orderBy: 'is_featured DESC, rating_avg DESC',
+        limit: limit,
+        offset: offset,
+      );
+      return maps.map(HeritageSiteModel.fromMap).toList();
     } catch (e) {
       return [];
     }
   }
 
   @override
-  Future<List<HeritageSiteModel>> searchSites(String query, {double? lat, double? lng}) async {
-    if (kIsWeb) return [];
-
+  Future<HeritageSiteModel?> getSiteById(String id) async {
+    if (kIsWeb) return null;
     try {
       final db = await dbHelper.database;
-      final like = '%$query%';
-      final results = await db.rawQuery('''
-        SELECT * FROM local_heritage_sites
-        WHERE name_en LIKE ? OR name_ne LIKE ? OR district LIKE ?
-      ''', [like, like, like]);
+      final rows = await db.query(
+        'local_heritage_sites',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (rows.isEmpty) return null;
+      return HeritageSiteModel.fromMap(rows.first);
+    } catch (e) {
+      return null;
+    }
+  }
 
-      var sites = results.map((map) => HeritageSiteModel.fromMap(map)).toList();
+  @override
+  Future<List<HeritageSiteModel>> searchSites(String query,
+      {double? lat, double? lng}) async {
+    if (kIsWeb) return [];
+    try {
+      final db = await dbHelper.database;
+
+      // FTS5 match — escape double-quotes in query
+      final ftsQuery = '"${query.replaceAll('"', '""')}"*';
+      final ftsRows = await db.rawQuery('''
+        SELECT s.*
+        FROM local_heritage_sites s
+        INNER JOIN local_heritage_sites_fts f ON s.id = f.id
+        WHERE local_heritage_sites_fts MATCH ?
+        ORDER BY s.rating_avg DESC
+        LIMIT 50
+      ''', [ftsQuery]);
+
+      // Fallback to LIKE if FTS returns nothing (handles partial/special chars)
+      final rows = ftsRows.isNotEmpty
+          ? ftsRows
+          : await db.rawQuery('''
+              SELECT * FROM local_heritage_sites
+              WHERE name_en LIKE ? OR name_ne LIKE ? OR district LIKE ?
+              ORDER BY rating_avg DESC
+              LIMIT 50
+            ''', ['%$query%', '%$query%', '%$query%']);
+
+      var sites = rows.map(HeritageSiteModel.fromMap).toList();
 
       if (lat != null && lng != null && sites.isNotEmpty) {
         sites.sort((a, b) {
-          final distA = _calculateDistance(lat, lng, a.latitude, a.longitude);
-          final distB = _calculateDistance(lat, lng, b.latitude, b.longitude);
-          return distA.compareTo(distB);
+          final dA = _haversineKm(lat, lng, a.latitude, a.longitude);
+          final dB = _haversineKm(lat, lng, b.latitude, b.longitude);
+          return dA.compareTo(dB);
         });
       }
 
@@ -113,50 +140,87 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
     }
   }
 
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const double r = 6371; // Earth radius in km
-    final double dLat = _toRadians(lat2 - lat1);
-    final double dLon = _toRadians(lon2 - lon1);
-    final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_toRadians(lat1)) * math.cos(_toRadians(lat2)) *
-        math.sin(dLon / 2) * math.sin(dLon / 2);
-    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return r * c;
-  }
+  @override
+  Future<List<HeritageSiteModel>> getNearbySites(
+    double lat,
+    double lng, {
+    int limit = 20,
+  }) async {
+    if (kIsWeb) return [];
+    try {
+      final db = await dbHelper.database;
+      // Bounding box pre-filter (~50 km) then sort by exact distance in Dart
+      const deg = 0.45; // ~50 km
+      final rows = await db.rawQuery('''
+        SELECT * FROM local_heritage_sites
+        WHERE latitude  BETWEEN ? AND ?
+          AND longitude BETWEEN ? AND ?
+        ORDER BY rating_avg DESC
+        LIMIT 200
+      ''', [lat - deg, lat + deg, lng - deg, lng + deg]);
 
-  double _toRadians(double degree) {
-    return degree * math.pi / 180;
+      final sites = rows.map(HeritageSiteModel.fromMap).toList()
+        ..sort((a, b) {
+          return _haversineKm(lat, lng, a.latitude, a.longitude)
+              .compareTo(_haversineKm(lat, lng, b.latitude, b.longitude));
+        });
+
+      return sites.take(limit).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   @override
   Future<void> clearCache() async {
     if (kIsWeb) return;
     final db = await dbHelper.database;
-    await db.delete('local_heritage_sites');
+    await db.transaction((txn) async {
+      await txn.delete('local_heritage_sites');
+      await txn.delete('local_heritage_sites_fts');
+    });
   }
 
   @override
-  Future<void> evictStaleCache({int maxAgeDays = 7}) async {
+  Future<void> evictStaleCache({int maxAgeDays = 10}) async {
     if (kIsWeb) return;
     try {
       final db = await dbHelper.database;
       final cutoff = DateTime.now()
-          .subtract(Duration(days: maxAgeDays))
-          .millisecondsSinceEpoch ~/ 1000;
-      await db.delete(
+              .subtract(Duration(days: maxAgeDays))
+              .millisecondsSinceEpoch ~/
+          1000;
+      final stale = await db.query(
         'local_heritage_sites',
+        columns: ['id'],
         where: 'cached_at < ?',
         whereArgs: [cutoff],
       );
+      if (stale.isEmpty) return;
+      final ids = stale.map((r) => r['id'] as String).toList();
+      final placeholders = List.filled(ids.length, '?').join(',');
+      await db.transaction((txn) async {
+        await txn.rawDelete(
+            'DELETE FROM local_heritage_sites WHERE id IN ($placeholders)', ids);
+        await txn.rawDelete(
+            'DELETE FROM local_heritage_sites_fts WHERE id IN ($placeholders)', ids);
+      });
     } catch (e) {
       debugPrint('Cache eviction error: $e');
     }
   }
+
+  double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
+    const r = 6371.0;
+    final dLat = _rad(lat2 - lat1);
+    final dLon = _rad(lon2 - lon1);
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_rad(lat1)) *
+            math.cos(_rad(lat2)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  }
+
+  double _rad(double deg) => deg * math.pi / 180;
 }
-
-
-
-
-
-
-
