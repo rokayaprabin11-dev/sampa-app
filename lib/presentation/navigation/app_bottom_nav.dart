@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/generated/app_localizations.dart';
+import 'package:sampada/providers/auth_provider.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -14,6 +16,14 @@ class AppBottomNav extends StatelessWidget {
 
   void _onItemTapped(BuildContext context, int index) {
     if (index == currentIndex) return;
+
+    if (index == 4) {
+      final isAuthenticated = context.read<AuthProvider>().isAuthenticated;
+      if (!isAuthenticated) {
+        Navigator.pushNamed(context, AppStrings.loginPath);
+        return;
+      }
+    }
 
     String? routeName;
     switch (index) {

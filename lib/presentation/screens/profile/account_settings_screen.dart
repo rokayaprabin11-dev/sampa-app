@@ -280,7 +280,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   child: _uploadingPhoto
                                       ? const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                       : authProvider.user?.photoURL != null
-                                          ? Image.network(authProvider.user!.photoURL!, fit: BoxFit.cover)
+                                          ? Image.network(
+                                              authProvider.user!.photoURL!,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => Center(
+                                                child: Text(
+                                                  authProvider.user?.displayName?.substring(0, 1).toUpperCase() ?? 'P',
+                                                  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            )
                                           : Center(
                                               child: Text(
                                                 authProvider.user?.displayName?.substring(0, 1).toUpperCase() ?? 'P',
@@ -336,7 +345,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     label: 'Email Address',
                     controller: _emailController,
                     hint: 'Enter email address',
-                    icon: Icons.edit_outlined,
+                    icon: isGoogle ? null : Icons.edit_outlined,
                     readOnly: isGoogle,
                   ),
                   if (isGoogle) ...[
@@ -652,6 +661,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     Widget? suffix,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Widget? suffixIcon;
+    if (isPassword) {
+      suffixIcon = IconButton(
+        icon: Icon(
+          obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          color: const Color(0xFFDCA73A),
+          size: 20,
+        ),
+        onPressed: onToggleVisibility,
+      );
+    } else if (icon != null) {
+      suffixIcon = Icon(icon, color: const Color(0xFF9E3D1A), size: 18);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -670,54 +694,37 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
+        TextField(
+          controller: controller,
+          obscureText: isPassword ? obscureText : false,
+          readOnly: readOnly,
+          style: TextStyle(
             color: readOnly
-                ? const Color(0xFFF5F5F5)
-                : Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFF7EED3)),
+                ? (isDark ? Colors.grey[500] : Colors.grey[600])
+                : Theme.of(context).colorScheme.onSurface,
+            fontSize: 15,
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  obscureText: isPassword ? obscureText : false,
-                  readOnly: readOnly,
-                  style: TextStyle(
-                    color: readOnly ? Colors.grey : Theme.of(context).colorScheme.onSurface,
-                    fontSize: 15,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-              if (isPassword)
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: Icon(
-                    obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: const Color(0xFFDCA73A),
-                    size: 18,
-                  ),
-                  onPressed: onToggleVisibility,
-                )
-              else if (icon != null)
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7EED3).withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Icon(icon, color: const Color(0xFF7B1E00), size: 16),
-                ),
-            ],
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+            filled: true,
+            fillColor: readOnly
+                ? (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF0F0F0))
+                : Theme.of(context).colorScheme.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFF7EED3)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFF7EED3)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF7B1E00), width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            suffixIcon: suffixIcon,
           ),
         ),
       ],

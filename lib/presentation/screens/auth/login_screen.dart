@@ -208,8 +208,61 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // Divider
+              Row(
+                children: [
+                  const Expanded(child: Divider(color: AppColors.brownLight)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('or', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  ),
+                  const Expanded(child: Divider(color: AppColors.brownLight)),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Google Sign In
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: authProvider.isLoading
+                      ? null
+                      : () async {
+                          await authProvider.signInWithGoogle();
+                          if (context.mounted && authProvider.isAuthenticated) {
+                            Navigator.pushReplacementNamed(context, AppStrings.homePath);
+                          } else if (context.mounted && authProvider.error != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(authProvider.error!)),
+                            );
+                          }
+                        },
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                    side: const BorderSide(color: AppColors.brownLight),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.g_mobiledata, size: 32, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.googleSignIn,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
-              
+
               // Register Link
               Center(
                 child: TextButton(

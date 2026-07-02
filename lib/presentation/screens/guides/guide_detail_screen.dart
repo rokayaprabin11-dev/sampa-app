@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/providers/auth_provider.dart';
 import 'package:sampada/providers/guide_provider.dart';
 
 class GuideDetailScreen extends StatefulWidget {
@@ -216,7 +218,33 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
 
                   // Book section
                   GestureDetector(
-                    onTap: () => setState(() => _bookingExpanded = !_bookingExpanded),
+                    onTap: () {
+                      if (!context.read<AuthProvider>().isAuthenticated) {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Login Required'),
+                            content: const Text('You need to be logged in to book a guide.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, AppStrings.loginPath);
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7B1E00)),
+                                child: const Text('Login', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                        return;
+                      }
+                      setState(() => _bookingExpanded = !_bookingExpanded);
+                    },
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
