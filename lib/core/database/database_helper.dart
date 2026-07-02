@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 
-const int _kDbVersion = 6;
+const int _kDbVersion = 7;
 const String _kDbName = 'sampada.db';
 
 class DatabaseHelper {
@@ -52,7 +52,7 @@ class DatabaseHelper {
       'local_heritage_sites', 'local_heritage_sites_fts', 'local_site_media',
       'local_events', 'local_bookmarks', 'local_reviews_draft',
       'local_user_profile', 'local_recently_viewed', 'local_search_history',
-      'local_notifications', 'sync_queue',
+      'local_notifications', 'sync_queue', 'local_search_history', 'local_recently_viewed',
     ];
     for (final t in tables) {
       await db.execute('DROP TABLE IF EXISTS $t');
@@ -191,6 +191,23 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_sq_status  ON sync_queue (status)');
     await db.execute('CREATE INDEX idx_sq_created ON sync_queue (created_at ASC)');
 
+    // ------------------------------------------------------------------
+    // 4. Notification history — saved on FCM receive for offline access
+    // ------------------------------------------------------------------
+    await db.execute('''
+      CREATE TABLE local_notifications (
+        id          TEXT    PRIMARY KEY,
+        title       TEXT    NOT NULL,
+        body        TEXT    NOT NULL,
+        type        TEXT    NOT NULL DEFAULT 'system',
+        data        TEXT    NOT NULL DEFAULT '{}',
+        is_read     INTEGER NOT NULL DEFAULT 0,
+        received_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_ln_received ON local_notifications (received_at DESC)');
+    await db.execute('CREATE INDEX idx_ln_read     ON local_notifications (is_read)');
+
   }
 
   // ---------------------------------------------------------------------------
@@ -213,7 +230,7 @@ class DatabaseHelper {
     final db = await database;
     final batch = db.batch();
     for (final t in [
-      'local_bookmarks', 'local_user_profile', 'sync_queue',
+      'local_bookmarks', 'local_user_profile', 'sync_queue', 'local_notifications',
     ]) {
       batch.delete(t);
     }

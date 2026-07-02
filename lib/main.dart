@@ -33,6 +33,7 @@ import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/text_size_provider.dart';
 import 'providers/auto_sync_provider.dart';
+import 'providers/notification_provider.dart';
 
 import 'injection.dart' as di;
 
@@ -109,7 +110,11 @@ void main() async {
   if (!kIsWeb) {
     try {
       final notificationService = NotificationService();
-      await notificationService.initialize(apiClient: apiClient);
+      await notificationService.initialize(
+        apiClient: apiClient,
+        dbHelper: dbHelper,
+        navigatorKey: navigatorKey,
+      );
     } catch (e) {
       debugPrint('--- Notification Service FAILED: $e ---');
     }
@@ -172,6 +177,9 @@ void main() async {
             previous!.updateUserId(authProvider.user?.uid);
             return previous;
           },
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(apiClient: apiClient, dbHelper: dbHelper),
         ),
       ],
       child: SampadaApp(navigatorKey: navigatorKey),

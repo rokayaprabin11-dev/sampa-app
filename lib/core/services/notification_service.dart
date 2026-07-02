@@ -1,200 +1,191 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'dart:io';
+
 import '../network/api_client.dart';
-import '../network/api_constants.dart';
+import '../network/api_endpoints.dart';
+import '../database/database_helper.dart';
+import '../../data/datasources/local/notification_local_datasource.dart';
+import '../../core/constants/app_strings.dart';
+
+// Top-level background handler — runs in separate isolate, no DB access
+@pragma('vm:entry-point')
+Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+  debugPrint('FCM background: ${message.messageId}');
+}
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin _localPlugin =
       FlutterLocalNotificationsPlugin();
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+
   ApiClient? _apiClient;
+  NotificationLocalDataSource? _local;
+  GlobalKey<NavigatorState>? _navigatorKey;
 
-  /// Initializes both local and Firebase notifications.
-  Future<void> initialize({ApiClient? apiClient}) async {
+  Future<void> initialize({
+    ApiClient? apiClient,
+    DatabaseHelper? dbHelper,
+    GlobalKey<NavigatorState>? navigatorKey,
+  }) async {
     _apiClient = apiClient;
-    // 1. Local Notifications Initialization
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    _navigatorKey = navigatorKey;
+    if (dbHelper != null) {
+      _local = NotificationLocalDataSource(dbHelper: dbHelper);
+    }
 
-    const DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
+    // Local notifications init
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const ios = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-
-    await _localNotificationsPlugin.initialize(
-      settings: initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap
-        debugPrint('Notification tapped: ${response.payload}');
+    await _localPlugin.initialize(
+      settings: const InitializationSettings(android: android, iOS: ios),
+      onDidReceiveNotificationResponse: (response) {
+        _handleTap(response.payload);
       },
     );
 
-    // 2. Firebase Messaging Initialization
-    await _setupFirebaseMessaging();
+    await _setupFcm();
   }
 
-  Future<void> _setupFirebaseMessaging() async {
-    // Request permission (mostly for iOS)
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
+  Future<void> _setupFcm() async {
+    final settings = await _fcm.requestPermission(
+      alert: true, badge: true, sound: true,
     );
+    if (settings.authorizationStatus == AuthorizationStatus.denied) return;
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('User granted permission');
-    } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-      debugPrint('User granted provisional permission');
-    } else {
-      debugPrint('User declined or has not accepted permission');
+    final token = await _fcm.getToken();
+    if (token != null && _apiClient != null) {
+      final hasAuth = await _apiClient!.tokenStorage.getAccessToken() != null;
+      if (hasAuth) await _syncToken(token);
     }
 
-    // Get FCM Token
-    String? token = await _firebaseMessaging.getToken();
-    debugPrint('FCM Token: $token');
-    
-    if (token != null && _apiClient != null && await _apiClient!.tokenStorage.getAccessToken() != null) {
-      await _syncTokenWithBackend(token);
-    }
+    FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
 
-    // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    // Handle foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('Got a message whilst in the foreground!');
-      debugPrint('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        debugPrint('Message also contained a notification: ${message.notification}');
-        showLocalNotification(
-          title: message.notification?.title ?? '',
-          body: message.notification?.body ?? '',
-          payload: message.data.toString(),
+    // Foreground message → show local notification + save to DB
+    FirebaseMessaging.onMessage.listen((msg) async {
+      final n = msg.notification;
+      if (n != null) {
+        await _saveToLocal(msg);
+        await showLocalNotification(
+          title: n.title ?? '',
+          body: n.body ?? '',
+          payload: _encodePayload(msg),
         );
       }
     });
+
+    // Background tap (app was in background)
+    FirebaseMessaging.onMessageOpenedApp.listen((msg) {
+      _navigateFromMessage(msg);
+    });
+
+    // Terminated tap (app was closed)
+    final initial = await _fcm.getInitialMessage();
+    if (initial != null) _navigateFromMessage(initial);
+  }
+
+  Future<void> _saveToLocal(RemoteMessage msg) async {
+    final local = _local;
+    if (local == null) return;
+    try {
+      await local.save(LocalNotification(
+        id: msg.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        title: msg.notification?.title ?? '',
+        body: msg.notification?.body ?? '',
+        type: msg.data['type'] as String? ?? 'system',
+        data: Map<String, dynamic>.from(msg.data),
+        isRead: false,
+        receivedAt: msg.sentTime ?? DateTime.now(),
+      ));
+    } catch (e) {
+      debugPrint('NotificationService: failed to save locally: $e');
+    }
+  }
+
+  String _encodePayload(RemoteMessage msg) {
+    final type = msg.data['type'] as String? ?? '';
+    final id = msg.data['event_id'] ?? msg.data['site_id'] ?? '';
+    return '$type:$id';
+  }
+
+  void _handleTap(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+    final parts = payload.split(':');
+    final type = parts.isNotEmpty ? parts[0] : '';
+    _navigatorKey?.currentState?.pushNamed(
+      type == 'event' || type == 'event_reminder'
+          ? AppStrings.eventsPath
+          : type == 'geofence'
+              ? AppStrings.homePath
+              : AppStrings.notificationsPath,
+    );
+  }
+
+  void _navigateFromMessage(RemoteMessage msg) {
+    _handleTap(_encodePayload(msg));
+  }
+
+  Future<void> syncAfterLogin() async {
+    if (_apiClient == null) return;
+    final token = await _fcm.getToken();
+    if (token != null) await _syncToken(token);
+  }
+
+  Future<void> _syncToken(String token) async {
+    try {
+      final type = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+      final deviceId = await _getDeviceId();
+      final pkg = await PackageInfo.fromPlatform();
+      await _apiClient?.post(ApiEndpoints.fcmToken, data: {
+        'token': token,
+        'device_type': type,
+        'device_id': deviceId,
+        'app_version': '${pkg.version}+${pkg.buildNumber}',
+        'last_seen': DateTime.now().toUtc().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('NotificationService: token sync failed: $e');
+    }
   }
 
   Future<String> _getDeviceId() async {
     try {
       final info = DeviceInfoPlugin();
-      if (Platform.isAndroid) {
-        final android = await info.androidInfo
-            .timeout(const Duration(seconds: 3));
-        return android.id;
-      } else if (Platform.isIOS) {
-        final ios = await info.iosInfo
-            .timeout(const Duration(seconds: 3));
-        return ios.identifierForVendor ?? 'unknown';
-      }
+      if (Platform.isAndroid) return (await info.androidInfo).id;
+      if (Platform.isIOS) return (await info.iosInfo).identifierForVendor ?? 'unknown';
     } catch (_) {}
     return 'unknown';
   }
 
-  Future<void> _syncTokenWithBackend(String token) async {
-    try {
-      final deviceType = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
-      final deviceId = await _getDeviceId();
-      final packageInfo = await PackageInfo.fromPlatform();
-      final appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
-
-      await _apiClient?.post(
-        ApiEndpoints.fcmToken,
-        data: {
-          'token': token,
-          'device_type': deviceType,
-          'device_id': deviceId,
-          'app_version': appVersion,
-          'last_seen': DateTime.now().toUtc().toIso8601String(),
-        },
-      );
-      debugPrint('FCM Token synced with backend');
-    } catch (e) {
-      debugPrint('Error syncing FCM token: $e');
-    }
-  }
-
-  /// Call after login to register FCM token with the authenticated backend.
-  Future<void> syncAfterLogin() async {
-    if (_apiClient == null) return;
-    final token = await _firebaseMessaging.getToken();
-    if (token != null) await _syncTokenWithBackend(token);
-  }
-
-  /// Shows a local notification.
   Future<void> showLocalNotification({
     required String title,
     required String body,
     String? payload,
   }) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
+    const channel = AndroidNotificationDetails(
       'sampada_notifications',
       'Sampada Notifications',
-      channelDescription: 'General notifications for Sampada app',
+      channelDescription: 'Heritage & event notifications',
       importance: Importance.max,
       priority: Priority.high,
-      showWhen: true,
     );
-
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    // Anti-Spam Check
-    if (!await _canSendNotification(payload ?? '')) {
-      debugPrint('Notification suppressed by anti-spam engine.');
-      return;
-    }
-
-    await _localNotificationsPlugin.show(
-      id: 0,
+    await _localPlugin.show(
+      id: DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF,
       title: title,
       body: body,
-      notificationDetails: platformChannelSpecifics,
+      notificationDetails: const NotificationDetails(android: channel),
       payload: payload,
     );
-    
-    await _updateLastNotificationTime(payload ?? '');
-  }
-
-  /// Basic Anti-Spam Engine
-  Future<bool> _canSendNotification(String eventId) async {
-    // 1. Cooldown per event = 24h
-    // 2. Max 3 notifications per hour
-    // (This would ideally use shared_preferences or similar for persistence)
-    // For now, using a simple in-memory check or mock logic
-    return true; 
-  }
-
-  Future<void> _updateLastNotificationTime(String eventId) async {
-    // Store time of last notification
   }
 }
-
-// Background handler must be a top-level function
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint("Handling a background message: ${message.messageId}");
-}
-
-
-
-
-
-
-

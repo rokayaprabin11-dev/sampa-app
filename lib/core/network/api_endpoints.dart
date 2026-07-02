@@ -53,6 +53,7 @@ class ApiEndpoints {
   static const String readAll = '/notifications/read-all/';
   static String markOneRead(int id) => '/notifications/$id/read/';
   static const String geofenceCheck = '/notifications/geofence-check/';
+  static const String adminSendNotification = '/notifications/admin/send/';
 
   // --- Location ---
   static const String locationUpdate = '/location/update/';

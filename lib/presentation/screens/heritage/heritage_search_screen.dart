@@ -92,14 +92,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
           // Back button
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.25),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-            ),
+            child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -119,28 +112,34 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
           const SizedBox(height: 16),
           // Search bar
           Consumer<HeritageProvider>(
-            builder: (context, provider, _) => Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: const Color(0xFFD4A040), width: 1.8),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (v) => _onSearchChanged(v, provider),
-                style: const TextStyle(fontSize: 15, color: Color(0xFF331609)),
-                decoration: InputDecoration(
-                  hintText: 'Search heritage sites...',
-                  hintStyle: const TextStyle(color: Color(0xFFB08060), fontSize: 14),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF8C7162), size: 22),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () => _onClearSearch(provider),
-                          child: const Icon(Icons.close, color: Color(0xFF8C7162), size: 20),
-                        )
-                      : null,
+            builder: (context, provider, _) => TextField(
+              controller: _searchController,
+              onChanged: (v) => _onSearchChanged(v, provider),
+              style: const TextStyle(fontSize: 15, color: Color(0xFF331609)),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                hintText: 'Search heritage sites...',
+                hintStyle: const TextStyle(color: Color(0xFFB08060), fontSize: 14),
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF8C7162), size: 22),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () => _onClearSearch(provider),
+                        child: const Icon(Icons.close, color: Color(0xFF8C7162), size: 20),
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFD4A040), width: 1.8),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFD4A040), width: 1.8),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFD4A040), width: 2.0),
                 ),
               ),
             ),

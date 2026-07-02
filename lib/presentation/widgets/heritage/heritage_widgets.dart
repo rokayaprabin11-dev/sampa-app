@@ -28,6 +28,7 @@ class CategoryChip extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.only(right: 8),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? const Color(0xFFD4520A) : Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -37,6 +38,7 @@ class CategoryChip extends StatelessWidget {
           ),
           child: Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: isSelected ? Colors.white : const Color(0xFF6B5041),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/data/datasources/local/notification_local_datasource.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
+import 'package:sampada/providers/notification_provider.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -14,15 +18,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String _selectedFilter = 'All';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().load();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          // --- Header Section ---
+          // Header
           Stack(
             children: [
               Container(
@@ -32,10 +45,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF5D1700),
-                      Color(0xFF9E3D1A),
-                    ],
+                    colors: [Color(0xFF5D1700), Color(0xFF9E3D1A)],
                   ),
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(20),
@@ -45,7 +55,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Column(
                     children: [
                       Row(
@@ -54,8 +64,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           IconButton(
                             icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                             onPressed: () => Navigator.pop(context),
-                            hoverColor: Colors.white.withValues(alpha: 0.1),
-                            splashColor: Colors.white.withValues(alpha: 0.2),
                           ),
                           Text(
                             l10n.notifTitle,
@@ -66,7 +74,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () => context.read<NotificationProvider>().markAllRead(),
                             child: const Text(
                               'Mark all read',
                               style: TextStyle(color: Color(0xFFC89932), fontSize: 14),
@@ -75,14 +83,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      // Filters
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildFilterChip(l10n.notifFilterAll),
-                          _buildFilterChip(l10n.notifFilterEvents),
-                          _buildFilterChip('Heritage'),
-                          _buildFilterChip('Alerts'),
+                          _buildFilterChip(l10n.notifFilterAll, 'All'),
+                          _buildFilterChip(l10n.notifFilterEvents, 'event'),
+                          _buildFilterChip('Heritage', 'geofence'),
+                          _buildFilterChip('Alerts', 'system'),
                         ],
                       ),
                     ],
@@ -92,50 +99,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ],
           ),
 
-          // --- Notifications List ---
+          // List
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: const [
-                _NotificationCard(
-                  title: 'Indra Jatra starts in 3 days!',
-                  subtitle: 'Event reminder • Sep 18',
-                  icon: Icons.masks,
-                  accentColor: Colors.red,
-                  isUnread: true,
-                ),
-                _NotificationCard(
-                  title: 'New site added: Changu Narayan',
-                  subtitle: 'Heritage update • Bhaktapur',
-                  icon: Icons.temple_hindu,
-                  accentColor: Colors.orange,
-                  isUnread: true,
-                ),
-                _NotificationCard(
-                  title: 'Tihar Festival this weekend',
-                  subtitle: 'Event reminder • Oct 28',
-                  icon: Icons.light,
-                  accentColor: Colors.orangeAccent,
-                ),
-                _NotificationCard(
-                  title: 'Bhaktapur guide downloaded',
-                  subtitle: 'Available offline now',
-                  icon: Icons.download_for_offline,
-                  accentColor: Colors.teal,
-                ),
-                _NotificationCard(
-                  title: 'Boudhanath info updated',
-                  subtitle: 'Heritage update • Kathmandu',
-                  icon: Icons.temple_buddhist,
-                  accentColor: Colors.amber,
-                ),
-                _NotificationCard(
-                  title: 'Patan Durbar bookmarked',
-                  subtitle: 'Your activity',
-                  icon: Icons.bookmark,
-                  accentColor: Colors.deepPurpleAccent,
-                ),
-              ],
+            child: Consumer<NotificationProvider>(
+              builder: (context, provider, _) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final filtered = _selectedFilter == 'All'
+                    ? provider.notifications
+                    : provider.notifications
+                        .where((n) => n.type == _selectedFilter)
+                        .toList();
+
+                if (filtered.isEmpty) {
+                  return _buildEmpty(isDark);
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final n = filtered[index];
+                    return _NotificationCard(
+                      notification: n,
+                      isDark: isDark,
+                      onTap: () {
+                        context.read<NotificationProvider>().markRead(n.id);
+                        _navigate(n);
+                      },
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -144,10 +141,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _selectedFilter == label;
+  void _navigate(LocalNotification n) {
+    final route = switch (n.type) {
+      'event' || 'event_reminder' => AppStrings.eventsPath,
+      'geofence' => AppStrings.homePath,
+      _ => null,
+    };
+    if (route != null) Navigator.pushNamed(context, route);
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _selectedFilter == value;
     return GestureDetector(
-      onTap: () => setState(() => _selectedFilter = label),
+      onTap: () => setState(() => _selectedFilter = value),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
@@ -165,110 +171,169 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
     );
   }
-}
 
-class _NotificationCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color accentColor;
-  final bool isUnread;
-
-  const _NotificationCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.accentColor,
-    this.isUnread = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            // Left Accent Border
-            Container(
-              width: 4,
-              decoration: BoxDecoration(
-                color: accentColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                ),
-              ),
+  Widget _buildEmpty(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.notifications_none_rounded,
+              size: 64, color: isDark ? AppColors.darkTextSecondary : const Color(0xFFB08060)),
+          const SizedBox(height: 16),
+          Text(
+            'No notifications yet',
+            style: TextStyle(
+              fontSize: 16,
+              color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),
             ),
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    // Icon
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF5EFEC) : AppColors.darkBgCard,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    // Text
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Unread Dot
-                    if (isUnread)
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFC89932),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
+class _NotificationCard extends StatelessWidget {
+  final LocalNotification notification;
+  final bool isDark;
+  final VoidCallback onTap;
 
+  const _NotificationCard({
+    required this.notification,
+    required this.isDark,
+    required this.onTap,
+  });
 
+  IconData get _icon => switch (notification.type) {
+        'event' || 'event_reminder' => Icons.event,
+        'geofence' => Icons.location_on,
+        'review' => Icons.star,
+        _ => Icons.notifications,
+      };
 
+  Color get _accent => switch (notification.type) {
+        'event' || 'event_reminder' => Colors.orange,
+        'geofence' => Colors.teal,
+        'review' => Colors.amber,
+        _ => const Color(0xFF9E3D1A),
+      };
 
+  String get _subtitle {
+    final type = switch (notification.type) {
+      'event' || 'event_reminder' => 'Event reminder',
+      'geofence' => 'Nearby heritage',
+      'review' => 'Review',
+      _ => 'System',
+    };
+    final dt = notification.receivedAt;
+    final formatted = '${dt.day}/${dt.month}/${dt.year}';
+    return '$type • $formatted';
+  }
 
-
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: notification.isRead
+              ? Theme.of(context).colorScheme.surface
+              : (isDark
+                  ? const Color(0xFF2A1A0A)
+                  : const Color(0xFFFFF8EE)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3),
+          ),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              // Accent bar
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  color: notification.isRead ? Colors.transparent : _accent,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(_icon,
+                            color: isDark ? AppColors.goldMain : const Color(0xFF4A342B),
+                            size: 26),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              notification.title,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: notification.isRead
+                                    ? FontWeight.normal
+                                    : FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              notification.body,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : const Color(0xFF8C7162),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _subtitle,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : const Color(0xFFB08060),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!notification.isRead)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(left: 8),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFC89932),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
