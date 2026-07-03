@@ -169,6 +169,18 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          // CRITICAL: the refresh + sync endpoints must NOT enter the refresh
+          // cycle. _doRefresh() issues a POST to the refresh endpoint; if that
+          // POST re-enters this interceptor while the access token is expired,
+          // it awaits the very _refreshCompleter that only completes once the
+          // POST returns → hard deadlock → EVERY request hangs (whole-app
+          // shimmer). Let auth handshake calls through untouched.
+          final path = options.path;
+          if (path.contains(ApiEndpoints.tokenRefresh) ||
+              path.contains(ApiEndpoints.sync)) {
+            return handler.next(options);
+          }
+
           var accessToken = await tokenStorage.getAccessToken();
           if (accessToken == null || _isTokenExpiringSoon(accessToken)) {
             final refreshed = await _doRefresh();

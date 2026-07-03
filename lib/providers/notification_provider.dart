@@ -26,31 +26,41 @@ class NotificationProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    if (remote) {
-      try {
-        final resp = await apiClient.get(ApiEndpoints.notifications);
-        final items = (resp.data['results'] ?? resp.data) as List<dynamic>;
-        for (final item in items) {
-          final m = item as Map<String, dynamic>;
-          await _local.save(LocalNotification(
-            id: m['id'].toString(),
-            title: m['title'] as String? ?? '',
-            body: m['body'] as String? ?? '',
-            type: m['type'] as String? ?? 'system',
-            data: (m['data'] as Map<String, dynamic>?) ?? {},
-            isRead: m['is_read'] as bool? ?? false,
-            receivedAt: DateTime.tryParse(m['created_at'] as String? ?? '') ?? DateTime.now(),
-          ));
+    try {
+      if (remote) {
+        try {
+          // apiClient.get() already returns the decoded body (List or Map),
+          // not a Response — do NOT access .data on it.
+          final data = await apiClient.get(ApiEndpoints.notifications);
+          final items = (data is Map ? (data['results'] ?? []) : data) as List<dynamic>;
+          for (final item in items) {
+            final m = item as Map<String, dynamic>;
+            await _local.save(LocalNotification(
+              id: m['id'].toString(),
+              title: m['title'] as String? ?? '',
+              body: m['body'] as String? ?? '',
+              type: m['type'] as String? ?? 'system',
+              data: (m['data'] as Map<String, dynamic>?) ?? {},
+              isRead: m['is_read'] as bool? ?? false,
+              receivedAt: DateTime.tryParse(m['created_at'] as String? ?? '') ?? DateTime.now(),
+            ));
+          }
+        } catch (_) {
+          // offline or parse error — fall through to whatever is cached locally
         }
-      } catch (_) {
-        // offline — fall through to local
       }
-    }
 
-    _notifications = await _local.getAll();
-    _unreadCount = _notifications.where((n) => !n.isRead).length;
-    _isLoading = false;
-    notifyListeners();
+      _notifications = await _local.getAll();
+      _unreadCount = _notifications.where((n) => !n.isRead).length;
+    } catch (e) {
+      // Local store unavailable (e.g. table missing) — show empty, never hang.
+      _error = e.toString();
+      _notifications = [];
+      _unreadCount = 0;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> saveLocal(LocalNotification n) async {

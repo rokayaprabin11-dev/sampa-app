@@ -2,7 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 
-const int _kDbVersion = 7;
+// v8: force schema rebuild — earlier installs created the DB before the FTS5
+// crash was caught, so tables after the FTS virtual table (local_notifications,
+// sync_queue, …) could be missing. Bumping the version reruns _onCreate via
+// _onUpgrade with the FTS-safe fallback so all tables exist.
+const int _kDbVersion = 8;
 const String _kDbName = 'sampada.db';
 
 class DatabaseHelper {
