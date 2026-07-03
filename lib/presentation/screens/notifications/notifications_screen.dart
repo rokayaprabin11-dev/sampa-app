@@ -5,6 +5,7 @@ import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/data/datasources/local/notification_local_datasource.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
+import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/notification_provider.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -104,7 +105,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: Consumer<NotificationProvider>(
               builder: (context, provider, _) {
                 if (provider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: 7,
+                    itemBuilder: (context, _) => const NotificationCardSkeleton(),
+                  );
                 }
 
                 final filtered = _selectedFilter == 'All'

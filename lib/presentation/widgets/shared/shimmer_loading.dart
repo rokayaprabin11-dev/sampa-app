@@ -178,6 +178,47 @@ class RecentlyVisitedSkeleton extends StatelessWidget {
   }
 }
 
+class NotificationCardSkeleton extends StatelessWidget {
+  const NotificationCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            const ShimmerSkeleton(width: 42, height: 42, borderRadius: 8),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  ShimmerSkeleton(width: double.infinity, height: 14),
+                  SizedBox(height: 8),
+                  ShimmerSkeleton(width: double.infinity, height: 11),
+                  SizedBox(height: 6),
+                  ShimmerSkeleton(width: 120, height: 10),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ProfileStatsSkeleton extends StatelessWidget {
   const ProfileStatsSkeleton({super.key});
 
