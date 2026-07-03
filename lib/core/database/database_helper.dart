@@ -95,16 +95,26 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_lhs_featured  ON local_heritage_sites (is_featured)');
     await db.execute('CREATE INDEX idx_lhs_cached    ON local_heritage_sites (cached_at)');
 
-    await db.execute('''
-      CREATE VIRTUAL TABLE local_heritage_sites_fts USING fts5(
-        id,
-        name_en,
-        name_ne,
-        district,
-        category,
-        tokenize = "unicode61"
-      )
-    ''');
+    // FTS5 is compiled into standard SQLite but some Android vendors (MIUI, etc.)
+    // ship a stripped SQLite without it.  Fall back to FTS4, then skip.
+    try {
+      await db.execute('''
+        CREATE VIRTUAL TABLE local_heritage_sites_fts USING fts5(
+          id, name_en, name_ne, district, category,
+          tokenize = "unicode61"
+        )
+      ''');
+    } catch (_) {
+      try {
+        await db.execute('''
+          CREATE VIRTUAL TABLE local_heritage_sites_fts USING fts4(
+            id, name_en, name_ne, district, category
+          )
+        ''');
+      } catch (_) {
+        // FTS not available — local search falls back to LIKE queries.
+      }
+    }
 
     await db.execute('''
       CREATE TABLE local_site_media (

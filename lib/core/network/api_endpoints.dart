@@ -54,6 +54,9 @@ class ApiEndpoints {
   static String markOneRead(int id) => '/notifications/$id/read/';
   static const String geofenceCheck = '/notifications/geofence-check/';
   static const String adminSendNotification = '/notifications/admin/send/';
+  static const String notificationPreferences = '/notifications/preferences/';
+  static const String deviceRegister = '/notifications/devices/register/';
+  static const String deviceUnregister = '/notifications/devices/unregister/';
 
   // --- Location ---
   static const String locationUpdate = '/location/update/';

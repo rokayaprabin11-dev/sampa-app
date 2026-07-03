@@ -3,10 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
 import 'package:firebase_performance/firebase_performance.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sampada/data/datasources/local/secure_token_storage.dart';
 import 'network_exceptions.dart';
@@ -119,9 +116,8 @@ class ApiClient {
     return handler.reject(error);
   }
 
-  static Future<void> initCache(Dio dio) async {
-    final dir = await getApplicationDocumentsDirectory();
-    _cacheStore = DbCacheStore(databasePath: p.join(dir.path, 'sampada_cache.db'));
+  static void initCache(Dio dio) {
+    _cacheStore = MemCacheStore(maxSize: 10 * 1024 * 1024); // 10 MB in-memory
     dio.interceptors.add(DioCacheInterceptor(options: CacheOptions(
       store: _cacheStore!,
       policy: CachePolicy.noCache,

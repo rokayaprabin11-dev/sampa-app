@@ -52,8 +52,9 @@ class HeritageProvider with ChangeNotifier {
       'monasteries': 'monastery',
       'monuments': 'monument',
       'lakes': 'lake',
-      'durbar sq.': 'palace',
-      'durbar squares': 'palace',
+      'durbar sq.': 'durbar',
+      'durbar squares': 'durbar',
+      'durbar square': 'durbar',
       // Nepali equivalents map to same slugs if needed
     };
     return map[s] ?? s.replaceAll(RegExp(r's$'), ''); // strip trailing 's' as fallback
@@ -86,9 +87,9 @@ class HeritageProvider with ChangeNotifier {
   String _mapCategory(String category) {
     switch (category) {
       case 'Temples': return 'temple';
-      case 'Durbar Sq.': return 'palace';
+      case 'Durbar Sq.': return 'durbar';
       case 'Stupas': return 'stupa';
-      case 'Monasteries': return 'monastery';
+      case 'Monasteries': return 'monastery';  // NOTE: no 'monastery' slug in backend
       default: return category.toLowerCase();
     }
   }

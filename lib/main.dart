@@ -105,7 +105,7 @@ void main() async {
       );
     },
   );
-  await ApiClient.initCache(dio);
+  ApiClient.initCache(dio);
 
   if (!kIsWeb) {
     try {

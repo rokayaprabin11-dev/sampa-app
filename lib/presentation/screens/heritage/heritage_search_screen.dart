@@ -20,7 +20,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   static const List<_Category> _categories = [
     _Category(label: 'All', apiValue: null),
     _Category(label: 'Temples', apiValue: 'temple'),
-    _Category(label: 'Durbar Sq.', apiValue: 'palace'),
+    _Category(label: 'Durbar Sq.', apiValue: 'durbar'),
     _Category(label: 'Stupas', apiValue: 'stupa'),
     _Category(label: 'Monasteries', apiValue: 'monastery'),
   ];
