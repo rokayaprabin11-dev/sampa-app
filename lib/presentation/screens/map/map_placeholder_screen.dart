@@ -53,6 +53,7 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
   }
 
   Future<void> _tryLocate() async {
+    if (!mounted) return;
     setState(() => _locating = true);
     try {
       final pos = await LocationService().getCurrentPosition();

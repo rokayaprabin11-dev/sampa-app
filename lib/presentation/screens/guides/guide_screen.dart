@@ -188,7 +188,10 @@ class _GuideScreenState extends State<GuideScreen> {
                         context,
                         allGuides.isEmpty
                             ? '–'
-                            : (allGuides.map((g) => (g['rating_avg'] as num?)?.toDouble() ?? 0.0).reduce((a, b) => a + b) / allGuides.length).toStringAsFixed(1),
+                            : (allGuides.map((g) {
+                                  final r = g['rating_avg'];
+                                  return r is num ? r.toDouble() : double.tryParse('${r ?? ''}') ?? 0.0;
+                                }).reduce((a, b) => a + b) / allGuides.length).toStringAsFixed(1),
                         'Avg Rating',
                       ),
                     ],
@@ -330,7 +333,7 @@ class _GuideScreenState extends State<GuideScreen> {
     final user = guide['user'] as Map<String, dynamic>? ?? {};
     final fullName = (user['full_name'] ?? user['username'] ?? 'Unknown').toString();
     final initials = fullName.split(' ').take(2).map((p) => p.isNotEmpty ? p[0].toUpperCase() : '').join();
-    final rating = (guide['rating_avg'] as num?)?.toDouble() ?? 0.0;
+    final rating = double.tryParse('${guide['rating_avg'] ?? ''}') ?? 0.0;
     final reviewCount = (guide['review_count'] as int?) ?? 0;
     final rate = guide['hourly_rate'];
     final specialties = ((guide['specialties'] as List?) ?? []).cast<String>();

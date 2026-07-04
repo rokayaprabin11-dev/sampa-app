@@ -76,7 +76,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
     final initials = fullName.split(' ').take(2).map((p) => p.isNotEmpty ? p[0].toUpperCase() : '').join();
     final photoUrl = guide['photo_url'] as String?;
     final bio = (guide['bio'] as String?) ?? '';
-    final rating = (guide['rating_avg'] as num?)?.toDouble() ?? 0.0;
+    final rating = double.tryParse('${guide['rating_avg'] ?? ''}') ?? 0.0;
     final reviewCount = (guide['review_count'] as int?) ?? 0;
     final rate = guide['hourly_rate'];
     final specialties = ((guide['specialties'] as List?) ?? []).cast<String>();
