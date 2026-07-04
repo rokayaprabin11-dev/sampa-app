@@ -293,52 +293,38 @@ class _LogoBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    final borderWidth = size * 0.025;
+    return Container(
       width: size,
       height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Gold circular border
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const RadialGradient(
-                colors: [Color(0xFF4A1A00), Color(0xFF1A0500)],
-              ),
-              border: Border.all(
-                color: const Color(0xFFD4A017),
-                width: size * 0.025,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFD4A017).withValues(alpha: 0.3),
-                  blurRadius: size * 0.15,
-                  spreadRadius: size * 0.02,
-                ),
-              ],
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFFD4A017),
+          width: borderWidth,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD4A017).withValues(alpha: 0.3),
+            blurRadius: size * 0.15,
+            spreadRadius: size * 0.02,
+          ),
+        ],
+      ),
+      // Clip the emblem to a circle that fills exactly inside the gold border,
+      // and cover so it fills the ring with no gap.
+      child: ClipOval(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              colors: [Color(0xFF4A1A00), Color(0xFF1A0500)],
             ),
           ),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(32.0),
-            child: Container(
-              width: size * 0.72,
-              height: size * 0.72,
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [Color(0xFF4A1A00), Color(0xFF1A0500)],
-                ),
-              ),
-              child: Image.asset(
-                'assets/images/Sampada-logo.png',
-                fit: BoxFit.contain,
-              ),
-            ),
-          )
-        ],
+          child: Image.asset(
+            'assets/images/Sampada-logo.png',
+            fit: BoxFit.cover,
+          ),
+        ),
       ),
     );
   }
