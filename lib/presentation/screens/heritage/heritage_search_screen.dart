@@ -6,6 +6,9 @@ import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/presentation/widgets/heritage/heritage_widgets.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
+import 'package:sampada/injection.dart' as di;
+import 'package:sampada/core/network/api_client.dart';
+import 'package:sampada/core/network/api_endpoints.dart';
 
 class HeritageSearchScreen extends StatefulWidget {
   const HeritageSearchScreen({super.key});
@@ -17,13 +20,10 @@ class HeritageSearchScreen extends StatefulWidget {
 class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   late final TextEditingController _searchController;
 
-  static const List<_Category> _categories = [
-    _Category(label: 'All', apiValue: null),
-    _Category(label: 'Temples', apiValue: 'temple'),
-    _Category(label: 'Durbar Sq.', apiValue: 'durbar'),
-    _Category(label: 'Stupas', apiValue: 'stupa'),
-    _Category(label: 'Monasteries', apiValue: 'monastery'),
-  ];
+  // Loaded from the backend so admin category changes appear in the app.
+  // Starts with just "All"; real categories are appended after fetch.
+  List<_Category> _categories = const [_Category(label: 'All', apiValue: null)];
+  String? _selectedSlug; // null = All
 
   @override
   void initState() {
@@ -34,6 +34,27 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       provider.fetchSites();
     });
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    final isNepali = Localizations.localeOf(context).languageCode == 'ne';
+    try {
+      final data = await di.sl<ApiClient>().get(ApiEndpoints.heritageCategories);
+      final List list = data is Map ? (data['results'] ?? []) : data;
+      final fetched = list.whereType<Map>().map((m) {
+        final en = (m['name_en'] ?? '').toString();
+        final np = (m['name_np'] ?? '').toString();
+        final label = isNepali && np.isNotEmpty ? np : (en.isNotEmpty ? en : (m['slug'] ?? '').toString());
+        return _Category(label: label, apiValue: (m['slug'] ?? '').toString());
+      }).where((c) => c.apiValue != null && c.apiValue!.isNotEmpty).toList();
+      if (!mounted || fetched.isEmpty) return;
+      setState(() {
+        _categories = [const _Category(label: 'All', apiValue: null), ...fetched];
+      });
+    } catch (_) {
+      // Keep the "All" chip only; filtering still works via search.
+    }
   }
 
   @override
@@ -43,16 +64,23 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   }
 
   void _onSearchChanged(String value, HeritageProvider provider) {
-    provider.search(query: value);
+    // Keep the active category filter while typing. 'All' sentinel = no filter.
+    provider.search(query: value, category: _selectedSlug ?? 'All');
   }
 
   void _onClearSearch(HeritageProvider provider) {
     _searchController.clear();
-    provider.search(query: '');
+    provider.search(query: '', category: _selectedSlug ?? 'All');
   }
 
-  void _onCategoryTap(String label, HeritageProvider provider) {
-    provider.search(category: label);
+  void _onCategoryTap(String? slug, HeritageProvider provider) {
+    setState(() => _selectedSlug = slug);
+    // Pass the slug straight to the backend filter (category__slug=...).
+    // null = All → no category filter.
+    provider.fetchSites(
+      query: provider.currentQuery.isEmpty ? null : provider.currentQuery,
+      category: slug,
+    );
   }
 
   @override
@@ -151,11 +179,11 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: _categories.map((cat) {
-                  final isSelected = provider.currentCategory == cat.label;
+                  final isSelected = _selectedSlug == cat.apiValue;
                   return _CategoryPill(
                     label: cat.label,
                     isSelected: isSelected,
-                    onTap: () => _onCategoryTap(cat.label, provider),
+                    onTap: () => _onCategoryTap(cat.apiValue, provider),
                   );
                 }).toList(),
               ),
