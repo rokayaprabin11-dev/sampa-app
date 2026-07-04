@@ -6,9 +6,7 @@ import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/presentation/widgets/heritage/heritage_widgets.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
-import 'package:sampada/injection.dart' as di;
-import 'package:sampada/core/network/api_client.dart';
-import 'package:sampada/core/network/api_endpoints.dart';
+import 'package:sampada/data/models/heritage_site.dart';
 
 class HeritageSearchScreen extends StatefulWidget {
   const HeritageSearchScreen({super.key});
@@ -20,41 +18,23 @@ class HeritageSearchScreen extends StatefulWidget {
 class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   late final TextEditingController _searchController;
 
-  // Loaded from the backend so admin category changes appear in the app.
-  // Starts with just "All"; real categories are appended after fetch.
-  List<_Category> _categories = const [_Category(label: 'All', apiValue: null)];
-  String? _selectedSlug; // null = All
+  // Dynamic, data-driven filter — same approach as the home screen:
+  // category chips are derived from the sites actually loaded, and filtering
+  // is done client-side. No separate /categories/ call, so it can't be broken
+  // by an empty response or a stale token, and only categories that actually
+  // have sites are shown.
+  String? _selectedSlug;    // null = All
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
     final provider = Provider.of<HeritageProvider>(context, listen: false);
     _searchController = TextEditingController(text: provider.currentQuery);
+    _query = provider.currentQuery.toLowerCase();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      provider.fetchSites();
-    });
-    _fetchCategories();
-  }
-
-  Future<void> _fetchCategories() async {
-    final isNepali = Localizations.localeOf(context).languageCode == 'ne';
-    try {
-      final data = await di.sl<ApiClient>().get(ApiEndpoints.heritageCategories);
-      final List list = data is Map ? (data['results'] ?? []) : data;
-      final fetched = list.whereType<Map>().map((m) {
-        final en = (m['name_en'] ?? '').toString();
-        final np = (m['name_np'] ?? '').toString();
-        final label = isNepali && np.isNotEmpty ? np : (en.isNotEmpty ? en : (m['slug'] ?? '').toString());
-        return _Category(label: label, apiValue: (m['slug'] ?? '').toString());
-      }).where((c) => c.apiValue != null && c.apiValue!.isNotEmpty).toList();
-      if (!mounted || fetched.isEmpty) return;
-      setState(() {
-        _categories = [const _Category(label: 'All', apiValue: null), ...fetched];
-      });
-    } catch (_) {
-      // Keep the "All" chip only; filtering still works via search.
-    }
+    // Load the full (unfiltered) site list once; chips + filtering derive from it.
+    WidgetsBinding.instance.addPostFrameCallback((_) => provider.fetchSites());
   }
 
   @override
@@ -63,24 +43,53 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     super.dispose();
   }
 
-  void _onSearchChanged(String value, HeritageProvider provider) {
-    // Keep the active category filter while typing. 'All' sentinel = no filter.
-    provider.search(query: value, category: _selectedSlug ?? 'All');
+  void _onSearchChanged(String value) {
+    setState(() => _query = value.trim().toLowerCase());
   }
 
-  void _onClearSearch(HeritageProvider provider) {
+  void _onClearSearch() {
     _searchController.clear();
-    provider.search(query: '', category: _selectedSlug ?? 'All');
+    setState(() => _query = '');
   }
 
-  void _onCategoryTap(String? slug, HeritageProvider provider) {
+  void _onCategoryTap(String? slug) {
     setState(() => _selectedSlug = slug);
-    // Pass the slug straight to the backend filter (category__slug=...).
-    // null = All → no category filter.
-    provider.fetchSites(
-      query: provider.currentQuery.isEmpty ? null : provider.currentQuery,
-      category: slug,
-    );
+  }
+
+  // Normalise a category display name (name_en) to its slug, matching the
+  // backend seed slugs (temple, stupa, durbar, …). Mirrors the provider.
+  String _slug(String raw) {
+    final s = raw.toLowerCase().trim();
+    const map = {
+      'durbar square': 'durbar', 'durbar sq.': 'durbar',
+      'lake / natural': 'lake', 'durbar squares': 'durbar',
+    };
+    return map[s] ?? s;
+  }
+
+  // Distinct categories present in the loaded sites, as (label, slug) pairs.
+  List<_Category> _presentCategories(List<HeritageSite> sites) {
+    final seen = <String, String>{}; // slug -> label
+    for (final s in sites) {
+      final label = s.category.trim();
+      if (label.isEmpty) continue;
+      seen.putIfAbsent(_slug(label), () => label);
+    }
+    final cats = seen.entries.map((e) => _Category(label: e.value, apiValue: e.key)).toList()
+      ..sort((a, b) => a.label.compareTo(b.label));
+    return [const _Category(label: 'All', apiValue: null), ...cats];
+  }
+
+  // Client-side filter by selected category slug + search query.
+  List<HeritageSite> _visibleSites(List<HeritageSite> sites) {
+    return sites.where((s) {
+      final matchCat = _selectedSlug == null || _slug(s.category) == _selectedSlug;
+      if (!matchCat) return false;
+      if (_query.isEmpty) return true;
+      return s.name.toLowerCase().contains(_query) ||
+          s.nameNepali.toLowerCase().contains(_query) ||
+          s.district.toLowerCase().contains(_query);
+    }).toList();
   }
 
   @override
@@ -142,7 +151,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
           Consumer<HeritageProvider>(
             builder: (context, provider, _) => TextField(
               controller: _searchController,
-              onChanged: (v) => _onSearchChanged(v, provider),
+              onChanged: _onSearchChanged,
               style: const TextStyle(fontSize: 15, color: Color(0xFF331609)),
               decoration: InputDecoration(
                 filled: true,
@@ -153,7 +162,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF8C7162), size: 22),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? GestureDetector(
-                        onTap: () => _onClearSearch(provider),
+                        onTap: _onClearSearch,
                         child: const Icon(Icons.close, color: Color(0xFF8C7162), size: 20),
                       )
                     : null,
@@ -173,17 +182,17 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          // Category chips
+          // Category chips — derived from the sites actually loaded
           Consumer<HeritageProvider>(
             builder: (context, provider, _) => SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: _categories.map((cat) {
+                children: _presentCategories(provider.sites).map((cat) {
                   final isSelected = _selectedSlug == cat.apiValue;
                   return _CategoryPill(
                     label: cat.label,
                     isSelected: isSelected,
-                    onTap: () => _onCategoryTap(cat.apiValue, provider),
+                    onTap: () => _onCategoryTap(cat.apiValue),
                   );
                 }).toList(),
               ),
@@ -203,7 +212,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              '${provider.sites.length} results found',
+              '${_visibleSites(provider.sites).length} results found',
               style: const TextStyle(
                 color: Color(0xFF8C7162),
                 fontSize: 13,
@@ -224,7 +233,8 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             return _buildShimmerGrid();
           }
 
-          if (provider.sites.isEmpty) {
+          final visible = _visibleSites(provider.sites);
+          if (visible.isEmpty) {
             return _buildNotFound();
           }
 
@@ -236,9 +246,9 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               crossAxisSpacing: 14,
               mainAxisSpacing: 14,
             ),
-            itemCount: provider.sites.length,
+            itemCount: visible.length,
             itemBuilder: (context, index) {
-              final site = provider.sites[index];
+              final site = visible[index];
               return HeritageGridCard(
                 name: site.name,
                 location: site.district,
