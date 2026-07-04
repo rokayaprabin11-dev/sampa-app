@@ -34,8 +34,28 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
           context.read<ProfileProvider>().addToVisitHistory(_site!.id);
           _fetchFullDetail();
         });
+      } else if (args is Map && args['slug'] != null) {
+        // Opened from a notification deep-link (only a slug is known).
+        final slug = args['slug'].toString();
+        WidgetsBinding.instance.addPostFrameCallback((_) => _loadBySlug(slug));
       }
       _isInit = true;
+    }
+  }
+
+  Future<void> _loadBySlug(String slug) async {
+    if (slug.isEmpty) return;
+    setState(() => _loadingDetail = true);
+    final full = await context.read<HeritageProvider>().fetchSiteDetail(slug);
+    if (!mounted) return;
+    if (full is HeritageSiteModel) {
+      setState(() {
+        _site = full;
+        _loadingDetail = false;
+      });
+      context.read<ProfileProvider>().addToVisitHistory(full.id);
+    } else {
+      setState(() => _loadingDetail = false);
     }
   }
 
@@ -86,7 +106,15 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
   @override
   Widget build(BuildContext context) {
     if (_site == null) {
-      return Scaffold(body: Center(child: Text(AppLocalizations.of(context)!.siteNotFound)));
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: _loadingDetail
+              ? const CircularProgressIndicator(color: Color(0xFFD4A017), strokeWidth: 2)
+              : Text(AppLocalizations.of(context)!.siteNotFound,
+                  style: const TextStyle(color: Colors.white)),
+        ),
+      );
     }
 
     final size     = MediaQuery.of(context).size;

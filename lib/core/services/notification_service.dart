@@ -234,11 +234,17 @@ class NotificationService {
         _navigatorKey?.currentState?.pushNamed(AppStrings.eventsPath);
         break;
       case 'geofence':
+      case 'heritage':
+      case 'heritage.update':
         final slug = parts.length > 2 ? parts[2] : '';
-        _navigatorKey?.currentState?.pushNamed(
-          AppStrings.heritageDetailsPath,
-          arguments: {'slug': slug},
-        );
+        if (slug.isNotEmpty) {
+          _navigatorKey?.currentState?.pushNamed(
+            AppStrings.heritageDetailsPath,
+            arguments: {'slug': slug},
+          );
+        } else {
+          _navigatorKey?.currentState?.pushNamed(AppStrings.notificationsPath);
+        }
         break;
       default:
         _navigatorKey?.currentState?.pushNamed(AppStrings.notificationsPath);
