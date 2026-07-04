@@ -18,6 +18,9 @@ class GuideProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  // Accept both a plain list and a paginated {results: [...]} response.
+  List _asList(dynamic data) => data is Map ? (data['results'] as List? ?? []) : (data as List);
+
   Future<void> fetchGuides({String? specialization, String? language}) async {
     _isLoading = true;
     _error = null;
@@ -28,7 +31,7 @@ class GuideProvider with ChangeNotifier {
       if (language != null) queryParams['language'] = language;
 
       final data = await _apiClient.get(ApiEndpoints.guides, queryParameters: queryParams);
-      _guides = (data as List).cast<Map<String, dynamic>>();
+      _guides = _asList(data).cast<Map<String, dynamic>>();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -49,7 +52,7 @@ class GuideProvider with ChangeNotifier {
   Future<void> fetchMyBookings() async {
     try {
       final data = await _apiClient.get(ApiEndpoints.guideBookings);
-      _myBookings = (data as List).cast<Map<String, dynamic>>();
+      _myBookings = _asList(data).cast<Map<String, dynamic>>();
       notifyListeners();
     } catch (e) {
       debugPrint('Error fetching bookings: $e');
