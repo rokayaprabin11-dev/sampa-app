@@ -12,7 +12,7 @@ import 'api_endpoints.dart';
 // TTLs for cacheable endpoints
 const _ttlSiteList    = Duration(hours: 6);
 const _ttlSiteDetail  = Duration(hours: 12);
-const _ttlCategories  = Duration(days: 7);
+const _ttlCategories  = Duration(hours: 1);   // short — admin edits surface fast
 const _ttlDistricts   = Duration(days: 7);
 
 // Paths that should never be cached (auth, user-specific, mutations)

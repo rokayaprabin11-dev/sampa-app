@@ -155,24 +155,17 @@ class _HomeScreenState extends State<HomeScreen> {
             // --- Categories (only show categories with actual sites) ---
             Consumer<HeritageProvider>(
               builder: (context, hp, _) {
-                final siteCategories = hp.sites.map((s) => s.category.toLowerCase()).toSet();
-                const slugMap = {
-                  'temple': 'temples', 'stupa': 'stupas',
-                  'palace': 'palaces', 'monastery': 'monasteries',
-                  'monument': 'monuments', 'lake': 'lakes',
-                };
-                final allCats = <String>[l10n.all];
-                final candidates = [
-                  (l10n.temples,   'temple'),
-                  (l10n.stupas,    'stupa'),
-                  (l10n.palaces,   'palace'),
-                  (l10n.monuments, 'monument'),
-                ];
-                for (final (label, slug) in candidates) {
-                  if (siteCategories.any((c) => c == slug || slugMap[c] == slug || c.startsWith(slug))) {
-                    allCats.add(label);
-                  }
-                }
+                // Build chips from the categories actually present in the loaded
+                // sites, so admin-added/edited categories appear here too.
+                // getFeaturedSites() filters via _slugify(site.category), so any
+                // category name works without a hardcoded map.
+                final present = hp.sites
+                    .map((s) => s.category.trim())
+                    .where((c) => c.isNotEmpty)
+                    .toSet()
+                    .toList()
+                  ..sort();
+                final allCats = <String>[l10n.all, ...present];
                 return SizedBox(
                   height: 45,
                   child: ListView(
