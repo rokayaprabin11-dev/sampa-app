@@ -19,6 +19,7 @@ import 'presentation/screens/profile/settings_screen.dart';
 import 'presentation/screens/profile/account_settings_screen.dart';
 import 'presentation/screens/profile/visit_history_screen.dart';
 import 'presentation/screens/guides/become_guide_screen.dart';
+import 'presentation/screens/guides/guide_profile_screen.dart';
 import 'presentation/screens/downloads/downloads_screen.dart';
 import 'presentation/screens/events/events_screen.dart';
 import 'presentation/screens/map/map_placeholder_screen.dart';
@@ -88,6 +89,7 @@ class SampadaApp extends StatelessWidget {
         AppStrings.settingsPath: (context) => const SettingsScreen(),
         AppStrings.accountSettingsPath: (context) => const AccountSettingsScreen(),
         AppStrings.becomeGuidePath: (context) => const BecomeGuideScreen(),
+        AppStrings.guideProfilePath: (context) => const GuideProfileScreen(),
         AppStrings.downloadsPath: (context) => const DownloadsScreen(),
         AppStrings.eventsPath: (context) => const EventsScreen(),
         AppStrings.mapPath: (context) {

@@ -7,6 +7,7 @@ import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/profile_widgets.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/profile_provider.dart';
+import 'package:sampada/providers/guide_provider.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import 'package:sampada/core/providers/locale_provider.dart';
 
@@ -23,6 +24,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileProvider>().fetchStats();
+      // Determines whether the "Be a Guide" tile becomes "Guide Profile".
+      context.read<GuideProvider>().fetchMyProfile();
     });
   }
 
@@ -33,6 +36,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
     final profileProvider = context.watch<ProfileProvider>();
+    final guideProvider = context.watch<GuideProvider>();
+    final isApprovedGuide = guideProvider.myProfile?['status'] == 'approved';
     final localeProvider = context.watch<LocaleProvider>();
     final isNepali = localeProvider.locale.languageCode == 'ne';
 
@@ -296,13 +301,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Be a Guide Tile
+                  // Be a Guide / Guide Profile Tile — swaps once the guide
+                  // application has been approved.
                   _buildAccountTile(
                     context,
-                    icon: Icons.tour_outlined,
-                    title: 'Be a Guide',
+                    icon: isApprovedGuide ? Icons.badge_outlined : Icons.tour_outlined,
+                    title: isApprovedGuide ? 'Guide Profile' : 'Be a Guide',
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
-                    onTap: () => Navigator.pushNamed(context, AppStrings.becomeGuidePath),
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      isApprovedGuide ? AppStrings.guideProfilePath : AppStrings.becomeGuidePath,
+                    ),
                   ),
                   
                   const SizedBox(height: 40),

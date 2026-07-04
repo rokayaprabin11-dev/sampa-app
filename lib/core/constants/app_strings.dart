@@ -19,6 +19,7 @@ class AppStrings {
   static const String mapPath = '/map';
   static const String guidePath = '/guide';
   static const String becomeGuidePath = '/become_guide';
+  static const String guideProfilePath = '/guide_profile';
   static const String searchPath = '/search';
   static const String savedSitesPath = '/saved_sites';
   static const String visitHistoryPath = '/visit_history';
