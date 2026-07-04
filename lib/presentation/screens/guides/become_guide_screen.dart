@@ -49,6 +49,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   bool _confirmedAccuracy = false;
   bool _isUploading = false;
 
+  // Application gate: block re-submitting while a submission is under review.
+  bool _statusChecked = false;   // profile fetch done
+  String? _appStatus;            // pending / approved / rejected / revoked / null
+  bool _justSubmitted = false;   // true right after a successful submit
+
   final _picker = ImagePicker();
 
   static const _allLanguages = ['Nepali', 'English', 'Hindi', 'Chinese', 'Japanese'];
@@ -168,14 +173,17 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gp = context.read<GuideProvider>();
       await gp.fetchMyProfile();
-      if (!mounted || gp.myProfile == null) return;
-      final p = gp.myProfile!;
-      _introController.text = p['bio'] ?? '';
-      final langs = p['languages'];
-      if (langs is List) { _languages.clear(); _languages.addAll(langs.cast<String>()); }
-      final specs = p['specialties'];
-      if (specs is List) { _specializations.clear(); _specializations.addAll(specs.cast<String>()); }
-      setState(() {});
+      if (!mounted) return;
+      final p = gp.myProfile;
+      if (p != null) {
+        _appStatus = p['status'] as String?;
+        _introController.text = p['bio'] ?? '';
+        final langs = p['languages'];
+        if (langs is List) { _languages.clear(); _languages.addAll(langs.cast<String>()); }
+        final specs = p['specialties'];
+        if (specs is List) { _specializations.clear(); _specializations.addAll(specs.cast<String>()); }
+      }
+      setState(() => _statusChecked = true);
     });
   }
 
@@ -295,9 +303,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
 
       if (!mounted) return;
       if (gp.error == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Application submitted! You\'ll be notified within 1–2 business days.')),
-        );
+        // Show the success screen and lock the form until admin reviews.
+        setState(() {
+          _appStatus = 'pending';
+          _justSubmitted = true;
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(gp.error!), backgroundColor: Colors.red),
@@ -321,6 +331,19 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     final size   = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final gp     = context.watch<GuideProvider>();
+
+    // Still checking whether a submission already exists.
+    if (!_statusChecked) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // A submission is under review → block the form, show the status screen.
+    if (_appStatus == 'pending') {
+      return _buildSubmittedScreen(context, isDark, size);
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -367,6 +390,85 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                   _buildFooter(context, isDark),
                   const SizedBox(height: 40),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Shown after a successful submit, or when a pending application already
+  // exists. Blocks re-submission until admin approves/rejects/revokes.
+  Widget _buildSubmittedScreen(BuildContext context, bool isDark, Size size) {
+    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Column(
+        children: [
+          _buildHeader(context, isDark, size),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 96, height: 96,
+                      decoration: BoxDecoration(
+                        color: (isDark ? AppColors.goldMain : const Color(0xFF7B1E00)).withValues(alpha: 0.10),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.check_circle, size: 56, color: accent),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      _justSubmitted ? 'Application Submitted!' : 'Application Under Review',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFDF3DC),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Pending Review',
+                        style: TextStyle(color: Color(0xFF9A6200), fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Thank you! Our team is reviewing your application and will '
+                      'verify your details. You\'ll be notified within 1–2 business days.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? AppColors.darkTextSecondary : Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'You can\'t submit another application until this one has been reviewed.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12.5, height: 1.5, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accent,
+                          foregroundColor: isDark ? Colors.black : Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Back to Home', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
