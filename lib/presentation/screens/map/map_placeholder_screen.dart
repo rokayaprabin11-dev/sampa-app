@@ -33,8 +33,8 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadSites();
-      if (widget.focusSite != null) {
-        final site = widget.focusSite!;
+      final site = widget.focusSite;
+      if (site != null && site.latitude != 0.0 && site.longitude != 0.0) {
         setState(() => _selectedSite = site);
         // Slight delay so FlutterMap finishes its own init before we move
         await Future.delayed(const Duration(milliseconds: 300));
@@ -47,9 +47,9 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
 
   Future<void> _loadSites() async {
     final provider = context.read<HeritageProvider>();
-    if (provider.sites.isEmpty) {
-      await provider.fetchSites();
-    }
+    // Always refresh so sites added since the last fetch (e.g. via admin)
+    // show up on the map; fall back to whatever is cached on failure.
+    await provider.fetchSites();
   }
 
   Future<void> _tryLocate() async {
@@ -111,6 +111,17 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
         final sites = heritage.sites
             .where((s) => s.latitude != 0.0 && s.longitude != 0.0)
             .toList();
+
+        // Always pin the focused site (from "View on Map") even if the
+        // provider list is stale or doesn't include it yet — otherwise a
+        // newly-added site shows no marker.
+        final focus = widget.focusSite;
+        if (focus != null &&
+            focus.latitude != 0.0 &&
+            focus.longitude != 0.0 &&
+            !sites.any((s) => s.id == focus.id)) {
+          sites.add(focus);
+        }
 
         return FlutterMap(
           mapController: _mapController,

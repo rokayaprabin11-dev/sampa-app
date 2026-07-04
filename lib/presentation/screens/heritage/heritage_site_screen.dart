@@ -321,13 +321,14 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Row(children: [
-                              Expanded(child: _actionBtn(Icons.map_outlined, 'View Map', cs, () {
-                                Navigator.pushNamed(context, AppStrings.mapPath, arguments: _site);
-                              })),
-                              const SizedBox(width: 12),
-                              Expanded(child: _actionBtn(Icons.near_me_outlined, 'Directions', cs, () {})),
-                            ]),
+                            Center(
+                              child: SizedBox(
+                                width: 240,
+                                child: _actionBtn(Icons.map_outlined, 'View on Map', cs, () {
+                                  Navigator.pushNamed(context, AppStrings.mapPath, arguments: _site);
+                                }),
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             Row(mainAxisSize: MainAxisSize.min, children: [
                               Icon(Icons.check_circle, color: Colors.green.shade700, size: 14),
