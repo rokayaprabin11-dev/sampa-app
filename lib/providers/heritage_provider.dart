@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/data/repositories/heritage_repository.dart';
 import 'package:sampada/data/models/district_model.dart';
@@ -19,6 +20,18 @@ class HeritageProvider with ChangeNotifier {
   String _currentCategory = 'All';
   Timer? _debounceTimer;
 
+  // Backend semantic-search state (separate from the full `_sites` catalogue).
+  List<HeritageSite> _searchResults = [];
+  bool _isSearching = false;
+  String _activeSearch = '';
+  String? _searchError;
+  int _searchSeq = 0; // monotonic id — drops out-of-order (stale) responses
+
+  static const int _maxQueryLen = 100;
+  static const int _maxRecent = 8;
+  static const String _recentKey = 'heritage_recent_searches';
+  List<String> _recentSearches = [];
+
   HeritageProvider({required this.repository, this.autoSyncProvider});
 
   List<HeritageSite> get sites => _sites;
@@ -27,6 +40,98 @@ class HeritageProvider with ChangeNotifier {
   String? get error => _error;
   String get currentQuery => _currentQuery;
   String get currentCategory => _currentCategory;
+
+  List<HeritageSite> get searchResults => _searchResults;
+  bool get isSearching => _isSearching;
+  String get activeSearch => _activeSearch;
+  String? get searchError => _searchError;
+  List<String> get recentSearches => List.unmodifiable(_recentSearches);
+
+  /// Debounced full-text search against `/heritage/search/`. An empty query
+  /// clears results so the caller falls back to showing the full catalogue.
+  void onSearchChanged(String query) {
+    // Clamp length so a pathological paste can't hit the backend / FTS.
+    final q = query.trim();
+    final clamped = q.length > _maxQueryLen ? q.substring(0, _maxQueryLen) : q;
+    _debounceTimer?.cancel();
+    _currentQuery = clamped;
+    _searchError = null;
+    if (clamped.isEmpty) {
+      _activeSearch = '';
+      _searchResults = [];
+      _isSearching = false;
+      _searchSeq++; // invalidate any in-flight response
+      notifyListeners();
+      return;
+    }
+    _isSearching = true;
+    notifyListeners();
+    _debounceTimer = Timer(const Duration(milliseconds: 350), () => _runSearch(clamped));
+  }
+
+  Future<void> _runSearch(String query) async {
+    final seq = ++_searchSeq; // this call's id
+    _isSearching = true;
+    _activeSearch = query;
+    notifyListeners();
+    try {
+      final results = await repository.searchHeritageSites(query);
+      if (seq != _searchSeq) return; // a newer query superseded this one — drop it
+      _searchResults = results;
+      _searchError = null;
+    } catch (e) {
+      if (seq != _searchSeq) return;
+      debugPrint('heritage search failed: $e');
+      _searchResults = []; // UI falls back to client-side filtering
+      _searchError = 'Search is temporarily unavailable.';
+    } finally {
+      if (seq == _searchSeq) {
+        _isSearching = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  // ── Recent searches (persisted) ───────────────────────────────────────────
+
+  Future<void> loadRecentSearches() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _recentSearches = prefs.getStringList(_recentKey) ?? [];
+      notifyListeners();
+    } catch (_) {/* non-fatal */}
+  }
+
+  Future<void> addRecentSearch(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) return;
+    _recentSearches
+      ..removeWhere((e) => e.toLowerCase() == q.toLowerCase())
+      ..insert(0, q);
+    if (_recentSearches.length > _maxRecent) {
+      _recentSearches = _recentSearches.sublist(0, _maxRecent);
+    }
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_recentKey, _recentSearches);
+    } catch (_) {/* non-fatal */}
+  }
+
+  Future<void> clearRecentSearches() async {
+    _recentSearches = [];
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_recentKey);
+    } catch (_) {/* non-fatal */}
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
 
   List<HeritageSite> getFeaturedSites({String? category}) {
     if (_sites.isEmpty) return [];

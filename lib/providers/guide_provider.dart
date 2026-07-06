@@ -42,7 +42,7 @@ class GuideProvider with ChangeNotifier {
   // Accept both a plain list and a paginated {results: [...]} response.
   List _asList(dynamic data) => data is Map ? (data['results'] as List? ?? []) : (data as List);
 
-  Future<void> fetchGuides({String? specialization, String? language}) async {
+  Future<void> fetchGuides({String? specialization, String? language, String? search}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -50,6 +50,7 @@ class GuideProvider with ChangeNotifier {
       final queryParams = <String, dynamic>{};
       if (specialization != null) queryParams['specialization'] = specialization;
       if (language != null) queryParams['language'] = language;
+      if (search != null && search.trim().isNotEmpty) queryParams['search'] = search.trim();
 
       final data = await _apiClient.get(ApiEndpoints.guides, queryParameters: queryParams);
       _guides = _asList(data).cast<Map<String, dynamic>>();

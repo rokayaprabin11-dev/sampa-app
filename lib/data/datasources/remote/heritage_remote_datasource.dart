@@ -36,9 +36,11 @@ class HeritageRemoteDataSourceImpl implements HeritageRemoteDataSource {
 
   @override
   Future<List<HeritageSiteModel>> searchHeritageSites(String query) async {
+    // Real 3-layer semantic search (FTS + trigram + vector). The /sites/
+    // endpoint ignores a ?search= param, so search must hit /heritage/search/.
     final data = await apiClient.get(
-      ApiEndpoints.heritageSites,
-      queryParameters: {'search': query},
+      ApiEndpoints.heritageSearch,
+      queryParameters: {'q': query},
     );
 
     final List list = (data is Map) ? (data['results'] ?? []) : data;

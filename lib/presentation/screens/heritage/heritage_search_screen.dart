@@ -26,6 +26,11 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   String? _selectedSlug;    // null = All
   String _query = '';
 
+  // Idle = nothing searched and no category chosen. Like standard search apps
+  // (Airbnb/Booking/Maps), we don't dump the whole catalogue here — show recent
+  // searches + a prompt instead. Typing or picking a category exits idle.
+  bool get _isIdle => _query.isEmpty && _selectedSlug == null;
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +39,23 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     _query = provider.currentQuery.toLowerCase();
 
     // Load the full (unfiltered) site list once; chips + filtering derive from it.
-    WidgetsBinding.instance.addPostFrameCallback((_) => provider.fetchSites());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      provider.fetchSites();
+      provider.loadRecentSearches();
+    });
+  }
+
+  void _onSubmit(String value) {
+    final q = value.trim();
+    if (q.isEmpty) return;
+    Provider.of<HeritageProvider>(context, listen: false).addRecentSearch(q);
+  }
+
+  void _onRecentTap(String q) {
+    _searchController
+      ..text = q
+      ..selection = TextSelection.fromPosition(TextPosition(offset: q.length));
+    _onSearchChanged(q);
   }
 
   @override
@@ -44,12 +65,17 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   }
 
   void _onSearchChanged(String value) {
+    // Instant client-side filter for immediate feedback, plus a debounced
+    // backend semantic search (typo-tolerant, matches Nepali + descriptions
+    // across the whole catalogue) that refines the results when it returns.
     setState(() => _query = value.trim().toLowerCase());
+    Provider.of<HeritageProvider>(context, listen: false).onSearchChanged(value);
   }
 
   void _onClearSearch() {
     _searchController.clear();
     setState(() => _query = '');
+    Provider.of<HeritageProvider>(context, listen: false).onSearchChanged('');
   }
 
   void _onCategoryTap(String? slug) {
@@ -80,16 +106,24 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     return [const _Category(label: 'All', apiValue: null), ...cats];
   }
 
-  // Client-side filter by selected category slug + search query.
-  List<HeritageSite> _visibleSites(List<HeritageSite> sites) {
-    return sites.where((s) {
-      final matchCat = _selectedSlug == null || _slug(s.category) == _selectedSlug;
-      if (!matchCat) return false;
-      if (_query.isEmpty) return true;
+  // Base result set for the current query: the full catalogue when empty, the
+  // backend semantic-search results when available, else an instant client-side
+  // substring match over the loaded sites (covers the debounce window + offline).
+  List<HeritageSite> _baseList(HeritageProvider p) {
+    if (_query.isEmpty) return p.sites;
+    if (p.searchResults.isNotEmpty) return p.searchResults;
+    return p.sites.where((s) {
       return s.name.toLowerCase().contains(_query) ||
           s.nameNepali.toLowerCase().contains(_query) ||
           s.district.toLowerCase().contains(_query);
     }).toList();
+  }
+
+  // Apply the selected category chip on top of the base result set.
+  List<HeritageSite> _visibleSites(HeritageProvider p) {
+    final base = _baseList(p);
+    if (_selectedSlug == null) return base;
+    return base.where((s) => _slug(s.category) == _selectedSlug).toList();
   }
 
   @override
@@ -99,8 +133,13 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
       body: Column(
         children: [
           _buildHeader(context),
-          _buildResultsCount(),
-          _buildGrid(),
+          if (_isIdle)
+            Expanded(child: _buildIdleState())
+          else ...[
+            _buildSearchError(),
+            _buildResultsCount(),
+            _buildGrid(),
+          ],
         ],
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 0),
@@ -152,6 +191,10 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             builder: (context, provider, _) => TextField(
               controller: _searchController,
               onChanged: _onSearchChanged,
+              onSubmitted: _onSubmit,
+              textInputAction: TextInputAction.search,
+              maxLength: 100,
+              buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
               style: const TextStyle(fontSize: 15, color: Color(0xFF331609)),
               decoration: InputDecoration(
                 filled: true,
@@ -203,6 +246,127 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     );
   }
 
+  // Idle screen: recent searches (if any) + a prompt. No catalogue dump.
+  Widget _buildIdleState() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Column(
+        children: [
+          _buildRecentSearches(),
+          _buildIdlePrompt(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIdlePrompt() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(40, 60, 40, 40),
+      child: Column(
+        children: [
+          Container(
+            width: 90,
+            height: 90,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF7EED3),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.travel_explore_rounded, size: 46, color: Color(0xFFD4520A)),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Search heritage sites',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF331609)),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Type a name or city, or pick a category above to explore Nepal's heritage.",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Color(0xFF8C7162), height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Recent searches — shown only before the user starts typing.
+  Widget _buildRecentSearches() {
+    if (_query.isNotEmpty) return const SizedBox.shrink();
+    return Consumer<HeritageProvider>(
+      builder: (context, provider, _) {
+        final recents = provider.recentSearches;
+        if (recents.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Recent searches',
+                      style: TextStyle(color: Color(0xFF8C7162), fontSize: 13, fontWeight: FontWeight.w600)),
+                  GestureDetector(
+                    onTap: provider.clearRecentSearches,
+                    child: const Text('Clear',
+                        style: TextStyle(color: Color(0xFFD4520A), fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: recents.map((q) => GestureDetector(
+                  onTap: () => _onRecentTap(q),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7EED3),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE3D2A8)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.history, size: 15, color: Color(0xFF8C7162)),
+                        const SizedBox(width: 6),
+                        Text(q, style: const TextStyle(color: Color(0xFF331609), fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                )).toList(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Non-blocking notice when backend search failed (client results still show).
+  Widget _buildSearchError() {
+    if (_query.isEmpty) return const SizedBox.shrink();
+    return Consumer<HeritageProvider>(
+      builder: (context, provider, _) {
+        if (provider.searchError == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          child: Row(
+            children: [
+              const Icon(Icons.cloud_off_rounded, size: 16, color: Color(0xFFB0693C)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(provider.searchError!,
+                    style: const TextStyle(color: Color(0xFFB0693C), fontSize: 12)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildResultsCount() {
     return Consumer<HeritageProvider>(
       builder: (context, provider, _) {
@@ -212,7 +376,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              '${_visibleSites(provider.sites).length} results found',
+              '${_visibleSites(provider).length} results found',
               style: const TextStyle(
                 color: Color(0xFF8C7162),
                 fontSize: 13,
@@ -233,8 +397,10 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             return _buildShimmerGrid();
           }
 
-          final visible = _visibleSites(provider.sites);
+          final visible = _visibleSites(provider);
           if (visible.isEmpty) {
+            // Don't flash "Not Found" while the backend search is still running.
+            if (provider.isSearching) return _buildShimmerGrid();
             return _buildNotFound();
           }
 

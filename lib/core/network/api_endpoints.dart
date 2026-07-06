@@ -32,6 +32,7 @@ class ApiEndpoints {
   static const String heritageNearby = '/heritage/sites/nearby/';
   static const String heritageFeatured = '/heritage/sites/featured/';
   static const String heritageSearch = '/heritage/search/';
+  static const String heritageAutocomplete = '/heritage/autocomplete/';
   static const String heritageCategories = '/heritage/categories/';
   static const String districts = '/geo/districts/';
   static const String uploadSignature = '/heritage/upload-signature/';
@@ -76,6 +77,7 @@ class ApiEndpoints {
 
   // --- Guides ---
   static const String guides = '/guides/';
+  static const String guidesNearby = '/guides/nearby/';
   static const String guideMe = '/guides/me/';
   static const String guideApply = '/guides/apply/';
   static const String guideBookings = '/guides/bookings/';
