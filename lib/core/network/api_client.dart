@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sampada/data/datasources/local/secure_token_storage.dart';
@@ -116,8 +118,19 @@ class ApiClient {
     return handler.reject(error);
   }
 
-  static void initCache(Dio dio) {
-    _cacheStore = MemCacheStore(maxSize: 10 * 1024 * 1024); // 10 MB in-memory
+  static Future<void> initCache(Dio dio) async {
+    // Persist the HTTP cache to disk (sqflite) so cached list/detail/search
+    // responses survive a cold start instead of being re-fetched. Web has no
+    // sqflite, and if the disk store fails to open we degrade to in-memory.
+    if (!kIsWeb) {
+      try {
+        final dir = await getTemporaryDirectory();
+        _cacheStore = DbCacheStore(databasePath: '${dir.path}/sampada_http_cache');
+      } catch (e) {
+        debugPrint('DbCacheStore init failed, using memory cache: $e');
+      }
+    }
+    _cacheStore ??= MemCacheStore(maxSize: 10 * 1024 * 1024); // 10 MB fallback
     dio.interceptors.add(DioCacheInterceptor(options: CacheOptions(
       store: _cacheStore!,
       policy: CachePolicy.noCache,
