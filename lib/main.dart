@@ -12,6 +12,7 @@ import 'core/constants/app_strings.dart';
 import 'core/database/database_helper.dart';
 import 'core/network/api_client.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/nearby_service.dart';
 
 import 'data/repositories/heritage_repository_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';
@@ -117,6 +118,14 @@ void main() async {
       );
     } catch (e) {
       debugPrint('--- Notification Service FAILED: $e ---');
+    }
+
+    // Client half of the nearby-notification system: registers native geofences
+    // for the nearest heritage sites and posts validated fixes on entry.
+    try {
+      unawaited(NearbyService(apiClient: apiClient).start());
+    } catch (e) {
+      debugPrint('--- Nearby Service FAILED: $e ---');
     }
   }
   

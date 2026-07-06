@@ -1,6 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
+import 'package:sampada/core/services/gps_kalman.dart';
 import 'package:sampada/data/models/user_location.dart';
 
 extension PositionMapper on Position {
@@ -67,6 +68,61 @@ class LocationService {
       return null;
     }
   }
+
+  /// Collect several GPS fixes, Kalman-smooth them, and return a position that
+  /// meets [maxAccuracyM] — or null if none arrives within [timeout] ("wait for
+  /// better GPS" instead of acting on a jittery/poor fix). Used before posting a
+  /// geofence entry so a 60m-accuracy fix can't fire a false "you are near".
+  Future<Position?> getAccurateFix({
+    double maxAccuracyM = 30,
+    Duration timeout = const Duration(seconds: 8),
+    int minSamples = 3,
+  }) async {
+    final kalman = GpsKalman();
+    Position? best;
+    var count = 0;
+    final deadline = DateTime.now().add(timeout);
+
+    try {
+      final stream = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      await for (final p in stream) {
+        count++;
+        if (best == null || p.accuracy < best.accuracy) best = p;
+        kalman.process(
+          p.latitude, p.longitude, p.accuracy, p.timestamp.millisecondsSinceEpoch);
+
+        final smoothedAcc = kalman.accuracy ?? p.accuracy;
+        if (count >= minSamples && smoothedAcc <= maxAccuracyM) break;
+        if (DateTime.now().isAfter(deadline)) break;
+      }
+    } catch (e) {
+      debugPrint('getAccurateFix stream error: $e');
+    }
+
+    // Prefer the smoothed estimate when it's good enough; else the best raw
+    // sample; else null (no trustworthy fix).
+    if (kalman.hasEstimate && (kalman.accuracy ?? 999) <= maxAccuracyM && best != null) {
+      return _copyWith(best, kalman.latitude!, kalman.longitude!, kalman.accuracy!);
+    }
+    if (best != null && best.accuracy <= maxAccuracyM) return best;
+    return null;
+  }
+
+  Position _copyWith(Position base, double lat, double lng, double accuracy) => Position(
+        latitude: lat,
+        longitude: lng,
+        timestamp: base.timestamp,
+        accuracy: accuracy,
+        altitude: base.altitude,
+        altitudeAccuracy: base.altitudeAccuracy,
+        heading: base.heading,
+        headingAccuracy: base.headingAccuracy,
+        speed: base.speed,
+        speedAccuracy: base.speedAccuracy,
+        isMocked: base.isMocked,
+      );
 
   /// Gets the user's current bearing (heading) in degrees.
   double? getBearing(Position current, Position previous) {

@@ -59,6 +59,7 @@ class ApiEndpoints {
   static const String notificationPreferences = '/notifications/preferences/';
   static const String deviceRegister = '/notifications/devices/register/';
   static const String deviceUnregister = '/notifications/devices/unregister/';
+  static const String notificationEvents = '/notifications/events/';
 
   // --- Location ---
   static const String locationUpdate = '/location/update/';
