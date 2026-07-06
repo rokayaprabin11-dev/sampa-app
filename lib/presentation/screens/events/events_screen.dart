@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/event_provider.dart';
+import 'package:sampada/data/models/cultural_event.dart';
+import 'package:sampada/presentation/screens/events/event_detail_screen.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -14,6 +17,12 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  String _formatEventDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
+
   @override
   void initState() {
     super.initState();
@@ -79,20 +88,39 @@ class _EventsScreenState extends State<EventsScreen> {
               )
             else if (eventProvider.error != null)
               Center(child: Text(eventProvider.error!))
+            else if (eventProvider.currentEvents.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                child: Center(
+                  child: Text(
+                    'No upcoming events',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).brightness == Brightness.light ? AppColors.textSecondary : AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ),
+              )
             else
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: eventProvider.events.length,
+                itemCount: eventProvider.currentEvents.length,
                 itemBuilder: (context, index) {
-                  final event = eventProvider.events[index];
+                  final event = eventProvider.currentEvents[index];
                   return _EventListCard(
                     title: event.title,
-                    date: '${eventProvider.selectedMonthName} ${event.startDate.day}',
+                    date: _formatEventDate(event.startDate),
                     location: event.locationName,
                     distance: '5.6 km',
                     tag: event.eventType,
+                    imageUrl: event.imageUrl,
+                    shortDescription: event.shortDescription,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)),
+                    ),
                   );
                 },
               ),
@@ -375,7 +403,10 @@ class _CalendarDayItem extends StatelessWidget {
         ? (Theme.of(context).brightness == Brightness.light ? Colors.white70 : Colors.black54) 
         : (Theme.of(context).brightness == Brightness.light ? AppColors.textTertiary : AppColors.darkTextTertiary);
 
-    return Opacity(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: day.events.isEmpty ? null : () => showDayEventsPopover(context, day.events),
+      child: Opacity(
       opacity: day.isCurrentMonth ? 1.0 : 0.3,
       child: Container(
         decoration: BoxDecoration(
@@ -402,8 +433,8 @@ class _CalendarDayItem extends StatelessWidget {
                     margin: const EdgeInsets.only(left: 2),
                     width: 5,
                     height: 5,
-                    decoration: const BoxDecoration(
-                      color: AppColors.brownAccent,
+                    decoration: BoxDecoration(
+                      color: day.eventColor ?? AppColors.brownAccent,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -416,6 +447,7 @@ class _CalendarDayItem extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -425,12 +457,129 @@ class _CalendarDayItem extends StatelessWidget {
   }
 }
 
+/// Anchored popover listing the events on a tapped calendar day. Each row
+/// (title + category) is clickable and opens the [EventDetailScreen].
+void showDayEventsPopover(BuildContext cellContext, List<CulturalEvent> events) {
+  final overlay = Overlay.of(cellContext);
+  final box = cellContext.findRenderObject() as RenderBox?;
+  final overlayBox = overlay.context.findRenderObject() as RenderBox?;
+  if (box == null || overlayBox == null) return;
+
+  final topLeft = box.localToGlobal(Offset.zero, ancestor: overlayBox);
+  final size = box.size;
+  final screen = overlayBox.size;
+  final isDark = Theme.of(cellContext).brightness == Brightness.dark;
+  final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+
+  const popWidth = 250.0;
+  final centerX = topLeft.dx + size.width / 2;
+  final left = (centerX - popWidth / 2).clamp(12.0, screen.width - popWidth - 12.0);
+
+  final estHeight = (44.0 + events.length * 52.0).clamp(80.0, 280.0);
+  final belowY = topLeft.dy + size.height + 6;
+  final top = (belowY + estHeight <= screen.height - 12)
+      ? belowY
+      : (topLeft.dy - estHeight - 6).clamp(12.0, screen.height - estHeight - 12);
+
+  late OverlayEntry entry;
+  void close() => entry.remove();
+
+  entry = OverlayEntry(
+    builder: (_) => Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(behavior: HitTestBehavior.translucent, onTap: close),
+        ),
+        Positioned(
+          left: left,
+          top: top,
+          width: popWidth,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkBgCard : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF0E6D2)),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 16, offset: const Offset(0, 6))],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+                    child: Text(
+                      events.length == 1 ? 'Event' : '${events.length} Events',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.4, color: accent),
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(bottom: 6),
+                      itemCount: events.length,
+                      separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? AppColors.darkBorder : const Color(0xFFF2ECE0)),
+                      itemBuilder: (_, i) {
+                        final e = events[i];
+                        final dot = parseHexColor(e.color) ?? accent;
+                        return InkWell(
+                          onTap: () {
+                            close();
+                            Navigator.of(cellContext).push(
+                              MaterialPageRoute(builder: (_) => EventDetailScreen(event: e)),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            child: Row(
+                              children: [
+                                Container(width: 8, height: 8, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    e.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(cellContext).colorScheme.onSurface),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(color: dot.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(20)),
+                                  child: Text(e.eventType, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: dot)),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.chevron_right, size: 16, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  overlay.insert(entry);
+}
+
 class _EventListCard extends StatelessWidget {
   final String title;
   final String date;
   final String location;
   final String distance;
   final String tag;
+  final String imageUrl;
+  final String shortDescription;
+  final VoidCallback? onTap;
 
   const _EventListCard({
     required this.title,
@@ -438,11 +587,16 @@ class _EventListCard extends StatelessWidget {
     required this.location,
     required this.distance,
     required this.tag,
+    this.imageUrl = '',
+    this.shortDescription = '',
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -464,11 +618,18 @@ class _EventListCard extends StatelessWidget {
               Container(
                 width: 80,
                 height: 80,
+                clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBgCard,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.music_note, color: Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain, size: 40), // Placeholder for image
+                child: imageUrl.isNotEmpty
+                    ? AppNetworkImage(
+                        url: imageUrl,
+                        fit: BoxFit.cover,
+                        errorWidget: Icon(Icons.music_note, color: Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain, size: 40),
+                      )
+                    : Icon(Icons.music_note, color: Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain, size: 40),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -488,6 +649,15 @@ class _EventListCard extends StatelessWidget {
                       '$date • $location',
                       style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.light ? AppColors.textSecondary : AppColors.darkTextSecondary),
                     ),
+                    if (shortDescription.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        shortDescription,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, height: 1.35, color: Theme.of(context).brightness == Brightness.light ? AppColors.textTertiary : AppColors.darkTextTertiary),
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -502,18 +672,23 @@ class _EventListCard extends StatelessWidget {
             ],
           ),
           Divider(height: 24, color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBorder),
-          const Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              'View Details',
-              style: TextStyle(
-                color: AppColors.brownAccent,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: const [
+              Text(
+                'View Details',
+                style: TextStyle(
+                  color: AppColors.brownAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
-            ),
+              SizedBox(width: 2),
+              Icon(Icons.chevron_right, size: 18, color: AppColors.brownAccent),
+            ],
           ),
         ],
+      ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/providers/text_size_provider.dart';
@@ -49,8 +50,8 @@ class RecentlyVisitedCard extends StatelessWidget {
               child: SizedBox(
                 width: 48, height: 48,
                 child: (imageUrl != null && imageUrl!.isNotEmpty)
-                    ? Image.network(imageUrl!, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _iconBox(context))
+                    ? AppNetworkImage(url: imageUrl, fit: BoxFit.cover,
+                        errorWidget: _iconBox(context))
                     : _iconBox(context),
               ),
             ),

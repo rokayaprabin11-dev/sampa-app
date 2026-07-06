@@ -25,11 +25,20 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Refresh in case we arrived without a recent fetch.
-      context.read<GuideProvider>().fetchMyProfile();
+      final gp = context.read<GuideProvider>();
+      gp.fetchMyProfile();
+      gp.fetchIncomingBookings();
     });
   }
 
   Color _accent(bool isDark) => isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+
+  // DRF serializes DecimalField (rating_avg, hourly_rate) as a String.
+  double _toDouble(dynamic v) {
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +63,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                   children: [
                     _buildStatusBar(context, isDark, p),
                     const SizedBox(height: 20),
+                    _buildBookingRequests(context, isDark, gp),
                     _buildListingCard(context, isDark, p),
                     const SizedBox(height: 16),
                     _buildStatsCard(context, isDark, p),
@@ -67,6 +77,126 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Booking requests (accept / reject) ───────────────────────
+
+  Future<void> _respond(int bookingId, String action) async {
+    final err = await context.read<GuideProvider>().respondToBooking(bookingId, action);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(err ?? (action == 'accept' ? 'Booking accepted.' : 'Booking declined.')),
+    ));
+  }
+
+  Widget _buildBookingRequests(BuildContext context, bool isDark, GuideProvider gp) {
+    final pending = gp.incomingBookings.where((b) => b['status'] == 'pending').toList();
+    if (pending.isEmpty) return const SizedBox.shrink();
+    final accent = _accent(isDark);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('BOOKING REQUESTS',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: accent)),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(20)),
+              child: Text('${pending.length}',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.black : Colors.white)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...pending.map((b) => _requestCard(context, isDark, b)),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _requestCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
+    final id = b['id'] as int;
+    final name = (b['tourist_name'] ?? 'Tourist').toString();
+    final date = (b['date'] ?? '').toString();
+    String t(dynamic v) => (v ?? '').toString().length >= 5 ? (v).toString().substring(0, 5) : (v ?? '').toString();
+    final when = '$date · ${t(b['start_time'])}–${t(b['end_time'])}';
+    final notes = (b['notes'] ?? '').toString();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFF7B1E00),
+                child: Text(
+                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                  style: const TextStyle(color: Color(0xFFDCA73A), fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                    const SizedBox(height: 2),
+                    Text(when, style: TextStyle(fontSize: 11.5, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (notes.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(notes, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF6B5041))),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _respond(id, 'reject'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFC0392B),
+                    side: const BorderSide(color: Color(0xFFE0B4AE)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _respond(id, 'accept'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -161,7 +291,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     final initials = fullName.split(' ').take(2).map((s) => s.isNotEmpty ? s[0].toUpperCase() : '').join();
     final photoUrl = p['photo_url'] as String?;
     final rate = p['hourly_rate'];
-    final rating = (p['rating_avg'] as num?)?.toDouble() ?? 0.0;
+    final rating = _toDouble(p['rating_avg']);
     final reviewCount = (p['review_count'] as int?) ?? 0;
     final isVerified = (p['is_verified'] as bool?) ?? false;
     final isTopGuide = rating >= 4.5 && reviewCount >= 10;
@@ -268,7 +398,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   Widget _buildStatsCard(BuildContext context, bool isDark, Map<String, dynamic> p) {
     final reviewCount = (p['review_count'] as int?) ?? 0;
-    final rating = (p['rating_avg'] as num?)?.toDouble() ?? 0.0;
+    final rating = _toDouble(p['rating_avg']);
     final yearsExp = (p['years_experience'] as String?) ?? '—';
     // Tours-done has no backend source yet. TODO: wire when a guide-side
     // bookings/tours endpoint exists.

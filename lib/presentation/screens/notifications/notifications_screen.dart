@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
@@ -89,7 +90,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         children: [
                           _buildFilterChip(l10n.notifFilterAll, 'All'),
                           _buildFilterChip(l10n.notifFilterEvents, 'event'),
-                          _buildFilterChip('Heritage', 'geofence'),
+                          _buildFilterChip('Heritage', 'heritage'),
                           _buildFilterChip('Alerts', 'system'),
                         ],
                       ),
@@ -115,7 +116,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 final filtered = _selectedFilter == 'All'
                     ? provider.notifications
                     : provider.notifications
-                        .where((n) => n.type == _selectedFilter)
+                        .where((n) => _matchesFilter(n.type))
                         .toList();
 
                 if (filtered.isEmpty) {
@@ -146,13 +147,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  // The "Heritage" tab groups both new-site announcements and proximity alerts.
+  bool _matchesFilter(String type) {
+    if (_selectedFilter == 'heritage') {
+      return type == 'heritage' || type == 'geofence';
+    }
+    return type == _selectedFilter;
+  }
+
   void _navigate(LocalNotification n) {
-    final route = switch (n.type) {
-      'event' || 'event_reminder' => AppStrings.eventsPath,
-      'geofence' => AppStrings.homePath,
-      _ => null,
-    };
-    if (route != null) Navigator.pushNamed(context, route);
+    switch (n.type) {
+      // New-site + proximity alerts open that heritage site's detail page.
+      case 'heritage':
+      case 'geofence':
+        final slug = n.data['site_slug']?.toString();
+        if (slug != null && slug.isNotEmpty) {
+          Navigator.pushNamed(context, AppStrings.heritageDetailsPath, arguments: {'slug': slug});
+        } else {
+          Navigator.pushNamed(context, AppStrings.homePath);
+        }
+      case 'event':
+      case 'event_reminder':
+        Navigator.pushNamed(context, AppStrings.eventsPath);
+    }
   }
 
   Widget _buildFilterChip(String label, String value) {
@@ -209,9 +226,40 @@ class _NotificationCard extends StatelessWidget {
     required this.onTap,
   });
 
+  /// Cover image (event/heritage) when the notification carries one, else the
+  /// type icon.
+  Widget _leading(bool isDark) {
+    final img = notification.data['image_url'];
+    if (img is String && img.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: AppNetworkImage(
+          url: img,
+          width: 44,
+          height: 44,
+          fit: BoxFit.cover,
+          errorWidget: _iconBox(isDark),
+        ),
+      );
+    }
+    return _iconBox(isDark);
+  }
+
+  Widget _iconBox(bool isDark) => Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(_icon,
+            color: isDark ? AppColors.goldMain : const Color(0xFF4A342B),
+            size: 26),
+      );
+
   IconData get _icon => switch (notification.type) {
         'event' || 'event_reminder' => Icons.event,
         'geofence' => Icons.location_on,
+        'heritage' => Icons.account_balance,
         'review' => Icons.star,
         _ => Icons.notifications,
       };
@@ -219,6 +267,7 @@ class _NotificationCard extends StatelessWidget {
   Color get _accent => switch (notification.type) {
         'event' || 'event_reminder' => Colors.orange,
         'geofence' => Colors.teal,
+        'heritage' => const Color(0xFF9E3D1A),
         'review' => Colors.amber,
         _ => const Color(0xFF9E3D1A),
       };
@@ -227,6 +276,7 @@ class _NotificationCard extends StatelessWidget {
     final type = switch (notification.type) {
       'event' || 'event_reminder' => 'Event reminder',
       'geofence' => 'Nearby heritage',
+      'heritage' => 'New heritage site',
       'review' => 'Review',
       _ => 'System',
     };
@@ -271,16 +321,7 @@ class _NotificationCard extends StatelessWidget {
                   padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(_icon,
-                            color: isDark ? AppColors.goldMain : const Color(0xFF4A342B),
-                            size: 26),
-                      ),
+                      _leading(isDark),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(

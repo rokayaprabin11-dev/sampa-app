@@ -159,8 +159,12 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => EventProvider(repository: eventRepository)..loadEvents(),
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProxyProvider<AuthProvider, GuideProvider>(
           create: (_) => GuideProvider(apiClient: apiClient),
+          update: (_, authProvider, previous) {
+            previous!.updateUserId(authProvider.user?.uid);
+            return previous;
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(),
@@ -178,8 +182,12 @@ void main() async {
             return previous;
           },
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
           create: (_) => NotificationProvider(apiClient: apiClient, dbHelper: dbHelper),
+          update: (_, authProvider, previous) {
+            previous!.updateUserId(authProvider.user?.uid);
+            return previous;
+          },
         ),
       ],
       child: SampadaApp(navigatorKey: navigatorKey),

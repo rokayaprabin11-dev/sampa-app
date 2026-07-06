@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
@@ -280,10 +281,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   child: _uploadingPhoto
                                       ? const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                       : authProvider.user?.photoURL != null
-                                          ? Image.network(
-                                              authProvider.user!.photoURL!,
+                                          ? AppNetworkImage(
+                                              url: authProvider.user!.photoURL,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => Center(
+                                              errorWidget: Center(
                                                 child: Text(
                                                   authProvider.user?.displayName?.substring(0, 1).toUpperCase() ?? 'P',
                                                   style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),

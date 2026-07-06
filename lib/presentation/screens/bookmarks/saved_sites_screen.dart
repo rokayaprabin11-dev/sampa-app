@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
@@ -232,8 +233,8 @@ class _SavedSiteCard extends StatelessWidget {
                 width: 100,
                 height: 100,
                 child: hasImage
-                    ? Image.network(imageUrl!, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _iconFallback(icon))
+                    ? AppNetworkImage(url: imageUrl, fit: BoxFit.cover,
+                        errorWidget: _iconFallback(icon))
                     : _iconFallback(icon),
               ),
             ),

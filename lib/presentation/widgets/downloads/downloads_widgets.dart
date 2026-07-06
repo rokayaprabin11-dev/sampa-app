@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 
 class StorageStatusCard extends StatelessWidget {
@@ -98,8 +99,8 @@ class DownloadItemCard extends StatelessWidget {
             child: SizedBox(
               width: 56, height: 56,
               child: (imageUrl != null && imageUrl!.isNotEmpty)
-                  ? Image.network(imageUrl!, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _iconFallback(context))
+                  ? AppNetworkImage(url: imageUrl, fit: BoxFit.cover,
+                      errorWidget: _iconFallback(context))
                   : _iconFallback(context),
             ),
           ),

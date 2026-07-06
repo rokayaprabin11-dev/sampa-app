@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -111,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: ClipOval(
                       child: user?.photoURL != null
-                          ? Image.network(user!.photoURL!, fit: BoxFit.cover)
+                          ? AppNetworkImage(url: user!.photoURL, fit: BoxFit.cover)
                           : const Icon(
                               Icons.person,
                               size: 70,

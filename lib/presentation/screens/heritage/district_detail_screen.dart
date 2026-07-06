@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
@@ -61,10 +62,10 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
               children: [
                 // Cover image or gradient fallback
                 if (d.coverImageUrl.isNotEmpty)
-                  Image.network(
-                    d.coverImageUrl,
+                  AppNetworkImage(
+                    url: d.coverImageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorWidget: Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
@@ -390,12 +391,12 @@ class _SiteListTile extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: site.imageUrl != null && site.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      site.imageUrl!,
+                  ? AppNetworkImage(
+                      url: site.imageUrl,
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _iconPlaceholder(isDark),
+                      errorWidget: _iconPlaceholder(isDark),
                     )
                   : _iconPlaceholder(isDark),
             ),

@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
-import 'package:sampada/core/data/datasources/secure_token_storage.dart';
+import 'package:sampada/data/datasources/local/secure_token_storage.dart';
 import 'package:sampada/data/repositories/auth_repository.dart';
 import 'package:sampada/data/datasources/remote/auth_remote_datasource.dart';
 

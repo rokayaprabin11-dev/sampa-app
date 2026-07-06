@@ -23,6 +23,20 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
   bool _submitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load own guide profile (self-booking block) + bookings (pending block).
+      // Auth-gated — a logged-out browser would just get a 401.
+      if (context.read<AuthProvider>().isAuthenticated) {
+        final gp = context.read<GuideProvider>();
+        gp.fetchMyProfile();
+        gp.fetchMyBookings();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _notesController.dispose();
     super.dispose();
@@ -82,6 +96,11 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
     final specialties = ((guide['specialties'] as List?) ?? []).cast<String>();
     final languages = ((guide['languages'] as List?) ?? []).cast<String>();
     final isVerified = (guide['is_verified'] as bool?) ?? false;
+
+    final gp = context.watch<GuideProvider>();
+    final myProfile = gp.myProfile;
+    final isSelf = myProfile != null && myProfile['id'] != null && myProfile['id'] == guide['id'];
+    final hasPending = guide['id'] is int && gp.hasPendingWith(guide['id'] as int);
 
     final bgGradient = [
       isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
@@ -216,7 +235,50 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                     const SizedBox(height: 24),
                   ],
 
-                  // Book section
+                  // Book section — hidden for the guide's own profile.
+                  if (isSelf)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_outline, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'This is your guide profile — you can\'t book yourself.',
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13.5, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (hasPending)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFDF3DC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFEAD9A8)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.hourglass_top, color: Color(0xFF9A6200), size: 20),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Request pending — you can hire this guide again once they respond.',
+                              style: TextStyle(color: Color(0xFF9A6200), fontSize: 13.5, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
                   GestureDetector(
                     onTap: () {
                       if (!context.read<AuthProvider>().isAuthenticated) {

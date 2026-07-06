@@ -8,6 +8,10 @@ class CulturalEvent extends Equatable {
   final String eventType;
   final String description;
   final String descriptionNepali;
+  final String shortDescription;
+  final String imageUrl;
+  final List<String> gallery;
+  final String color;
   final DateTime startDate;
   final DateTime endDate;
   final double latitude;
@@ -23,6 +27,10 @@ class CulturalEvent extends Equatable {
     required this.eventType,
     required this.description,
     required this.descriptionNepali,
+    this.shortDescription = '',
+    this.imageUrl = '',
+    this.gallery = const [],
+    this.color = '',
     required this.startDate,
     required this.endDate,
     required this.latitude,
@@ -40,6 +48,10 @@ class CulturalEvent extends Equatable {
         eventType,
         description,
         descriptionNepali,
+        shortDescription,
+        imageUrl,
+        gallery,
+        color,
         startDate,
         endDate,
         latitude,

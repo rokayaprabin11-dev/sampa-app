@@ -9,6 +9,10 @@ class CulturalEventModel extends CulturalEvent {
     required super.eventType,
     required super.description,
     required super.descriptionNepali,
+    super.shortDescription,
+    super.imageUrl,
+    super.gallery,
+    super.color,
     required super.startDate,
     required super.endDate,
     required super.latitude,
@@ -17,41 +21,49 @@ class CulturalEventModel extends CulturalEvent {
     super.isActive = true,
   });
 
+  /// Maps the backend `EventSerializer` shape (title / event_type / date_ad /
+  /// short_description / gallery …) — see backend/apps/events/serializers.py.
   factory CulturalEventModel.fromJson(Map<String, dynamic> json) {
+    final start = DateTime.parse(json['date_ad'] as String);
+    final endRaw = json['end_date_ad'] as String?;
     return CulturalEventModel(
       id: json['id'].toString(),
-      siteId: json['site']?.toString(),
-      title: json['name'], // Updated: Backend uses 'name'
-      titleNepali: json['name_nepali'] ?? '',
-      eventType: json['category'] ?? 'General',
-      description: json['description'] ?? '',
-      descriptionNepali: json['description_nepali'] ?? '',
-      startDate: DateTime.parse(json['start_date']),
-      endDate: DateTime.parse(json['end_date']),
-      latitude: (json['location_override']?['coordinates']?[1] as num?)?.toDouble() ?? 
-               (json['site_details']?['location']?['lat'] as num?)?.toDouble() ?? 0.0,
-      longitude: (json['location_override']?['coordinates']?[0] as num?)?.toDouble() ?? 
-                (json['site_details']?['location']?['lon'] as num?)?.toDouble() ?? 0.0,
-      locationName: json['site_name'] ?? json['address'] ?? '',
-      isActive: json['is_active'] ?? true,
+      siteId: json['district']?.toString(),
+      title: (json['title'] ?? '') as String,
+      titleNepali: (json['title_np'] ?? '') as String,
+      eventType: (json['event_type'] ?? 'General') as String,
+      description: (json['description'] ?? '') as String,
+      descriptionNepali: (json['description_np'] ?? '') as String,
+      shortDescription: (json['short_description'] ?? '') as String,
+      imageUrl: (json['image_url'] ?? '') as String,
+      gallery: (json['gallery'] as List?)?.whereType<String>().toList() ?? const [],
+      color: (json['color'] ?? '') as String,
+      startDate: start,
+      endDate: (endRaw != null && endRaw.isNotEmpty) ? DateTime.parse(endRaw) : start,
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      locationName: (json['district_name'] ?? '') as String,
+      isActive: (json['is_published'] ?? true) as bool,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'site_id': siteId,
+      'district': siteId,
       'title': title,
-      'title_nepali': titleNepali,
       'event_type': eventType,
+      'short_description': shortDescription,
       'description': description,
-      'description_nepali': descriptionNepali,
-      'start_date': startDate.toIso8601String().split('T')[0],
-      'end_date': endDate.toIso8601String().split('T')[0],
+      'image_url': imageUrl,
+      'gallery': gallery,
+      'color': color,
+      'date_ad': startDate.toIso8601String().split('T')[0],
+      'end_date_ad': endDate.toIso8601String().split('T')[0],
       'latitude': latitude,
       'longitude': longitude,
-      'location_name': locationName,
-      'is_active': isActive,
+      'district_name': locationName,
+      'is_published': isActive,
     };
   }
 }

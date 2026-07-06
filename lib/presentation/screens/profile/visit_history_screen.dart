@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/providers/profile_provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -203,7 +204,7 @@ class _VisitHistoryCard extends StatelessWidget {
               ),
               child: Center(
                 child: imageUrl != null
-                    ? Image.network(imageUrl!, fit: BoxFit.cover)
+                    ? AppNetworkImage(url: imageUrl, fit: BoxFit.cover)
                     : const Icon(Icons.history, color: Colors.white38, size: 30),
               ),
             ),

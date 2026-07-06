@@ -10,6 +10,8 @@ class CalendarDay {
   final bool isCurrentMonth;
   final bool hasEvent;
   final bool isToday;
+  final Color? eventColor; // admin-set dot color; null → use default
+  final List<CulturalEvent> events; // events falling on this day (for the popover)
 
   CalendarDay({
     required this.bsDay,
@@ -17,7 +19,19 @@ class CalendarDay {
     this.isCurrentMonth = true,
     this.hasEvent = false,
     this.isToday = false,
+    this.eventColor,
+    this.events = const [],
   });
+}
+
+/// Parses a '#RRGGBB' / '#AARRGGBB' hex string into a [Color]; null if invalid.
+Color? parseHexColor(String hex) {
+  var h = hex.trim().replaceAll('#', '');
+  if (h.isEmpty) return null;
+  if (h.length == 6) h = 'FF$h';
+  if (h.length != 8) return null;
+  final v = int.tryParse(h, radix: 16);
+  return v == null ? null : Color(v);
 }
 
 class EventProvider with ChangeNotifier {
@@ -47,6 +61,19 @@ class EventProvider with ChangeNotifier {
   List<String> get bsMonths => _bsMonths;
   int get selectedMonthIndex => _selectedMonthIndex;
   String get selectedMonthName => _bsMonths[_selectedMonthIndex];
+
+  /// Up to 7 current/upcoming events, earliest first. Events whose end date has
+  /// already passed are hidden. Used by the "Current Cultural Events" list.
+  List<CulturalEvent> get currentEvents {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final list = _events.where((e) {
+      final end = DateTime(e.endDate.year, e.endDate.month, e.endDate.day);
+      return !end.isBefore(today); // keep events that haven't ended yet
+    }).toList()
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    return list.take(7).toList();
+  }
 
   /// Returns events happening within the next 30 days and ordered by proximity.
   /// Events that have already ended are automatically excluded.
@@ -86,6 +113,16 @@ class EventProvider with ChangeNotifier {
     return math.sqrt(math.pow(lat2 - lat1, 2) + math.pow(longitude2 - lon1, 2)) * 111; // Approx km
   }
 
+  /// All loaded events whose [startDate, endDate] range (AD, date-only)
+  /// covers [cellAd].
+  List<CulturalEvent> _eventsOn(DateTime cellAd) {
+    return _events.where((e) {
+      final start = DateTime(e.startDate.year, e.startDate.month, e.startDate.day);
+      final end = DateTime(e.endDate.year, e.endDate.month, e.endDate.day);
+      return !cellAd.isBefore(start) && !cellAd.isAfter(end);
+    }).toList();
+  }
+
   // Dynamic calendar data using nepali_utils
   List<CalendarDay> get calendarDays {
     List<CalendarDay> days = [];
@@ -116,19 +153,19 @@ class EventProvider with ChangeNotifier {
     
     for (int i = 1; i <= daysInMonth; i++) {
       NepaliDateTime date = NepaliDateTime(firstDayOfMonth.year, firstDayOfMonth.month, i);
-      
-      // Check if there's an event on this day
-      // (This is a simplified check for demo purposes)
-      bool hasEvent = _events.any((e) => 
-        e.startDate.day == date.toDateTime().day && 
-        e.startDate.month == date.toDateTime().month
-      );
+      final ad = date.toDateTime();
+      final cellAd = DateTime(ad.year, ad.month, ad.day);
+
+      // Events whose date range covers this cell's AD date.
+      final dayEvents = _eventsOn(cellAd);
 
       days.add(CalendarDay(
         bsDay: i,
-        adDay: date.toDateTime().day,
+        adDay: ad.day,
         isToday: date.year == today.year && date.month == today.month && date.day == today.day,
-        hasEvent: hasEvent,
+        hasEvent: dayEvents.isNotEmpty,
+        eventColor: dayEvents.isNotEmpty ? parseHexColor(dayEvents.first.color) : null,
+        events: dayEvents,
       ));
     }
     

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -222,12 +223,12 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: site.imageUrl != null
-                    ? Image.network(
-                        site.imageUrl!,
+                    ? AppNetworkImage(
+                        url: site.imageUrl,
                         width: 72,
                         height: 72,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _sitePlaceholder(),
+                        errorWidget: _sitePlaceholder(),
                       )
                     : _sitePlaceholder(),
               ),

@@ -12,9 +12,23 @@ class NotificationProvider extends ChangeNotifier {
   int _unreadCount = 0;
   bool _isLoading = false;
   String? _error;
+  String? _userId;
 
   NotificationProvider({required this.apiClient, required DatabaseHelper dbHelper})
       : _local = NotificationLocalDataSource(dbHelper: dbHelper);
+
+  /// Called by the AuthProvider proxy on every auth change. When the signed-in
+  /// user changes (login, logout, or account switch), drop the previous user's
+  /// notifications from both memory and the shared local table.
+  void updateUserId(String? uid) {
+    if (_userId == uid) return;
+    _userId = uid;
+    _notifications = [];
+    _unreadCount = 0;
+    notifyListeners();
+    // Fire-and-forget: wipe the on-disk table (no user_id column to filter by).
+    _local.clearAll();
+  }
 
   List<LocalNotification> get notifications => _notifications;
   int get unreadCount => _unreadCount;

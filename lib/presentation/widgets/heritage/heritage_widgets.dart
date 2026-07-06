@@ -5,6 +5,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 
 class CategoryChip extends StatelessWidget {
   final String label;
@@ -112,10 +113,10 @@ class FeaturedSiteCard extends StatelessWidget {
           children: [
             // cover image
             if (hasImage)
-              Image.network(
-                imageUrl!,
+              AppNetworkImage(
+                url: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                errorWidget: const SizedBox.shrink(),
               )
             else
               Align(
@@ -335,12 +336,12 @@ class DistrictCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: (coverImageUrl != null && coverImageUrl!.isNotEmpty)
-                ? Image.network(
-                    coverImageUrl!,
+                ? AppNetworkImage(
+                    url: coverImageUrl,
                     width: 44,
                     height: 44,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorWidget: Container(
                       width: 44,
                       height: 44,
                       color: iconBgColor,
@@ -492,14 +493,10 @@ class HeritageGridCard extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     if (imageUrl != null && imageUrl!.isNotEmpty)
-                      Image.network(
-                        imageUrl!,
+                      AppNetworkImage(
+                        url: imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const ShimmerSkeleton(width: double.infinity, height: double.infinity);
-                        },
+                        errorWidget: _buildPlaceholder(),
                       )
                     else
                       _buildPlaceholder(),

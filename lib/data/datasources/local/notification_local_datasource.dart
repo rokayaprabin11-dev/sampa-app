@@ -98,6 +98,14 @@ class NotificationLocalDataSource {
     await db.update('local_notifications', {'is_read': 1}, where: 'is_read = 0');
   }
 
+  /// Wipe every row. Called on account switch — the table has no user_id
+  /// column, so it must be cleared to stop one user's notifications leaking
+  /// into another's session.
+  Future<void> clearAll() async {
+    final db = await dbHelper.database;
+    await db.delete('local_notifications');
+  }
+
   Future<void> deleteOlderThan(Duration age) async {
     final db = await dbHelper.database;
     final cutoff = DateTime.now().subtract(age).millisecondsSinceEpoch;

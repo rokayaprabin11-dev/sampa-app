@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
@@ -311,8 +312,8 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                           color: isDark ? AppColors.darkBgCard : const Color(0xFFEEE4D8),
                                         ),
                                         child: Stack(fit: StackFit.expand, children: [
-                                          Image.network(img.imageUrl, fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => Icon(
+                                          AppNetworkImage(url: img.imageUrl, fit: BoxFit.cover,
+                                              errorWidget: Icon(
                                                   Icons.broken_image_outlined,
                                                   color: cs.onSurface.withValues(alpha: 0.4))),
                                           Positioned(
@@ -419,13 +420,9 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     );
   }
 
-  Widget _netImg(String url) => Image.network(
-    url, width: double.infinity, height: double.infinity, fit: BoxFit.cover,
-    loadingBuilder: (_, child, p) => p == null
-        ? child
-        : Container(color: const Color(0xFF3A0A00),
-            child: const Center(child: CircularProgressIndicator(color: Color(0xFFD4A017), strokeWidth: 2))),
-    errorBuilder: (_, __, ___) => _placeholder(),
+  Widget _netImg(String url) => AppNetworkImage(
+    url: url, width: double.infinity, height: double.infinity, fit: BoxFit.cover,
+    errorWidget: _placeholder(),
   );
 
   Widget _placeholder() => Container(
@@ -525,14 +522,9 @@ class _SubHeritageScreen extends StatelessWidget {
           SizedBox(
             height: size.height * 0.45,
             child: Stack(fit: StackFit.expand, children: [
-              Image.network(
-                image.imageUrl, fit: BoxFit.cover,
-                loadingBuilder: (_, child, p) => p == null
-                    ? child
-                    : Container(color: const Color(0xFF3A0A00),
-                        child: const Center(child: CircularProgressIndicator(
-                            color: Color(0xFFD4A017), strokeWidth: 2))),
-                errorBuilder: (_, __, ___) => Container(
+              AppNetworkImage(
+                url: image.imageUrl, fit: BoxFit.cover,
+                errorWidget: Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
                         colors: [Color(0xFF3A0A00), Color(0xFF7B1E00)]),
