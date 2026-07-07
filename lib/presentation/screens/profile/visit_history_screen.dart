@@ -187,6 +187,7 @@ class _VisitHistoryCard extends StatelessWidget {
             Container(
               width: 80,
               height: 80,
+              clipBehavior: Clip.antiAlias,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -203,7 +204,12 @@ class _VisitHistoryCard extends StatelessWidget {
               ),
               child: Center(
                 child: imageUrl != null
-                    ? AppNetworkImage(url: imageUrl, fit: BoxFit.cover)
+                    ? AppNetworkImage(
+                        url: imageUrl,
+                        fit: BoxFit.cover,
+                        width: 80,
+                        height: 80,
+                      )
                     : const Icon(Icons.history, color: Colors.white38, size: 30),
               ),
             ),
@@ -216,11 +222,12 @@ class _VisitHistoryCard extends StatelessWidget {
                   children: [
                     Text(
                       name,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        height: 1.2,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),

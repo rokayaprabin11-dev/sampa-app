@@ -188,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 10),
 
             // --- Featured Sites ---
             Padding(
@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             DynamicFeaturedCarousel(selectedCategory: _selectedCategory),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 10),
 
             // --- Browse by District ---
             Padding(
@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 1),
             Consumer<HeritageProvider>(
               builder: (context, heritageProvider, child) {
                 final loading = heritageProvider.isLoading && heritageProvider.districts.isEmpty;
@@ -337,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 15),
 
             // --- Nearby Events ---
             Padding(
@@ -355,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             Consumer<EventProvider>(
               builder: (context, eventProvider, child) {
                 final nearbyEvents = eventProvider.nearbyEvents;
