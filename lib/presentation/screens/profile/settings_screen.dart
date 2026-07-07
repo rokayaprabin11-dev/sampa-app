@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/profile_widgets.dart';
@@ -34,7 +35,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final l10n = AppLocalizations.of(context)!;
     final localeProvider = context.watch<LocaleProvider>();
     final themeProvider = context.watch<ThemeProvider>();
@@ -48,53 +48,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Column(
         children: [
           // --- Header Section ---
-          Stack(
-            children: [
-              Container(
-                height: size.height * 0.12,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF5D1700),
-                      Color(0xFF9E3D1A),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF5C1A0A),
+                  Color(0xFFA83210),
+                  Color(0xFFC8501A),
+                ],
+                stops: [0.0, 0.6, 1.0],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+              ),
+            ),
+            // Sizes to its content instead of a fixed screen-height fraction, so
+            // it never clips on short devices or leaves dead space on tall ones.
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                      hoverColor: Colors.white.withValues(alpha: 0.1),
+                      splashColor: Colors.white.withValues(alpha: 0.2),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Settings',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.settings_outlined, color: Color(0xFFB0B0B0), size: 24),
+                  ],
                 ),
               ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                        onPressed: () => Navigator.pop(context),
-                        hoverColor: Colors.white.withValues(alpha: 0.1),
-                        splashColor: Colors.white.withValues(alpha: 0.2),
-                      ),
-                      const SizedBox(width: 16),
-                      const Text(
-                        'Settings',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.settings_outlined, color: Color(0xFFB0B0B0), size: 24),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
 
           // --- Scrollable Content ---
@@ -238,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
       ),
       builder: (context) {
         return SafeArea(

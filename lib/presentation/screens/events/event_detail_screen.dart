@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:nepali_utils/nepali_utils.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/data/models/cultural_event.dart';
 import 'package:sampada/providers/event_provider.dart' show parseHexColor;
 
@@ -89,7 +90,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: catColor.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                         ),
                         child: Text(
                           e.eventType,
@@ -128,7 +129,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.darkBgCard : const Color(0xFFFBF6EC),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
                       ),
                       child: Text(
@@ -159,7 +160,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         itemCount: images.length,
                         separatorBuilder: (_, __) => const SizedBox(width: 10),
                         itemBuilder: (_, i) => ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                           child: AppNetworkImage(
                             url: images[i], width: 120, height: 90, fit: BoxFit.cover,
                             errorWidget: Container(
@@ -237,7 +238,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   height: 6,
                   decoration: BoxDecoration(
                     color: active ? Colors.white : Colors.white54,
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                   ),
                 );
               }),

@@ -17,8 +17,9 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary:          AppColors.kColorPrimary,
         onPrimary:        AppColors.kColorTextOnPrimary,
-        primaryContainer: AppColors.kColorBgMuted,
-        secondary:        AppColors.kColorAccentSafe,
+        primaryContainer: AppColors.kColorPrimaryDark,
+        onPrimaryContainer: AppColors.kColorTextOnPrimary,
+        secondary:        AppColors.kColorAccent,
         onSecondary:      AppColors.kColorTextOnPrimary,
         surface:          AppColors.kColorSurface,
         onSurface:        AppColors.kColorTextBody,
@@ -184,22 +185,34 @@ class AppTheme {
 
   // ── Gradient helpers ──────────────────────────────────────────────────────
 
-  /// Hero header: Home, Detail, District screens
+  /// App header / hero: #5C1A0A → #A83210 → #C8501A (top → bottom)
   static const LinearGradient heroGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    transform: GradientRotation(2.79), // ~160deg
-    colors: [AppColors.kColorDeep, AppColors.kColorPrimary, AppColors.kColorPrimaryLight],
-    stops: [0.0, 0.4, 1.0],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight],
+    stops: [0.0, 0.6, 1.0],
   );
 
-  /// Navigation header: Map, Events, Settings screens
+  /// Navigation header — same terracotta header gradient as [heroGradient].
   static const LinearGradient navGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    transform: GradientRotation(2.79),
-    colors: [AppColors.kColorDeep, AppColors.kColorPrimary, AppColors.kColorPrimaryMid],
-    stops: [0.0, 0.5, 1.0],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight],
+    stops: [0.0, 0.6, 1.0],
+  );
+
+  /// Primary highlighted feature card: #381208 → #993814
+  static const LinearGradient featureCardGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.kColorBrownDarkest, AppColors.kColorBrownRust],
+  );
+
+  /// Secondary / peek card: #40170A → #732E14
+  static const LinearGradient peekCardGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.kColorBrownPeek, AppColors.kColorBrownMid],
   );
 
   /// Warm content section: Calendar, Downloads
@@ -213,7 +226,7 @@ class AppTheme {
   static const LinearGradient cardImageGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.kColorPrimary, AppColors.kColorPrimaryLight, AppColors.kColorAccentLight],
+    colors: [AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight, AppColors.kColorAccent],
     stops: [0.0, 0.6, 1.0],
   );
 
@@ -226,7 +239,7 @@ class AppTheme {
   static const LinearGradient avatarGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.kColorPrimary, AppColors.kColorPrimaryLight],
+    colors: [AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight],
   );
 
   // ── Shadow presets ────────────────────────────────────────────────────────

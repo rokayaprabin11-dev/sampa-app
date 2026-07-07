@@ -3,6 +3,7 @@ import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/profile_widgets.dart';
@@ -32,7 +33,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final l10n = AppLocalizations.of(context)!;
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
@@ -52,27 +52,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
-                // Header Gradient
+                // Header Gradient — sizes to its content (title row + a fixed
+                // backdrop reservation) instead of a screen-height fraction, so
+                // the avatar always sits on gradient rather than white background.
                 Container(
-                  height: size.height * 0.2, // Reduced from 0.25 to 0.2
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0xFF5D1700), // Deep brownish-red
-                        Color(0xFF9E3D1A), // Brighter orange-brown
+                        Color(0xFF5C1A0A), // header gradient start
+                        Color(0xFFA83210), // header mid
+                        Color(0xFFC8501A), // header end (bright orange)
                       ],
+                      stops: [0.0, 0.6, 1.0],
                     ),
                     borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
+                      bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                      bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
                     ),
                   ),
                   child: SafeArea(
+                    bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12), // Reduced vertical padding
+                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 60),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -153,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                   border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
                 ),
                 child: AnimatedSwitcher(
@@ -193,7 +197,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFC8851A),
+                      color: AppColors.kColorAccentSafe,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -254,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFC8851A),
+                      color: AppColors.kColorAccentSafe,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -343,7 +347,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: const TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.bold,
-            color: Color(0xFFC8851A),
+            color: AppColors.kColorAccentSafe,
           ),
         ),
         const SizedBox(height: 4),
@@ -371,7 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
         ),
         child: Row(

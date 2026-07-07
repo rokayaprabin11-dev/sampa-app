@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 
 class ShimmerSkeleton extends StatelessWidget {
   final double width;
@@ -42,7 +43,7 @@ class HeritageCardSkeleton extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
       ),
       child: Row(
@@ -77,7 +78,7 @@ class HeritageGridSkeleton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
       ),
       child: Column(
@@ -109,7 +110,7 @@ class DistrictCardSkeleton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         border: Border.all(
           color: Theme.of(context).brightness == Brightness.light
               ? const Color(0xFFEED5BE)
@@ -149,7 +150,7 @@ class RecentlyVisitedSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         border: Border.all(
           color: Theme.of(context).brightness == Brightness.light
               ? const Color(0xFFEED5BE)
@@ -188,7 +189,7 @@ class NotificationCardSkeleton extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(
           color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3),
         ),
@@ -252,7 +253,7 @@ class EventCardSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBorder),
       ),
       child: Row(

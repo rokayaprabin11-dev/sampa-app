@@ -2,7 +2,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
+import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/providers/auth_provider.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
@@ -143,17 +147,17 @@ class _GuideScreenState extends State<GuideScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFFFDF3DC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEAD9A8)),
+        color: AppColors.kColorPendingBg,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+        border: Border.all(color: AppColors.kColorPendingBorder),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.hourglass_top, size: 16, color: Color(0xFF9A6200)),
-          const SizedBox(width: 6),
+          const Icon(Icons.hourglass_top, size: AppDimensions.iconSm, color: AppColors.kColorPendingText),
+          const SizedBox(width: AppDimensions.sp6),
           const Text('Request pending — awaiting response',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF9A6200))),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.kColorPendingText)),
         ],
       ),
     );
@@ -165,17 +169,17 @@ class _GuideScreenState extends State<GuideScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+        color: isDark ? AppColors.darkBgCard : AppColors.kColorBgMuted,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.person_outline, size: 16, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162)),
+          Icon(Icons.person_outline, size: AppDimensions.iconSm, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
           const SizedBox(width: 6),
           Text('This is your guide profile',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
         ],
       ),
     );
@@ -227,7 +231,7 @@ class _GuideScreenState extends State<GuideScreen> {
   /// Returns (rating, text) or null if cancelled.
   Future<(int, String)?> _showReviewDialog(Map<String, dynamic> guide) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorPrimary;
     final user = guide['user'] as Map<String, dynamic>? ?? {};
     final name = (user['full_name'] ?? user['username'] ?? 'this guide').toString();
     final controller = TextEditingController();
@@ -238,8 +242,8 @@ class _GuideScreenState extends State<GuideScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('Review $name', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+          title: Text('Review $name', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,11 +256,11 @@ class _GuideScreenState extends State<GuideScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     constraints: const BoxConstraints(),
                     onPressed: () => setLocal(() => rating = i + 1),
-                    icon: Icon(filled ? Icons.star : Icons.star_border, color: const Color(0xFFDCA73A), size: 32),
+                    icon: Icon(filled ? Icons.star : Icons.star_border, color: isDark ? AppColors.goldMain : AppColors.kColorAccent, size: AppDimensions.iconXl),
                   );
                 }),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppDimensions.sp12),
               TextField(
                 controller: controller,
                 maxLines: 3,
@@ -265,7 +269,7 @@ class _GuideScreenState extends State<GuideScreen> {
                 decoration: InputDecoration(
                   hintText: 'Share your experience (optional)…',
                   hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 13),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                 ),
               ),
             ],
@@ -288,7 +292,6 @@ class _GuideScreenState extends State<GuideScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -301,13 +304,13 @@ class _GuideScreenState extends State<GuideScreen> {
 
           return CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(child: _header(context, isDark, size, guideProvider)),
-              const SliverToBoxAdapter(child: SizedBox(height: 52)),
+              SliverToBoxAdapter(child: _header(context, isDark, guideProvider)),
+              const SliverToBoxAdapter(child: SizedBox(height: 45)),
 
               // Stats
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: Row(
                     children: [
                       _statCard(context, '${all.length}', 'Guides Available'),
@@ -380,62 +383,69 @@ class _GuideScreenState extends State<GuideScreen> {
 
   // ─── Header ───────────────────────────────────────────────────
 
-  Widget _header(BuildContext context, bool isDark, Size size, GuideProvider gp) {
+  Widget _header(BuildContext context, bool isDark, GuideProvider gp) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        // Banner sizes to its content (+ bottom room for the overhanging search
+        // bar) instead of a fixed screen fraction, so it never leaves an empty
+        // band on tall devices or clips text on short ones.
         Container(
-          height: size.height * 0.27,
+          width: double.infinity,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
-                isDark ? AppColors.brownDark : const Color(0xFF9E3D1A),
-              ],
+              // Figma header combo: #5C1A0A → #A83210 → #C8501A (stops 0/.6/1).
+              colors: isDark
+                  ? [AppColors.brownDeep, AppColors.brownDark]
+                  : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+              stops: isDark ? null : const [0.0, 0.6, 1.0],
             ),
             borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
+              bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+              bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
             ),
           ),
-        ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _headerCircle(child: const Icon(Icons.menu, color: Colors.white70, size: 18)),
-                    const Text(
-                      'SAMPADA • सम्पदा',
-                      style: TextStyle(color: Color(0xFFDCA73A), fontWeight: FontWeight.bold, letterSpacing: 1.2, fontSize: 14),
-                    ),
-                    _headerCircle(
-                      onTap: gp.isLoading ? null : () => gp.fetchGuides(),
-                      child: gp.isLoading
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.refresh, color: Colors.white70, size: 18),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Find Your\nHeritage Guide',
-                  style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, height: 1.1),
-                ),
-                const SizedBox(height: 8),
-                Container(width: 40, height: 3, decoration: BoxDecoration(color: const Color(0xFFDCA73A), borderRadius: BorderRadius.circular(2))),
-                const SizedBox(height: 10),
-                const Text(
-                  "Book certified local guides across Nepal's 77 districts",
-                  style: TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.3),
-                ),
-              ],
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              // Extra bottom room so the search bar (overhangs by 28) clears the text.
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const SizedBox(width: 44),
+                      const Text(
+                        'SAMPADA • सम्पदा',
+                        style: TextStyle(color: AppColors.kColorBgWarm, fontWeight: FontWeight.bold, letterSpacing: 1.2, fontSize: 14),
+                      ),
+                      _headerCircle(
+                        onTap: gp.isLoading ? null : () => gp.fetchGuides(),
+                        child: gp.isLoading
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.refresh, color: Colors.white70, size: 18),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Find Your\nHeritage Guide',
+                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.1),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(width: 40, height: 3, decoration: BoxDecoration(color: AppColors.kColorBgWarm, borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm))),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Book certified local guides across Nepal's 77 districts",
+                    style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -446,13 +456,13 @@ class _GuideScreenState extends State<GuideScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkBgCard : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
+              boxShadow: AppTheme.elevatedShadow,
             ),
             child: Row(
               children: [
-                Icon(Icons.search, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 24),
+                Icon(Icons.search, color: isDark ? AppColors.goldMain : AppColors.kColorPrimary, size: AppDimensions.iconLg),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
@@ -461,7 +471,7 @@ class _GuideScreenState extends State<GuideScreen> {
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Search guides by name, language...',
-                      hintStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162), fontSize: 14),
+                      hintStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary, fontSize: 14),
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -475,13 +485,25 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
+  /// Visual circle stays 36px, but the tappable area is padded out to the
+  /// 44dp minimum touch target (48dp is ideal; 44 is the practical floor for
+  /// a dense header row) so the refresh button isn't a mis-tap magnet.
   Widget _headerCircle({required Widget child, VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
-        child: Center(child: child),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 44, height: 44,
+          child: Center(
+            child: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), shape: BoxShape.circle),
+              child: Center(child: child),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -492,9 +514,9 @@ class _GuideScreenState extends State<GuideScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, letterSpacing: 1.0, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+          Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.0, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
           if (showSeeAll)
-            Text('See all →', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFFC8851A))),
+            Text('See all →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
         ],
       ),
     );
@@ -507,15 +529,25 @@ class _GuideScreenState extends State<GuideScreen> {
     final fullName = (user['full_name'] ?? user['username'] ?? 'Guide').toString();
     final initials = fullName.split(' ').take(2).map((p) => p.isNotEmpty ? p[0].toUpperCase() : '').join();
     final photoUrl = guide['photo_url'] as String?;
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
     return Stack(
       children: [
         CircleAvatar(
           radius: radius,
-          backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFF7B1E00),
-          backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
-          child: (photoUrl == null || photoUrl.isEmpty)
-              ? Text(initials, style: TextStyle(color: const Color(0xFFDCA73A), fontSize: radius * 0.6, fontWeight: FontWeight.bold))
-              : null,
+          backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorPrimary,
+          // AppNetworkImage gives disk caching + a right-sized Cloudinary
+          // transform instead of pulling the full-resolution original into
+          // a ~50px circle on every cold start.
+          child: hasPhoto
+              ? ClipOval(
+                  child: AppNetworkImage(
+                    url: photoUrl,
+                    width: radius * 2,
+                    height: radius * 2,
+                    cloudinaryWidth: radius * 2,
+                  ),
+                )
+              : Text(initials, style: TextStyle(color: AppColors.kColorBgWarm, fontSize: radius * 0.6, fontWeight: FontWeight.bold)),
         ),
         Positioned(
           bottom: 0, right: 2,
@@ -538,18 +570,22 @@ class _GuideScreenState extends State<GuideScreen> {
     final specialties = ((guide['specialties'] as List?) ?? []).cast<String>();
     final languages = ((guide['languages'] as List?) ?? []).cast<String>();
     final dist = _distanceLabel(guide);
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorPrimary;
+    final sub = isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary;
 
-    return GestureDetector(
-      onTap: () => _openDetail(guide),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        padding: const EdgeInsets.all(16),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openDetail(guide),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF3E4C4), width: 1.5),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
+          boxShadow: AppTheme.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,21 +593,21 @@ class _GuideScreenState extends State<GuideScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _avatar(context, isDark, guide, 30),
-                const SizedBox(width: 14),
+                _avatar(context, isDark, guide, 24),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(fullName, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                      const SizedBox(height: 3),
+                      Text(fullName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162)),
+                          Icon(Icons.location_on, size: 11, color: sub),
                           const SizedBox(width: 2),
                           Text(
                             [if (dist != null) dist, _locationOf(guide)].join(' · '),
-                            style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162)),
+                            style: TextStyle(fontSize: 11, color: sub),
                           ),
                         ],
                       ),
@@ -582,24 +618,24 @@ class _GuideScreenState extends State<GuideScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     if (_isTopGuide(guide))
-                      _pill('⭐ Top Guide', const Color(0xFFDCA73A), Colors.white),
+                      _pill('⭐ Top', isDark ? AppColors.goldMain : AppColors.kColorAccentLight, AppColors.kColorBrownDarkest),
                     if (isVerified) ...[
-                      if (_isTopGuide(guide)) const SizedBox(height: 6),
-                      _pill('✓ Verified', isDark ? AppColors.darkBgCard : const Color(0xFFE8F5EC), const Color(0xFF2E7D32)),
+                      if (_isTopGuide(guide)) const SizedBox(height: 4),
+                      _pill('✓ Verified', AppColors.kColorOfflineBg, AppColors.statusSuccess),
                     ],
                   ],
                 ),
               ],
             ),
             if (specialties.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Wrap(spacing: 6, runSpacing: 6, children: specialties.take(3).map((s) => _tag(context, isDark, s)).toList()),
+              const SizedBox(height: 8),
+              Wrap(spacing: 5, runSpacing: 5, children: specialties.take(3).map((s) => _tag(context, isDark, s)).toList()),
             ],
             if (languages.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(spacing: 6, runSpacing: 6, children: languages.map((l) => _langChip(context, isDark, l)).toList()),
+              const SizedBox(height: 6),
+              Wrap(spacing: 5, runSpacing: 5, children: languages.take(3).map((l) => _langChip(context, isDark, l)).toList()),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -609,15 +645,15 @@ class _GuideScreenState extends State<GuideScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.star, color: Color(0xFFDCA73A), size: 15),
-                          const SizedBox(width: 4),
-                          Text(rating.toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
-                          const SizedBox(width: 4),
-                          Text('($reviews reviews)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF8C7162))),
+                          Icon(Icons.star, color: isDark ? AppColors.goldMain : AppColors.kColorAccent, size: 13),
+                          const SizedBox(width: 3),
+                          Text(rating.toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
+                          const SizedBox(width: 3),
+                          Text('($reviews reviews)', style: TextStyle(fontSize: 11, color: sub)),
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('Available today 9 AM – 6 PM', style: TextStyle(fontSize: 10.5, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+                      Text('Available today 9 AM – 6 PM', style: TextStyle(fontSize: 10, color: sub), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -625,15 +661,15 @@ class _GuideScreenState extends State<GuideScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('NPR $rate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent)),
-                      Text('per half day', style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+                      Text('NPR $rate', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: accent)),
+                      Text('per half day', style: TextStyle(fontSize: 10, color: sub)),
                     ],
                   ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, color: isDark ? AppColors.darkBorder : const Color(0xFFF3E4C4)),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
             ),
             if (_isSelf(guide))
               _selfBanner(context, isDark)
@@ -643,13 +679,14 @@ class _GuideScreenState extends State<GuideScreen> {
               Row(
                 children: [
                   Expanded(child: _outlineBtn(context, isDark, 'Message', () => _comingSoon('Messaging'))),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(child: _outlineBtn(context, isDark, 'Review', () => _reviewGuide(guide))),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(flex: 2, child: _filledBtn(context, isDark, 'Hire Now', () => _openDetail(guide))),
                 ],
               ),
           ],
+        ),
         ),
       ),
     );
@@ -665,18 +702,21 @@ class _GuideScreenState extends State<GuideScreen> {
     final specialties = ((guide['specialties'] as List?) ?? []).cast<String>();
     final languages = ((guide['languages'] as List?) ?? []).cast<String>();
     final dist = _distanceLabel(guide);
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorPrimary;
 
-    return GestureDetector(
-      onTap: () => _openDetail(guide),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        padding: const EdgeInsets.all(16),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openDetail(guide),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3), width: 1.5),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
+          boxShadow: AppTheme.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -684,63 +724,57 @@ class _GuideScreenState extends State<GuideScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _avatar(context, isDark, guide, 26),
-                const SizedBox(width: 14),
+                _avatar(context, isDark, guide, 22),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Flexible(child: Text(fullName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface), overflow: TextOverflow.ellipsis)),
+                          Flexible(child: Text(fullName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface), overflow: TextOverflow.ellipsis)),
                           if (isVerified) ...[
-                            const SizedBox(width: 6),
-                            const Icon(Icons.verified, size: 15, color: Color(0xFF2E7D32)),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.verified, size: 13, color: AppColors.statusSuccess),
                           ],
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162)),
+                          Icon(Icons.location_on, size: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
                           const SizedBox(width: 2),
                           Text(
                             [if (dist != null) dist, _locationOf(guide)].join(' · '),
-                            style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162)),
+                            style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
                           ),
                         ],
                       ),
-                      if (specialties.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Wrap(spacing: 6, runSpacing: 6, children: specialties.take(2).map((s) => _tag(context, isDark, s)).toList()),
-                      ],
                     ],
                   ),
                 ),
                 if (rate != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('NPR $rate', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accent)),
-                      Text('/ half day', style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
-                    ],
-                  ),
+                  Text('NPR $rate', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: accent)),
               ],
             ),
-            const SizedBox(height: 12),
+            if (specialties.isNotEmpty || languages.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(spacing: 5, runSpacing: 5, children: [
+                ...specialties.take(2).map((s) => _tag(context, isDark, s)),
+                ...languages.take(2).map((l) => _langChip(context, isDark, l)),
+              ]),
+            ],
+            const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.star, color: Color(0xFFDCA73A), size: 14),
-                const SizedBox(width: 4),
-                Text(rating.toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Theme.of(context).colorScheme.onSurface)),
-                const SizedBox(width: 4),
-                Text('($reviews)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : const Color(0xFF8C7162))),
-                const Spacer(),
-                if (languages.isNotEmpty)
-                  Wrap(spacing: 6, children: languages.take(3).map((l) => _langChip(context, isDark, l)).toList()),
+                Icon(Icons.star, color: isDark ? AppColors.goldMain : AppColors.kColorAccent, size: 13),
+                const SizedBox(width: 3),
+                Text(rating.toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
+                const SizedBox(width: 3),
+                Text('($reviews)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextSecondary)),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
             if (_isSelf(guide))
               _selfBanner(context, isDark)
             else if (_hasPending(guide))
@@ -753,13 +787,14 @@ class _GuideScreenState extends State<GuideScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: accent,
                     side: BorderSide(color: accent),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
-                  child: const Text('Request Guide', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                  child: const Text('Request Guide', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ),
           ],
+        ),
         ),
       ),
     );
@@ -771,18 +806,18 @@ class _GuideScreenState extends State<GuideScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
+          boxShadow: AppTheme.cardShadow,
         ),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
-            const SizedBox(height: 4),
-            Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorPrimary)),
+            const SizedBox(height: 3),
+            Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
           ],
         ),
       ),
@@ -792,22 +827,27 @@ class _GuideScreenState extends State<GuideScreen> {
   Widget _chip(BuildContext context, String label) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedFilter == label;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedFilter = label),
-      child: Container(
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00)) : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(color: isSelected ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00)) : (isDark ? AppColors.darkBorder : const Color(0xFFF3E4C4))),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? (isDark ? Colors.black : Colors.white) : Theme.of(context).colorScheme.onSurface,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 13,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => setState(() => _selectedFilter = label),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          margin: const EdgeInsets.only(right: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: isSelected ? (isDark ? AppColors.goldMain : AppColors.kColorPrimary) : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+            border: Border.all(color: isSelected ? (isDark ? AppColors.goldMain : AppColors.kColorPrimary) : (isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? (isDark ? Colors.black : Colors.white) : Theme.of(context).colorScheme.onSurface,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 13,
+            ),
           ),
         ),
       ),
@@ -817,47 +857,52 @@ class _GuideScreenState extends State<GuideScreen> {
   Widget _pill(String text, Color bg, Color fg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
-      child: Text(text, style: TextStyle(color: fg, fontSize: 10.5, fontWeight: FontWeight.bold)),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+      child: Text(text, style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.bold)),
     );
   }
 
   Widget _tag(BuildContext context, bool isDark, String label) {
+    final bg = isDark ? AppColors.darkBgCard : AppColors.kColorTagBg;
+    final fg = isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBgCard : const Color(0xFFFBEFD6),
-        borderRadius: BorderRadius.circular(20),
+        color: bg,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
       ),
-      child: Text(label, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8A5A1E), fontWeight: FontWeight.w500)),
+      child: Text(label, style: TextStyle(fontSize: 11, color: fg, fontWeight: FontWeight.w500)),
     );
   }
 
   Widget _langChip(BuildContext context, bool isDark, String lang) {
     final short = _langShort[lang.toLowerCase()] ?? lang;
+    final bg = isDark ? AppColors.darkBgCard : AppColors.kColorBgMuted;
+    final border = isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle;
+    final fg = isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBgCard : const Color(0xFFF2EFE9),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD0)),
+        color: bg,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
+        border: Border.all(color: border),
       ),
-      child: Text(short, style: TextStyle(fontSize: 10.5, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF6B5041))),
+      child: Text(short, style: TextStyle(fontSize: 11, color: fg)),
     );
   }
 
   Widget _outlineBtn(BuildContext context, bool isDark, String label, VoidCallback onTap) {
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorPrimary;
     return OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         foregroundColor: accent,
-        side: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+        side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
         padding: const EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
       ),
-      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
     );
   }
 
@@ -865,13 +910,13 @@ class _GuideScreenState extends State<GuideScreen> {
     return ElevatedButton(
       onPressed: onTap,
       style: ElevatedButton.styleFrom(
-        backgroundColor: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+        backgroundColor: isDark ? AppColors.goldMain : AppColors.kColorPrimary,
         foregroundColor: isDark ? Colors.black : Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
         elevation: 0,
       ),
-      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
     );
   }
 
@@ -880,7 +925,7 @@ class _GuideScreenState extends State<GuideScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.red.shade200)),
+        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), border: Border.all(color: Colors.red.shade200)),
         child: Row(
           children: [
             Icon(Icons.error_outline, color: Colors.red.shade700),
@@ -899,7 +944,7 @@ class _GuideScreenState extends State<GuideScreen> {
         children: [
           Icon(Icons.person_search, size: 64, color: isDark ? AppColors.darkTextTertiary : const Color(0xFFD4B8A8)),
           const SizedBox(height: 16),
-          Text(none ? 'No guides registered yet.' : 'No guides match your search.', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+          Text(none ? 'No guides registered yet.' : 'No guides match your search.', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
         ],
       ),
     );
@@ -907,28 +952,27 @@ class _GuideScreenState extends State<GuideScreen> {
 
   Widget _skeleton(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0EDED);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
       ),
       child: Row(
         children: [
-          CircleAvatar(radius: 30, backgroundColor: baseColor),
+          const ShimmerSkeleton(width: 60, height: 60, borderRadius: 30),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(height: 14, width: 120, decoration: BoxDecoration(color: baseColor, borderRadius: BorderRadius.circular(7))),
+                const ShimmerSkeleton(width: 120, height: 14, borderRadius: AppDimensions.kRadiusSm),
                 const SizedBox(height: 8),
-                Container(height: 12, width: 80, decoration: BoxDecoration(color: baseColor, borderRadius: BorderRadius.circular(6))),
+                const ShimmerSkeleton(width: 80, height: 12, borderRadius: AppDimensions.kRadiusSm),
                 const SizedBox(height: 8),
-                Container(height: 10, width: 160, decoration: BoxDecoration(color: baseColor, borderRadius: BorderRadius.circular(5))),
+                const ShimmerSkeleton(width: 160, height: 10, borderRadius: AppDimensions.kRadiusSm),
               ],
             ),
           ),

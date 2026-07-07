@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
@@ -138,17 +139,21 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [AppColors.brownDeep, Color(0xFF9E3D1A)],
+          colors: isDark
+              ? const [AppColors.brownDeep, Color(0xFF9E3D1A)]
+              : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+          stops: isDark ? null : const [0.0, 0.6, 1.0],
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+          bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
         ),
       ),
       padding: EdgeInsets.only(
@@ -207,7 +212,7 @@ class _MonthSelector extends StatelessWidget {
                 color: isSelected 
                     ? (Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.goldMain) 
                     : Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                 border: Border.all(
                   color: isSelected ? AppColors.goldMain : (Theme.of(context).brightness == Brightness.light ? AppColors.brownLight : AppColors.darkBorder),
                 ),
@@ -241,7 +246,7 @@ class _CalendarWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBorder),
         boxShadow: [
           BoxShadow(
@@ -259,8 +264,8 @@ class _CalendarWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBgCard,
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
+                topLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                topRight: Radius.circular(AppDimensions.kRadiusXxl),
               ),
             ),
             child: Row(
@@ -298,7 +303,7 @@ class _CalendarWidget extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.goldMain,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.goldMain.withValues(alpha: 0.3),
@@ -411,7 +416,7 @@ class _CalendarDayItem extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
           border: (day.hasEvent && !day.isToday && Theme.of(context).brightness == Brightness.dark) ? Border.all(color: AppColors.darkBorder) : null,
         ),
         child: Column(
@@ -499,7 +504,7 @@ void showDayEventsPopover(BuildContext cellContext, List<CulturalEvent> events) 
             child: Container(
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkBgCard : Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
                 border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF0E6D2)),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 16, offset: const Offset(0, 6))],
               ),
@@ -547,7 +552,7 @@ void showDayEventsPopover(BuildContext cellContext, List<CulturalEvent> events) 
                                 const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(color: dot.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(20)),
+                                  decoration: BoxDecoration(color: dot.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
                                   child: Text(e.eventType, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: dot)),
                                 ),
                                 const SizedBox(width: 4),
@@ -601,7 +606,7 @@ class _EventListCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBorder),
         boxShadow: [
           BoxShadow(
@@ -621,7 +626,7 @@ class _EventListCard extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBgCard,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                 ),
                 child: imageUrl.isNotEmpty
                     ? AppNetworkImage(
@@ -706,7 +711,7 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBgCard,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
         border: Theme.of(context).brightness == Brightness.dark ? Border.all(color: AppColors.darkBorder) : null,
       ),
       child: Row(

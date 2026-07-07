@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/providers/locale_provider.dart';
 import 'package:sampada/core/services/permission_service.dart';
@@ -134,8 +135,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               decoration: const BoxDecoration(
                 color: AppColors.bgPage,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
+                  topLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                  topRight: Radius.circular(AppDimensions.kRadiusXxl),
                 ),
               ),
               child: Column(
@@ -168,7 +169,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: 4,
                     decoration: BoxDecoration(
                       color: AppColors.goldMain,
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -197,7 +198,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brownDark,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
                         elevation: 0,
                       ),
                       child: Row(
@@ -254,7 +255,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       width: isActive ? 24 : 6,
       decoration: BoxDecoration(
         color: isActive ? AppColors.brownDark : AppColors.brownUltraLight,
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
       ),
     );
   }
@@ -269,7 +270,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.brownDark : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: isSelected ? AppColors.brownDark : AppColors.brownLight,
           ),

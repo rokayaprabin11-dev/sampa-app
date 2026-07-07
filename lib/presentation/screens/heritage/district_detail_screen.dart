@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/data/models/district_model.dart';
 import 'package:sampada/data/models/heritage_site.dart';
@@ -130,7 +131,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
               return Container(
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkBgCard : Colors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.08),
@@ -151,7 +152,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                         margin: const EdgeInsets.only(bottom: 20),
                         decoration: BoxDecoration(
                           color: isDark ? AppColors.darkBorder : const Color(0xFFDDD0C8),
-                          borderRadius: BorderRadius.circular(2),
+                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                         ),
                       ),
                     ),
@@ -178,7 +179,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.goldMain : const Color(0xFFC8851A),
+                              color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe,
                             ),
                           ),
                         ],
@@ -224,7 +225,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.darkBgPage : const Color(0xFFFAF5EF),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                         border: Border.all(
                           color: isDark ? AppColors.darkBorder : const Color(0xFFF0E6D3),
                         ),
@@ -290,7 +291,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.goldMain : const Color(0xFFC8851A),
+            color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe,
           ),
         ),
         const SizedBox(height: 2),
@@ -374,7 +375,7 @@ class _SiteListTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: cs.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
           border: Border.all(
             color: isDark ? AppColors.darkBorder : const Color(0xFFF0E6D3),
           ),
@@ -389,7 +390,7 @@ class _SiteListTile extends StatelessWidget {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
               child: site.imageUrl != null && site.imageUrl!.isNotEmpty
                   ? AppNetworkImage(
                       url: site.imageUrl,

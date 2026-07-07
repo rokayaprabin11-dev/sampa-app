@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/network/api_endpoints.dart';
 import 'package:sampada/injection.dart' as di;
@@ -328,7 +329,6 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size   = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final gp     = context.watch<GuideProvider>();
 
@@ -342,14 +342,14 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
 
     // A submission is under review → block the form, show the status screen.
     if (_appStatus == 'pending') {
-      return _buildSubmittedScreen(context, isDark, size);
+      return _buildSubmittedScreen(context, isDark);
     }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          _buildHeader(context, isDark, size),
+          _buildHeader(context, isDark),
           _buildStepIndicator(context, isDark),
           Expanded(
             child: SingleChildScrollView(
@@ -369,7 +369,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
                         foregroundColor: isDark ? Colors.black : Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
                       ),
                       child: gp.isLoading || _isUploading
                           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -400,13 +400,13 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
 
   // Shown after a successful submit, or when a pending application already
   // exists. Blocks re-submission until admin approves/rejects/revokes.
-  Widget _buildSubmittedScreen(BuildContext context, bool isDark, Size size) {
+  Widget _buildSubmittedScreen(BuildContext context, bool isDark) {
     final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          _buildHeader(context, isDark, size),
+          _buildHeader(context, isDark),
           Expanded(
             child: Center(
               child: SingleChildScrollView(
@@ -433,7 +433,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFDF3DC),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                       ),
                       child: const Text(
                         'Pending Review',
@@ -462,7 +462,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: accent,
                           foregroundColor: isDark ? Colors.black : Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
                         ),
                         child: const Text('Back to Home', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                       ),
@@ -477,49 +477,46 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, bool isDark, Size size) {
-    return Stack(
-      children: [
-        Container(
-          height: size.height * 0.14,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
-                isDark ? AppColors.brownDark : const Color(0xFF9E3D1A),
-              ],
-            ),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-            ),
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? const [AppColors.brownDeep, AppColors.brownDark]
+              : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+          stops: isDark ? null : const [0.0, 0.6, 1.0],
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+          bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+        ),
+      ),
+      // Sizes to its content instead of a fixed screen-height fraction.
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                onPressed: _prevStep,
+              ),
+              const SizedBox(width: 8),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Become a Guide', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('Share your heritage knowledge', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                ],
+              ),
+            ],
           ),
         ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                  onPressed: _prevStep,
-                ),
-                const SizedBox(width: 8),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Become a Guide', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                    Text('Share your heritage knowledge', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -874,7 +871,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                 width: 20, height: 20,
                 margin: const EdgeInsets.only(top: 1),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                   border: Border.all(
                     color: _confirmedAccuracy
                         ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
@@ -929,7 +926,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
             border: isDark ? Border.all(color: AppColors.darkBorder) : null,
           ),
           child: Text(
@@ -952,7 +949,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
       ),
       child: Row(
@@ -1004,9 +1001,9 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       filled: isDark,
       fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
-      border:        OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
+      border:        OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
     );
   }
 
@@ -1034,7 +1031,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
           decoration: BoxDecoration(
             border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
             color: isDark ? AppColors.darkBgCard : Colors.transparent,
           ),
           child: Row(
@@ -1063,7 +1060,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         color: isDark ? AppColors.darkBgCard : Colors.transparent,
       ),
       child: Row(
@@ -1091,7 +1088,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         color: isDark ? AppColors.darkBgCard : Colors.transparent,
       ),
       child: DropdownButtonHideUnderline(
@@ -1129,7 +1126,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
           color: selected ? activeBg : inactiveBg,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC))),
         ),
         child: Row(
@@ -1161,7 +1158,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
           color: selected ? activeBg : inactiveBg,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC))),
         ),
         child: Row(
@@ -1194,7 +1191,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBgCard : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
       ),
       child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey[600])),
@@ -1209,7 +1206,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkBgCard : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
           border: Border.all(
             color: uploaded ? accentColor : (isDark ? AppColors.darkBorder : const Color(0xFFCCBCAF)),
             style: BorderStyle.solid,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/data/datasources/local/notification_local_datasource.dart';
 import 'package:sampada/generated/app_localizations.dart';
@@ -29,7 +30,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -38,67 +38,65 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: Column(
         children: [
           // Header
-          Stack(
-            children: [
-              Container(
-                height: size.height * 0.15,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF5D1700), Color(0xFF9E3D1A)],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+                stops: [0.0, 0.6, 1.0],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+              ),
+            ),
+            // Sizes to its content instead of a fixed screen-height fraction.
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        Text(
+                          l10n.notifTitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => context.read<NotificationProvider>().markAllRead(),
+                          child: const Text(
+                            'Mark all read',
+                            style: TextStyle(color: Color(0xFFC89932), fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildFilterChip(l10n.notifFilterAll, 'All'),
+                        _buildFilterChip(l10n.notifFilterEvents, 'event'),
+                        _buildFilterChip('Heritage', 'heritage'),
+                        _buildFilterChip('Alerts', 'system'),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          Text(
-                            l10n.notifTitle,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => context.read<NotificationProvider>().markAllRead(),
-                            child: const Text(
-                              'Mark all read',
-                              style: TextStyle(color: Color(0xFFC89932), fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildFilterChip(l10n.notifFilterAll, 'All'),
-                          _buildFilterChip(l10n.notifFilterEvents, 'event'),
-                          _buildFilterChip('Heritage', 'heritage'),
-                          _buildFilterChip('Alerts', 'system'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
 
           // List
@@ -180,7 +178,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFC89932) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         ),
         child: Text(
           label,
@@ -232,7 +230,7 @@ class _NotificationCard extends StatelessWidget {
     final img = notification.data['image_url'];
     if (img is String && img.isNotEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
         child: AppNetworkImage(
           url: img,
           width: 44,
@@ -249,7 +247,7 @@ class _NotificationCard extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
         ),
         child: Icon(_icon,
             color: isDark ? AppColors.goldMain : const Color(0xFF4A342B),
@@ -297,7 +295,7 @@ class _NotificationCard extends StatelessWidget {
               : (isDark
                   ? const Color(0xFF2A1A0A)
                   : const Color(0xFFFFF8EE)),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3),
           ),
@@ -311,8 +309,8 @@ class _NotificationCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: notification.isRead ? Colors.transparent : _accent,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
+                    topLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                    bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
                   ),
                 ),
               ),

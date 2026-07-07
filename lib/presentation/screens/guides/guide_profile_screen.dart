@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
+import 'package:sampada/presentation/screens/guides/guide_edit_screen.dart';
 
 /// Guide's own listing dashboard. Reached from the Profile screen once the
 /// guide application has been approved (status == 'approved').
@@ -14,11 +17,12 @@ class GuideProfileScreen extends StatefulWidget {
 }
 
 class _GuideProfileScreenState extends State<GuideProfileScreen> {
-  // Local-only settings toggles. No backend fields yet — defaults are sensible
-  // and reset each visit. TODO: persist via PATCH /guides/me/ when supported.
+  // Booking settings — synced from the guide profile and persisted via
+  // PATCH /guides/me/ on change.
   bool _availableForBookings = true;
   bool _bookingNotifications = true;
   bool _autoAccept = false;
+  bool _settingsSynced = false;
 
   @override
   void initState() {
@@ -43,15 +47,22 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
     final gp = context.watch<GuideProvider>();
     final p = gp.myProfile;
+
+    // One-time sync of the toggle state from the loaded profile.
+    if (p != null && !_settingsSynced) {
+      _availableForBookings = p['available_for_bookings'] as bool? ?? true;
+      _bookingNotifications = p['booking_notifications'] as bool? ?? true;
+      _autoAccept = p['auto_accept_bookings'] as bool? ?? false;
+      _settingsSynced = true;
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          _buildHeader(context, isDark, size),
+          _buildHeader(context, isDark),
           if (p == null)
             const Expanded(child: Center(child: CircularProgressIndicator()))
           else
@@ -106,7 +117,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(20)),
+              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
               child: Text('${pending.length}',
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.black : Colors.white)),
             ),
@@ -132,7 +143,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
       ),
       child: Column(
@@ -145,7 +156,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFF7B1E00),
                 child: Text(
                   name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: const TextStyle(color: Color(0xFFDCA73A), fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(color: AppColors.kColorBgWarm, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ),
               const SizedBox(width: 10),
@@ -176,7 +187,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     foregroundColor: const Color(0xFFC0392B),
                     side: const BorderSide(color: Color(0xFFE0B4AE)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
                   child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 ),
@@ -190,7 +201,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
                   child: const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 ),
@@ -204,49 +215,46 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   // ─── Header ───────────────────────────────────────────────────
 
-  Widget _buildHeader(BuildContext context, bool isDark, Size size) {
-    return Stack(
-      children: [
-        Container(
-          height: size.height * 0.14,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
-                isDark ? AppColors.brownDark : const Color(0xFF9E3D1A),
-              ],
-            ),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-            ),
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? const [AppColors.brownDeep, AppColors.brownDark]
+              : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+          stops: isDark ? null : const [0.0, 0.6, 1.0],
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+          bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+        ),
+      ),
+      // Sizes to its content instead of a fixed screen-height fraction.
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(width: 8),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('My Guide Profile', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('Manage your listing', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                ],
+              ),
+            ],
           ),
         ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                const SizedBox(width: 8),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('My Guide Profile', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                    Text('Manage your listing', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -259,7 +267,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBgCard : const Color(0xFFE8F5EC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
       ),
       child: Row(
@@ -304,7 +312,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
       ),
       child: Column(
@@ -316,10 +324,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               CircleAvatar(
                 radius: 30,
                 backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFF3A241C),
-                backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
-                child: (photoUrl == null || photoUrl.isEmpty)
-                    ? Text(initials, style: const TextStyle(color: Color(0xFFDCA73A), fontSize: 18, fontWeight: FontWeight.bold))
-                    : null,
+                child: (photoUrl != null && photoUrl.isNotEmpty)
+                    ? ClipOval(
+                        child: AppNetworkImage(url: photoUrl, width: 60, height: 60, cloudinaryWidth: 60),
+                      )
+                    : Text(initials, style: const TextStyle(color: AppColors.kColorBgWarm, fontSize: 18, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -371,11 +380,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkBgCard : const Color(0xFFFBF6EC),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             ),
             child: Row(
               children: [
-                const Icon(Icons.star, color: Color(0xFFDCA73A), size: 16),
+                Icon(Icons.star, color: isDark ? AppColors.goldMain : AppColors.kColorAccent, size: 16),
                 const SizedBox(width: 4),
                 Text('${rating.toStringAsFixed(1)} ($reviewCount reviews)',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
@@ -400,15 +409,14 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     final reviewCount = (p['review_count'] as int?) ?? 0;
     final rating = _toDouble(p['rating_avg']);
     final yearsExp = (p['years_experience'] as String?) ?? '—';
-    // Tours-done has no backend source yet. TODO: wire when a guide-side
-    // bookings/tours endpoint exists.
-    const toursDone = 0;
+    // Completed bookings = tours done.
+    final toursDone = _completedStats(context.read<GuideProvider>()).toursDone;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
       ),
       child: Row(
@@ -445,18 +453,21 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             fontSize: 11,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.8,
-            color: isDark ? AppColors.goldMain : const Color(0xFFC8851A),
+            color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe,
           ),
         ),
         const SizedBox(height: 12),
         _settingTile(context, isDark, Icons.circle, const Color(0xFF3DA35D), 'Available for bookings',
-            _availableForBookings, (v) => setState(() => _availableForBookings = v)),
+            _availableForBookings, (v) => _persistSetting(
+                'available_for_bookings', v, () => _availableForBookings = v)),
         const SizedBox(height: 10),
-        _settingTile(context, isDark, Icons.notifications_none, const Color(0xFFDCA73A), 'Booking notifications',
-            _bookingNotifications, (v) => setState(() => _bookingNotifications = v)),
+        _settingTile(context, isDark, Icons.notifications_none, AppColors.kColorAccent, 'Booking notifications',
+            _bookingNotifications, (v) => _persistSetting(
+                'booking_notifications', v, () => _bookingNotifications = v)),
         const SizedBox(height: 10),
-        _settingTile(context, isDark, Icons.flash_on, const Color(0xFFDCA73A), 'Auto-accept booking requests',
-            _autoAccept, (v) => setState(() => _autoAccept = v)),
+        _settingTile(context, isDark, Icons.flash_on, AppColors.kColorAccent, 'Auto-accept booking requests',
+            _autoAccept, (v) => _persistSetting(
+                'auto_accept_bookings', v, () => _autoAccept = v)),
       ],
     );
   }
@@ -466,7 +477,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
       ),
       child: Row(
@@ -475,7 +486,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             ),
             child: Icon(icon, size: 16, color: iconColor),
           ),
@@ -510,7 +521,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               foregroundColor: accent,
               side: BorderSide(color: accent),
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
             child: const Text('View My Listing', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
@@ -523,7 +534,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               backgroundColor: accent,
               foregroundColor: isDark ? Colors.black : Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
             child: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
@@ -535,13 +546,15 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   // ─── Earnings ─────────────────────────────────────────────────
 
   Widget _buildEarnings(BuildContext context, bool isDark) {
-    // No earnings endpoint yet — show zeroed card rather than fabricated
-    // numbers. TODO: wire to a guide earnings summary when available.
+    // Derived from completed bookings this calendar month.
+    final stats = _completedStats(context.read<GuideProvider>());
+    final earnings = stats.monthEarnings.toStringAsFixed(0);
+    final avg = stats.avgRating == null ? '—' : stats.avgRating!.toStringAsFixed(1);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBgCard : const Color(0xFFFDF3DC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
       ),
       child: Row(
@@ -554,7 +567,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 Text("This Month's Earnings",
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF9A6200))),
                 const SizedBox(height: 4),
-                Text('NPR 0',
+                Text('NPR $earnings',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF9A6200))),
               ],
             ),
@@ -562,8 +575,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('0 tours', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF9A6200))),
-              Text('— avg rating', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF9A6200))),
+              Text('${stats.toursDone} tours', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF9A6200))),
+              Text('$avg avg rating', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF9A6200))),
             ],
           ),
         ],
@@ -573,19 +586,65 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   // ─── Shared bits ──────────────────────────────────────────────
 
+  /// Optimistically flip a booking-setting toggle and persist it via
+  /// PATCH /guides/me/; roll back + warn on failure.
+  Future<void> _persistSetting(String field, bool value, VoidCallback apply) async {
+    setState(apply);
+    final err = await context.read<GuideProvider>().updateMyProfile({field: value});
+    if (err != null && mounted) {
+      setState(() {
+        // Roll back the toggle on failure.
+        switch (field) {
+          case 'available_for_bookings':
+            _availableForBookings = !value;
+          case 'booking_notifications':
+            _bookingNotifications = !value;
+          case 'auto_accept_bookings':
+            _autoAccept = !value;
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't save setting. Try again.")),
+      );
+    }
+  }
+
+  /// Derive real dashboard stats from the guide's completed bookings (already
+  /// fetched into GuideProvider.incomingBookings).
+  ({int toursDone, double monthEarnings, double? avgRating}) _completedStats(GuideProvider gp) {
+    final now = DateTime.now();
+    var earnings = 0.0;
+    final ratings = <double>[];
+    var done = 0;
+    for (final b in gp.incomingBookings) {
+      if (b['status'] != 'completed') continue;
+      done++;
+      final d = DateTime.tryParse((b['date'] as String?) ?? '');
+      if (d != null && d.year == now.year && d.month == now.month) {
+        earnings += _toDouble(b['total_price']);
+      }
+      final r = b['review_rating'];
+      if (r is num) ratings.add(r.toDouble());
+    }
+    final avg = ratings.isEmpty ? null : ratings.reduce((a, b) => a + b) / ratings.length;
+    return (toursDone: done, monthEarnings: earnings, avgRating: avg);
+  }
+
   void _onEdit() {
-    // Re-submitting the application form resets status to 'pending', which would
-    // un-verify an approved guide — so we don't route back there. A dedicated
-    // edit flow (PATCH /guides/me/) is TODO.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Listing editing is coming soon.')),
+    // Dedicated edit flow (PATCH /guides/me/) — does NOT reset approval status,
+    // unlike re-submitting the application.
+    final p = context.read<GuideProvider>().myProfile;
+    if (p == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => GuideEditScreen(profile: p)),
     );
   }
 
   Widget _stat(BuildContext context, bool isDark, String value, String label) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFFC8851A))),
+        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
         const SizedBox(height: 2),
         Text(label, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
       ],
@@ -599,7 +658,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   Widget _badge(bool isDark, String text, Color bg, Color fg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: isDark ? AppColors.darkBgCard : bg, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: isDark ? AppColors.darkBgCard : bg, borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
       child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : fg)),
     );
   }
@@ -609,7 +668,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBgCard : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: borderColor),
       ),
       child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF6B5041))),
@@ -624,7 +683,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkBgCard : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: accent),
         ),
         child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: accent)),

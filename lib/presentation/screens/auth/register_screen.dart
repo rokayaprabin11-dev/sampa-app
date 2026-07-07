@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/providers/auth_provider.dart';
 
@@ -68,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: AppColors.goldMain,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                 ),
               ),
               const SizedBox(height: 32),
@@ -200,7 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.brownDark,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                     ),
                     elevation: 0,
                     disabledBackgroundColor: AppColors.brownDark.withValues(alpha: 0.5),
@@ -256,15 +257,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         borderSide: const BorderSide(color: AppColors.brownLight),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         borderSide: const BorderSide(color: AppColors.brownLight),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         borderSide: const BorderSide(color: AppColors.brownDark, width: 2),
       ),
       prefixIcon: Icon(icon, color: AppColors.brownDark),
@@ -307,7 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.brownDark,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
               ),
             ),
             child: const Text(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/providers/auth_provider.dart';
 
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: AppColors.goldMain,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                 ),
               ),
               const SizedBox(height: 32),
@@ -86,15 +87,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                     borderSide: const BorderSide(color: AppColors.brownLight),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                     borderSide: const BorderSide(color: AppColors.brownLight),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                     borderSide: const BorderSide(color: AppColors.brownDark, width: 2),
                   ),
                   prefixIcon: const Icon(Icons.person_outline, color: AppColors.brownDark),
@@ -119,15 +120,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                     borderSide: const BorderSide(color: AppColors.brownLight),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                     borderSide: const BorderSide(color: AppColors.brownLight),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                     borderSide: const BorderSide(color: AppColors.brownDark, width: 2),
                   ),
                   prefixIcon: const Icon(Icons.lock_outline, color: AppColors.brownDark),
@@ -192,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.brownDark,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                     ),
                     elevation: 0,
                   ),
@@ -241,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         },
                   style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
                     side: const BorderSide(color: AppColors.brownLight),
                   ),
                   child: Row(
@@ -324,7 +325,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
         title: const Text(
           'Reset Password',
           style: TextStyle(color: AppColors.textHeadline, fontWeight: FontWeight.bold),
@@ -342,7 +343,7 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: InputDecoration(
                 labelText: 'Email',
                 labelStyle: const TextStyle(color: AppColors.textSecondary),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
               ),
             ),
           ],
@@ -383,7 +384,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.brownDark,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
             child: const Text('Send Link'),
           ),

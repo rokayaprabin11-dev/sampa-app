@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
@@ -32,7 +34,7 @@ class CategoryChip extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected ? const Color(0xFFD4520A) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
             border: Border.all(
               color: isSelected ? const Color(0xFFD4520A) : const Color(0xFFF7EED3),
             ),
@@ -57,7 +59,7 @@ class CategoryChip extends StatelessWidget {
           color: isSelected 
               ? (Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain)
               : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: isSelected 
                 ? (Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain)
@@ -106,7 +108,7 @@ class FeaturedSiteCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         ),
         child: Stack(
           fit: StackFit.expand,
@@ -321,20 +323,14 @@ class DistrictCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: const Color(0xFFF0E6D3), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             child: (coverImageUrl != null && coverImageUrl!.isNotEmpty)
                 ? AppNetworkImage(
                     url: coverImageUrl,
@@ -408,7 +404,7 @@ class EventCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFDF8E8),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: const Color(0xFFF7EED3)),
       ),
       child: Row(
@@ -480,7 +476,7 @@ class HeritageGridCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: const Color(0xFFF7EED3)),
         ),
         child: Column(
@@ -488,7 +484,7 @@ class HeritageGridCard extends StatelessWidget {
           children: [
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [

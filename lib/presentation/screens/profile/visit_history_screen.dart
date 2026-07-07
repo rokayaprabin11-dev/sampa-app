@@ -3,6 +3,7 @@ import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/providers/profile_provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 
@@ -24,7 +25,6 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
@@ -32,67 +32,66 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
       body: Column(
         children: [
           // --- Header Section ---
-          Stack(
-            children: [
-              Container(
-                height: size.height * 0.15,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF5D1700),
-                      Color(0xFF9E3D1A),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF5C1A0A),
+                  Color(0xFFA83210),
+                  Color(0xFFC8501A),
+                ],
+                stops: [0.0, 0.6, 1.0],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+              ),
+            ),
+            // Sizes to its content instead of a fixed screen-height fraction.
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 16),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Visit History',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Your journey through heritage',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.white),
+                      onPressed: () => _showDeleteConfirmation(context),
+                      tooltip: 'Clear History',
+                    ),
+                  ],
                 ),
               ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 16),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Visit History',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Your journey through heritage',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.white),
-                        onPressed: () => _showDeleteConfirmation(context),
-                        tooltip: 'Clear History',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
 
           // --- Results List ---
@@ -175,7 +174,7 @@ class _VisitHistoryCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: Theme.of(context).brightness == Brightness.light
                 ? const Color(0xFFF7EED3)
@@ -198,8 +197,8 @@ class _VisitHistoryCard extends StatelessWidget {
                   ],
                 ),
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
+                  topLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                  bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
                 ),
               ),
               child: Center(
@@ -246,7 +245,7 @@ class _VisitHistoryCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFC89932).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                 ),
                 child: Text(
                   category,

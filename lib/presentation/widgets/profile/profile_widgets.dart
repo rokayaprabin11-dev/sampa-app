@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/providers/text_size_provider.dart';
 import 'package:sampada/core/providers/auto_sync_provider.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 
 class RecentlyVisitedCard extends StatelessWidget {
   final String title;
@@ -23,22 +25,19 @@ class RecentlyVisitedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
       onTap: onTap ?? () => Navigator.pushNamed(context, AppStrings.heritageDetailsPath),
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.goldLight : AppColors.darkBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: AppTheme.cardShadow,
         ),
         child: Row(
           children: [
@@ -46,7 +45,7 @@ class RecentlyVisitedCard extends StatelessWidget {
             // Based on the image, they look like stylized illustrations.
             // For now, I'll keep the Icon but adjust the styling.
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
               child: SizedBox(
                 width: 48, height: 48,
                 child: (imageUrl != null && imageUrl!.isNotEmpty)
@@ -83,6 +82,7 @@ class RecentlyVisitedCard extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -117,15 +117,9 @@ class AccountOptionTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.goldLight : AppColors.darkBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
         children: [
@@ -190,15 +184,9 @@ class LanguageOptionTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.goldLight : AppColors.darkBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
         children: [
@@ -223,7 +211,7 @@ class LanguageOptionTile extends StatelessWidget {
             tooltip: '',
             offset: const Offset(0, 40),
             onSelected: onLanguageSelected,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             color: Theme.of(context).colorScheme.surface,
             elevation: 8,
             itemBuilder: (context) => [
@@ -279,15 +267,9 @@ class TextSizeOptionTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.goldLight : AppColors.darkBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
         children: [
@@ -312,7 +294,7 @@ class TextSizeOptionTile extends StatelessWidget {
             tooltip: '',
             offset: const Offset(0, 40),
             onSelected: onSizeSelected,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             color: Theme.of(context).colorScheme.surface,
             elevation: 8,
             itemBuilder: (context) => [
@@ -368,15 +350,9 @@ class AutoSyncOptionTile extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.goldLight : AppColors.darkBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
         children: [
@@ -401,7 +377,7 @@ class AutoSyncOptionTile extends StatelessWidget {
             tooltip: '',
             offset: const Offset(0, 40),
             onSelected: onModeSelected,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             color: Theme.of(context).colorScheme.surface,
             elevation: 8,
             itemBuilder: (context) => [
@@ -498,7 +474,7 @@ class SettingsSwitchTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.goldLight : AppColors.darkBorder),
       ),
       child: Row(
@@ -567,14 +543,17 @@ class SettingsNavigationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.goldLight : AppColors.darkBorder),
         ),
         child: Row(
@@ -612,6 +591,7 @@ class SettingsNavigationTile extends StatelessWidget {
             Icon(Icons.chevron_right, size: 20, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextTertiary),
           ],
         ),
+      ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
@@ -214,14 +215,14 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
       right: 16,
       child: Card(
         elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               // Thumbnail
               ClipRRect(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
                 child: site.imageUrl != null
                     ? AppNetworkImage(
                         url: site.imageUrl,

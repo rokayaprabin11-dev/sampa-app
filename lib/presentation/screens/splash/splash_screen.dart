@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -491,7 +492,7 @@ class _TextBlock extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: gold,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
           ),
         ),
 

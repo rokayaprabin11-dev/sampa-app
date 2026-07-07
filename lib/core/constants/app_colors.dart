@@ -1,54 +1,60 @@
 import 'package:flutter/material.dart';
 
-/// Sampada design system — Sunlit Parchment light theme
+/// Sampada design system — Nepal Heritage: warm terracotta & cream
 /// WCAG AA compliance patches applied (see sampada-wcag-patch-demo.html)
 class AppColors {
   AppColors._();
 
   // ── Primary · Temple Red ─────────────────────────────────────────────────
-  static const Color kColorDeep         = Color(0xFF5C1A0A); // gradient start
-  static const Color kColorPrimaryDark  = Color(0xFF7A2210); // pressed state
-  static const Color kColorPrimary      = Color(0xFF8B2500); // buttons, nav active, FAB
-  static const Color kColorPrimaryMid   = Color(0xFFA83210); // gradient mid
-  static const Color kColorPrimaryLight = Color(0xFFC8501A); // gradient end, event dot
-  static const Color kColorPrimaryPale  = Color(0xFFE8896A); // disabled button
+  static const Color kColorDeep         = Color(0xFF5C1A0A); // header gradient start
+  static const Color kColorPrimaryDark  = Color(0xFFA83210); // pressed / primaryContainer
+  static const Color kColorPrimary      = Color(0xFFC8501A); // buttons, nav active, FAB, CTAs
+  static const Color kColorPrimaryMid   = Color(0xFFA83210); // header gradient mid
+  static const Color kColorPrimaryLight = Color(0xFFC8501A); // header gradient end, event dot
+  static const Color kColorPrimaryPale  = Color(0xFFE89A72); // disabled button
+
+  // ── Brown scale · feature-card gradients ─────────────────────────────────
+  static const Color kColorBrownDarkest = Color(0xFF381208); // feature card top / darkest
+  static const Color kColorBrownRust    = Color(0xFF993814); // feature card bottom
+  static const Color kColorBrownPeek    = Color(0xFF40170A); // peek card top
+  static const Color kColorBrownMid     = Color(0xFF732E14); // peek card bottom
 
   // ── Accent · Heritage Gold ───────────────────────────────────────────────
-  static const Color kColorAccentDark      = Color(0xFF7A5200); // UNESCO chip text
-  /// Use for stars, stat numbers, icon fills, 22px+ display only.
-  static const Color kColorAccent          = Color(0xFFB87A00); // 3.41:1 — large text/icons only
-  /// WCAG-patched: safe for any body/small text. Ratio 4.52:1 vs page bg.
-  static const Color kColorAccentSafe      = Color(0xFF9C6800); // replaces kColorAccent in text
-  /// WCAG-patched: safe for small text labels. Ratio 4.28:1 vs page bg.
-  static const Color kColorAccentTextSafe  = Color(0xFFA26B00); // "Featured · Top Rated"
-  /// Restrict to gradients, icon fills, large 22px+ stat numbers ONLY.
-  static const Color kColorAccentLight     = Color(0xFFD49A20); // 2.35:1 — NOT for small text
-  static const Color kColorAccentPale      = Color(0xFFF0C96A); // badge borders, tag outlines
-  static const Color kColorUnescoChipBg   = Color(0xFFFFF3D0); // UNESCO badge fill
+  static const Color kColorAccentDark      = Color(0xFF993814); // deep accent, chip text
+  /// Terracotta accent — stars, stat numbers, icon fills, large display.
+  static const Color kColorAccent          = Color(0xFFC4571B); // brand accent
+  /// WCAG-safe accent for body/small text. ~6.4:1 vs page bg.
+  static const Color kColorAccentSafe      = Color(0xFFA83210); // accent in text
+  /// WCAG-safe accent for small text labels.
+  static const Color kColorAccentTextSafe  = Color(0xFFA83210); // "Featured · Top Rated"
+  /// Dark-theme gold accent (`goldMain`) — dark-mode secondary + `isDark ? goldMain : …`.
+  static const Color kColorAccentLight     = Color(0xFFD49A20); // gold — kept for dark theme
+  static const Color kColorAccentPale      = Color(0xFFE8D5B7); // badge borders, tag outlines (sand)
+  static const Color kColorUnescoChipBg   = Color(0xFFF5E6C0); // UNESCO badge fill (cream)
 
   // ── Backgrounds ──────────────────────────────────────────────────────────
-  static const Color kColorBgPage    = Color(0xFFFDF8F0); // scaffold / page
-  static const Color kColorBgWarm    = Color(0xFFFAF3E8); // calendar, section fills, stats bar
-  static const Color kColorSurface   = Color(0xFFFFFFFF); // cards, inputs, bottom nav
-  static const Color kColorCardBg    = Color(0xFFFFF9F3); // heritage list cards, detail sheet
-  static const Color kColorBgMuted   = Color(0xFFF5EDE0); // inactive chip bg, token labels
-  static const Color kColorTagBg     = Color(0xFFFDEFD8); // chips, tag pills, nav icon bg
+  static const Color kColorBgPage    = Color(0xFFFFFAF4); // scaffold / page
+  static const Color kColorBgWarm    = Color(0xFFF5E6C0); // raised cream, stats bar, section fills
+  static const Color kColorSurface   = Color(0xFFFDF8F0); // cards, inputs, bottom nav
+  static const Color kColorCardBg    = Color(0xFFFDF8F0); // heritage list cards, detail sheet
+  static const Color kColorBgMuted   = Color(0xFFF5E6C0); // inactive chip bg, token labels
+  static const Color kColorTagBg     = Color(0xFFF5E6C0); // chips, tag pills, nav icon bg
   static const Color kColorMapSurface = Color(0xFFF7F0E6); // map canvas background
 
   // ── Text ─────────────────────────────────────────────────────────────────
-  static const Color kColorTextHeading   = Color(0xFF3A1005); // app bar title, card title
-  static const Color kColorTextBody      = Color(0xFF4A2010); // body paragraphs
-  static const Color kColorTextSecondary = Color(0xFF7A4530); // captions, metadata, subtitles
-  static const Color kColorTextMuted     = Color(0xFFA06040); // timestamps, placeholders, hints
+  static const Color kColorTextHeading   = Color(0xFF381208); // app bar title, card title
+  static const Color kColorTextBody      = Color(0xFF381208); // body paragraphs (onBackground)
+  static const Color kColorTextSecondary = Color(0xFF732E14); // captions, metadata, subtitles
+  static const Color kColorTextMuted     = Color(0xFF9A5A38); // timestamps, placeholders, hints
   static const Color kColorTextOnPrimary = Color(0xFFFFFFFF); // text on dark/primary bg
-  static const Color kColorTextOnHeader  = Color(0xFFFFF8EE); // warm white on app bar
-  static const Color kColorTextOnAccent  = Color(0xFF2A1800); // text on gold surfaces
+  static const Color kColorTextOnHeader  = Color(0xFFFFFFFF); // white on app bar / header
+  static const Color kColorTextOnAccent  = Color(0xFF381208); // text on cream/accent surfaces
 
   // ── Borders ──────────────────────────────────────────────────────────────
-  static const Color kColorBorderStrong = Color(0xFFC8916A); // OutlinedButton, focused input
-  static const Color kColorBorderMid    = Color(0xFFDDB895); // icon boxes, district cards
-  static const Color kColorBorderSubtle = Color(0xFFEED5BE); // card outlines, dividers
-  static const Color kColorBorderFaint  = Color(0xFFF5E8D8); // very subtle separators
+  static const Color kColorBorderStrong = Color(0xFFD8B48C); // OutlinedButton, focused input
+  static const Color kColorBorderMid    = Color(0xFFE8D5B7); // icon boxes, district cards (sand)
+  static const Color kColorBorderSubtle = Color(0xFFE8D5B7); // card outlines, dividers
+  static const Color kColorBorderFaint  = Color(0xFFF2E6D2); // very subtle separators
 
   // ── Focus ring (WCAG-patched: 4.52:1) ───────────────────────────────────
   static const Color kFocusRing = Color(0xFFA36336);
@@ -57,12 +63,15 @@ class AppColors {
   static const Color kColorOfflineBg     = Color(0xFFE8F5EE); // offline/ready badge bg
   static const Color kColorOfflineBorder = Color(0xFFBDD9BD); // offline badge border
   static const Color kColorOfflineText   = Color(0xFF1E6B3A); // offline badge text
+  static const Color kColorPendingBg     = Color(0xFFFDF3DC); // pending-request banner bg
+  static const Color kColorPendingBorder = Color(0xFFEAD9A8); // pending-request banner border
+  static const Color kColorPendingText   = Color(0xFF9A6200); // pending-request banner text
   static const Color kColorOnlineDot     = Color(0xFF2CB84D); // guide online indicator
 
   // ── Navigation ───────────────────────────────────────────────────────────
-  static const Color kColorNavActive   = Color(0xFF8B2500); // active icon + label
+  static const Color kColorNavActive   = Color(0xFFC8501A); // active icon + label (primary)
   static const Color kColorNavInactive = Color(0xFF9A6A50); // inactive icon + label
-  static const Color kColorNavActiveBg = Color(0xFFFDEFD8); // active item pill background
+  static const Color kColorNavActiveBg = Color(0xFFF5E6C0); // active item pill background
   static const Color kColorNavDot      = Color(0xFFC8501A); // active tab indicator dot
 
   // ── Shadows ──────────────────────────────────────────────────────────────

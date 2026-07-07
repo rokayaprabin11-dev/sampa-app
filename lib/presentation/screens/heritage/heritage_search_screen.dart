@@ -4,6 +4,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/heritage_provider.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/presentation/widgets/heritage/heritage_widgets.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/data/models/heritage_site.dart';
@@ -157,7 +158,8 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF4A1200), Color(0xFF8B3010)],
+          colors: [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+          stops: [0.0, 0.6, 1.0],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -210,15 +212,15 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                   borderSide: const BorderSide(color: Color(0xFFD4A040), width: 1.8),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                   borderSide: const BorderSide(color: Color(0xFFD4A040), width: 1.8),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                   borderSide: const BorderSide(color: Color(0xFFD4A040), width: 2.0),
                 ),
               ),
@@ -323,7 +325,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF7EED3),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                       border: Border.all(color: const Color(0xFFE3D2A8)),
                     ),
                     child: Row(
@@ -527,7 +529,7 @@ class _CategoryPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFD4520A) : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: isSelected ? const Color(0xFFD4520A) : Colors.white38,
             width: 1.4,

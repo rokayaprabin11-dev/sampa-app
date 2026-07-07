@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/providers/auth_provider.dart';
 import 'package:sampada/providers/guide_provider.dart';
 
@@ -139,10 +141,11 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                         CircleAvatar(
                           radius: 48,
                           backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFF3A241C),
-                          backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
-                          child: (photoUrl == null || photoUrl.isEmpty)
-                              ? Text(initials, style: const TextStyle(color: Color(0xFFDCA73A), fontSize: 28, fontWeight: FontWeight.bold))
-                              : null,
+                          child: (photoUrl != null && photoUrl.isNotEmpty)
+                              ? ClipOval(
+                                  child: AppNetworkImage(url: photoUrl, width: 96, height: 96, cloudinaryWidth: 96),
+                                )
+                              : Text(initials, style: const TextStyle(color: AppColors.kColorBgWarm, fontSize: 28, fontWeight: FontWeight.bold)),
                         ),
                         if (isVerified)
                           Positioned(
@@ -165,7 +168,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.star, color: Color(0xFFDCA73A), size: 16),
+                        const Icon(Icons.star, color: AppColors.kColorBgWarm, size: 16),
                         const SizedBox(width: 4),
                         Text(rating.toStringAsFixed(1), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 4),
@@ -198,8 +201,8 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                       if (isVerified)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(color: const Color(0xFFF7EED3), borderRadius: BorderRadius.circular(6)),
-                          child: const Text('✓ VERIFIED', style: TextStyle(color: Color(0xFFDCA73A), fontSize: 11, fontWeight: FontWeight.bold)),
+                          decoration: BoxDecoration(color: const Color(0xFFF7EED3), borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm)),
+                          child: const Text('✓ VERIFIED', style: TextStyle(color: AppColors.kColorAccentSafe, fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
                     ],
                   ),
@@ -241,7 +244,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                         border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
                       ),
                       child: Row(
@@ -262,7 +265,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFDF3DC),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                         border: Border.all(color: const Color(0xFFEAD9A8)),
                       ),
                       child: const Row(
@@ -314,11 +317,11 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                           isDark ? const Color(0xFF2A1A0A) : const Color(0xFF3A241C),
                           isDark ? const Color(0xFF3A2010) : const Color(0xFF7B1E00),
                         ]),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today, color: Color(0xFFDCA73A), size: 20),
+                          const Icon(Icons.calendar_today, color: AppColors.kColorBgWarm, size: 20),
                           const SizedBox(width: 12),
                           const Expanded(
                             child: Text('Book This Guide', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
@@ -352,7 +355,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -374,7 +377,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                     datePickerTheme: DatePickerThemeData(
                       headerBackgroundColor: const Color(0xFF7B1E00),
                       headerForegroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
                     ),
                   ),
                   child: child!,
@@ -386,7 +389,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
               ),
               child: Row(
                 children: [
@@ -427,9 +430,9 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
               hintText: 'Any special requests, sites to visit...',
               hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 13),
               contentPadding: const EdgeInsets.all(12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF7B1E00))),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8))),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: const BorderSide(color: Color(0xFF7B1E00))),
             ),
           ),
 
@@ -442,7 +445,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: isDark ? AppColors.goldMain : const Color(0xFF3A241C),
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
               ),
               child: _submitting
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -469,7 +472,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             decoration: BoxDecoration(
               border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             ),
             child: Row(
               children: [
@@ -505,7 +508,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
       ),
       child: Row(

@@ -49,6 +49,9 @@ class SampadaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: localeProvider.locale,
       themeMode: themeProvider.themeMode,
+      // Smooth, eased cross-fade between light/dark instead of the snappy 200ms default.
+      themeAnimationDuration: const Duration(milliseconds: 400),
+      themeAnimationCurve: Curves.easeInOut,
       builder: (context, child) {
         return Container(
           color: Theme.of(context).scaffoldBackgroundColor,

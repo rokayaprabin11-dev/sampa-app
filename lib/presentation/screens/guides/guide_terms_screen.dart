@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 
 class GuideTermsScreen extends StatelessWidget {
   const GuideTermsScreen({super.key});
@@ -107,8 +108,8 @@ class GuideTermsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFDCA73A)),
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorAccentPale),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

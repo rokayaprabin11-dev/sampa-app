@@ -73,7 +73,9 @@ class AppNetworkImage extends StatelessWidget {
     }
     final w = cloudinaryWidth ?? width;
     final parts = ['f_auto', 'q_auto'];
-    if (w != null && w > 0) {
+    // Guard against unbounded width (double.infinity fill) / NaN — `.round()`
+    // throws "Infinity or NaN toInt" on non-finite doubles.
+    if (w != null && w.isFinite && w > 0) {
       parts.add('w_${(w * devicePixelRatio).round()}');
     }
     return '${raw.substring(0, after)}${parts.join(',')}/$rest';

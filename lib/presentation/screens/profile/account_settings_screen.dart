@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/injection.dart' as di;
 import 'package:sampada/core/network/api_client.dart';
 import 'package:dio/dio.dart';
@@ -124,6 +126,17 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       final url = uploadRes.data['secure_url'] as String;
       if (!mounted) return;
       await context.read<AuthProvider>().updatePhotoUrl(url);
+
+      // Keep the public guide-listing photo in sync — guide cards are served
+      // from the backend Guide.photo_url field, not this device's Firebase
+      // Auth session, so approved guides need it pushed explicitly here
+      // instead of leaving it to a manual "Photo URL" field on the edit form.
+      if (!mounted) return;
+      final guideProvider = context.read<GuideProvider>();
+      await guideProvider.fetchMyProfile();
+      if (guideProvider.myProfile != null) {
+        await guideProvider.updateMyProfile({'photo_url': url});
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -180,7 +193,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final authProvider = context.watch<AuthProvider>();
     final isGoogle = authProvider.isGoogleUser;
@@ -190,68 +202,67 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       body: Column(
         children: [
           // --- Header Section ---
-          Stack(
-            children: [
-              Container(
-                height: size.height * 0.15,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF5D1700),
-                      Color(0xFF9E3D1A),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF5C1A0A),
+                  Color(0xFFA83210),
+                  Color(0xFFC8501A),
+                ],
+                stops: [0.0, 0.6, 1.0],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+              ),
+            ),
+            // Sizes to its content instead of a fixed screen-height fraction.
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                          hoverColor: Colors.white.withValues(alpha: 0.1),
+                          splashColor: Colors.white.withValues(alpha: 0.2),
+                        ),
+                        const SizedBox(width: 16),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Account Settings',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Manage your profile & security',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                            onPressed: () => Navigator.pop(context),
-                            hoverColor: Colors.white.withValues(alpha: 0.1),
-                            splashColor: Colors.white.withValues(alpha: 0.2),
-                          ),
-                          const SizedBox(width: 16),
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Account Settings',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Manage your profile & security',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
 
           // --- Scrollable Content ---
@@ -458,7 +469,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                             child: LinearProgressIndicator(
                               value: _passwordStrength,
                               backgroundColor: Colors.grey.withValues(alpha: 0.1),
@@ -488,7 +499,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF7EED3).withValues(alpha: isDark ? 0.1 : 0.5),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                         border: Border.all(color: const Color(0xFFF7EED3).withValues(alpha: 0.5)),
                       ),
                       child: const Row(
@@ -526,7 +537,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       foregroundColor: const Color(0xFF7B1E00),
                       side: const BorderSide(color: Color(0xFFF7EED3)),
                       minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
                     ),
                     child: authProvider.isLoading
                         ? const SizedBox(
@@ -616,7 +627,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       backgroundColor: const Color(0xFFFFEBEE),
                       foregroundColor: Colors.red,
                       minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
                       elevation: 0,
                     ),
                     child: const Text('Delete Account', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -668,7 +679,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       suffixIcon = IconButton(
         icon: Icon(
           obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-          color: const Color(0xFFDCA73A),
+          color: AppColors.kColorTextSecondary,
           size: 20,
         ),
         onPressed: onToggleVisibility,
@@ -713,15 +724,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ? (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF0F0F0))
                 : Theme.of(context).colorScheme.surface,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
               borderSide: const BorderSide(color: Color(0xFFF7EED3)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
               borderSide: const BorderSide(color: Color(0xFFF7EED3)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
               borderSide: const BorderSide(color: Color(0xFF7B1E00), width: 1.5),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -739,7 +750,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         backgroundColor: const Color(0xFF7B1E00),
         foregroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
         elevation: 2,
       ),
       child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

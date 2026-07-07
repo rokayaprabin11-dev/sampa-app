@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/providers/profile_provider.dart';
@@ -179,7 +180,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: cs.surface,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,7 +309,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                         margin: const EdgeInsets.only(right: 10),
                                         clipBehavior: Clip.antiAlias,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(14),
+                                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
                                           color: isDark ? AppColors.darkBgCard : const Color(0xFFEEE4D8),
                                         ),
                                         child: Stack(fit: StackFit.expand, children: [
@@ -458,7 +459,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
     decoration: BoxDecoration(
       color: isDark ? AppColors.darkBgCard : AppColors.goldSurface,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
       border: Border.all(color: cs.outline),
     ),
     child: const Row(mainAxisSize: MainAxisSize.min, children: [
@@ -476,7 +477,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
           height: 46,
           decoration: BoxDecoration(
             color: cs.surface,
-            borderRadius: BorderRadius.circular(23),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
             border: Border.all(color: cs.outline),
             boxShadow: [BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
@@ -559,7 +560,7 @@ class _SubHeritageScreen extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: cs.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
               ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),

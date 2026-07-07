@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/network/api_constants.dart';
+import 'package:sampada/core/network/network_exceptions.dart';
 
 class GuideProvider with ChangeNotifier {
   final ApiClient _apiClient;
@@ -66,8 +67,31 @@ class GuideProvider with ChangeNotifier {
     try {
       _myProfile = await _apiClient.get(ApiEndpoints.guideMe);
       notifyListeners();
+    } on ServerException catch (e) {
+      // 404 = the logged-in user simply isn't a guide. Expected, not an error —
+      // clear any stale profile silently instead of logging noise.
+      if (e.statusCode == 404) {
+        _myProfile = null;
+        notifyListeners();
+      } else {
+        debugPrint('Error fetching guide profile: $e');
+      }
     } catch (e) {
       debugPrint('Error fetching guide profile: $e');
+    }
+  }
+
+  /// PATCH the logged-in guide's own profile (bio, rate, languages, specialties,
+  /// photo, booking settings). Returns null on success, else an error message.
+  Future<String?> updateMyProfile(Map<String, dynamic> data) async {
+    try {
+      final result = await _apiClient.patch(ApiEndpoints.guideMe, data: data);
+      if (result is Map<String, dynamic>) _myProfile = result;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      debugPrint('Error updating guide profile: $e');
+      return e.toString();
     }
   }
 

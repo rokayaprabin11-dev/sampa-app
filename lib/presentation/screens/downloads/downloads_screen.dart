@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/profile_provider.dart';
 import 'package:sampada/presentation/widgets/downloads_widgets.dart';
@@ -23,7 +24,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final profileProvider = context.watch<ProfileProvider>();
     final downloads = profileProvider.downloads;
 
@@ -31,69 +31,66 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          // --- Fixed Header Section ---
-          Stack(
-            children: [
-              // Header Gradient
-              Container(
-                height: size.height * 0.15,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF5D1700),
-                      Color(0xFF9E3D1A),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
-                ),
+          // --- Header Section ---
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF5C1A0A),
+                  Color(0xFFA83210),
+                  Color(0xFFC8501A),
+                ],
+                stops: [0.0, 0.6, 1.0],
               ),
-
-              // Content inside Fixed Header
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                        onPressed: () => Navigator.pop(context),
-                        hoverColor: Colors.white.withValues(alpha: 0.1),
-                        splashColor: Colors.white.withValues(alpha: 0.2),
-                      ),
-                      const SizedBox(width: 16),
-                          const Text(
-                            'Downloads',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.only(left: 52, top: 2),
-                        child: Text(
-                          'Access heritage content offline',
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+                bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+              ),
+            ),
+            // Sizes to its content instead of a fixed screen-height fraction.
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                          hoverColor: Colors.white.withValues(alpha: 0.1),
+                          splashColor: Colors.white.withValues(alpha: 0.2),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          'Downloads',
                           style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                      ],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 52, top: 2),
+                      child: Text(
+                        'Access heritage content offline',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
 
           // --- Scrollable Content Section ---
