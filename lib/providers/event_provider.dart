@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:nepali_utils/nepali_utils.dart';
+import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/data/models/cultural_event.dart';
 import 'package:sampada/data/repositories/event_repository.dart';
 
@@ -40,9 +42,21 @@ class EventProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   
-  // Mock user location (Kathmandu area)
-  final double _userLat = 27.7172;
-  final double _userLng = 85.3240;
+  // User location for proximity ranking. Starts at Kathmandu as a fallback;
+  // replaced by a real accuracy-gated GPS fix (cached 5 min) when available.
+  double _userLat = 27.7172;
+  double _userLng = 85.3240;
+
+  /// Best-effort GPS refresh — keeps the Kathmandu fallback when the user
+  /// denies permission or no trustworthy fix arrives in time.
+  Future<void> _refreshUserLocation() async {
+    final pos = await LocationService().getAccurateFix();
+    if (pos == null) return;
+    if (pos.latitude == _userLat && pos.longitude == _userLng) return;
+    _userLat = pos.latitude;
+    _userLng = pos.longitude;
+    notifyListeners(); // re-rank nearbyEvents with the real position
+  }
 
   // BS Months in Nepali
   final List<String> _bsMonths = ['बैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'असोज', 'कार्तिक', 'मंसिर', 'पुष', 'माघ', 'फागुन', 'चैत'];
@@ -208,6 +222,10 @@ class EventProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
+
+    // Kick off a location refresh in parallel — nearbyEvents re-ranks via
+    // notifyListeners() when a real fix lands. Never blocks event loading.
+    unawaited(_refreshUserLocation());
 
     try {
       _events = await _repository.getEvents(

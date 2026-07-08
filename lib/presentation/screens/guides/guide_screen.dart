@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -23,9 +24,19 @@ class _GuideScreenState extends State<GuideScreen> {
   String _selectedFilter = 'Nearby';
   final _searchController = TextEditingController();
 
-  // Reference point for distance labels (Kathmandu) — no live geolocation yet.
-  static const _refLat = 27.7172;
-  static const _refLng = 85.3240;
+  // Reference point for distance labels — Kathmandu fallback until a real
+  // accuracy-gated GPS fix (cached 5 min in LocationService) replaces it.
+  double _refLat = 27.7172;
+  double _refLng = 85.3240;
+
+  Future<void> _locateUser() async {
+    final pos = await LocationService().getAccurateFix();
+    if (pos == null || !mounted) return;
+    setState(() {
+      _refLat = pos.latitude;
+      _refLng = pos.longitude;
+    });
+  }
 
   static const _chips = ['Nearby', 'Top Rated', 'Temple Expert', 'Trekking', 'Culture', 'Language'];
 
@@ -41,6 +52,7 @@ class _GuideScreenState extends State<GuideScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _locateUser(); // re-ranks distance labels when a real fix lands
       final gp = context.read<GuideProvider>();
       gp.fetchGuides();
       // Profile/bookings are per-user (auth required) — skip when logged out

@@ -60,14 +60,12 @@ class NearbyService {
     }
   }
 
+  /// Coarse fix for region selection (10 km radius): reuse the shared
+  /// accuracy-gated cache when fresh, else fall back to one raw fix.
   Future<Position?> _fix() async {
-    try {
-      return await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-      );
-    } catch (_) {
-      return null;
-    }
+    final svc = LocationService();
+    return await svc.getAccurateFix(timeout: const Duration(seconds: 5)) ??
+        await svc.getCurrentPosition();
   }
 
   /// Pull the nearest regions and (re)register them. Throttled to once/2 min so

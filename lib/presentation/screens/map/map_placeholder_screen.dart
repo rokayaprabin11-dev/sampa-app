@@ -59,7 +59,11 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
     if (!mounted) return;
     setState(() => _locating = true);
     try {
-      final pos = await LocationService().getCurrentPosition();
+      // Quality-aware fix: excellent/good = accuracy-gated + Kalman-smoothed
+      // (5-min cache); poor = best-effort sample indoors/urban canyon — still
+      // fine for recentring a map. Raw single fix as the last resort.
+      final (fix, _) = await LocationService().getFixWithQuality();
+      final pos = fix ?? await LocationService().getCurrentPosition();
       if (!mounted) return;
       setState(() => _userPosition = pos);
       if (pos != null) {
