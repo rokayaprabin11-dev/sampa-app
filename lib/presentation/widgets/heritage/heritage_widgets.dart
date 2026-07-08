@@ -389,13 +389,15 @@ class DistrictCard extends StatelessWidget {
 class EventCard extends StatelessWidget {
   final String title;
   final String date;
-  final String distance;
+  /// Localized "X km away" label; null hides the distance chip (no GPS fix
+  /// yet, or the event has no coordinates).
+  final String? distance;
 
   const EventCard({
     super.key,
     required this.title,
     required this.date,
-    required this.distance,
+    this.distance,
   });
 
   @override
@@ -436,10 +438,12 @@ class EventCard extends StatelessWidget {
                     const Icon(Icons.calendar_month, size: 14, color: Color(0xFF8C7162)),
                     const SizedBox(width: 4),
                     Text(date, style: const TextStyle(fontSize: 12, color: Color(0xFF8C7162))),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.location_on, size: 14, color: Color(0xFF8C7162)),
-                    const SizedBox(width: 4),
-                    Text(distance, style: const TextStyle(fontSize: 12, color: Color(0xFF8C7162))),
+                    if (distance != null) ...[
+                      const SizedBox(width: 16),
+                      const Icon(Icons.location_on, size: 14, color: Color(0xFF8C7162)),
+                      const SizedBox(width: 4),
+                      Text(distance!, style: const TextStyle(fontSize: 12, color: Color(0xFF8C7162))),
+                    ],
                   ],
                 ),
               ],
@@ -454,7 +458,9 @@ class EventCard extends StatelessWidget {
 class HeritageGridCard extends StatelessWidget {
   final String name;
   final String location;
-  final String distance;
+  /// Compact "1.2 km" label; null (no GPS fix / no site coords) shows the
+  /// location alone.
+  final String? distance;
   final String category;
   final String? imageUrl;
   final VoidCallback onTap;
@@ -463,7 +469,7 @@ class HeritageGridCard extends StatelessWidget {
     super.key,
     required this.name,
     required this.location,
-    required this.distance,
+    this.distance,
     required this.category,
     this.imageUrl,
     required this.onTap,
@@ -535,7 +541,7 @@ class HeritageGridCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          '$location · $distance',
+                          distance == null ? location : '$location · $distance',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF8C7162),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/presentation/widgets/heritage_widgets.dart';
@@ -381,14 +382,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   content = Column(
                     key: const ValueKey('events-content'),
-                    children: nearbyEvents.take(2).map((event) => Padding(
-                      padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 12),
-                      child: EventCard(
-                        title: event.title,
-                        date: '${_getMonthName(event.startDate.month)} ${event.startDate.day}',
-                        distance: '1.2 km away',
-                      ),
-                    )).toList(),
+                    children: nearbyEvents.take(2).map((event) {
+                      final km = eventProvider.distanceKmOf(event);
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 12),
+                        child: EventCard(
+                          title: event.title,
+                          date: '${_getMonthName(event.startDate.month)} ${event.startDate.day}',
+                          distance: km == null ? null : GeoDistance.label(context, km),
+                        ),
+                      );
+                    }).toList(),
                   );
                 }
 

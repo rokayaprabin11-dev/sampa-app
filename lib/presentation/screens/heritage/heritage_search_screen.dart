@@ -6,6 +6,8 @@ import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/services/location_service.dart';
+import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/presentation/widgets/heritage/heritage_widgets.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/data/models/heritage_site.dart';
@@ -33,6 +35,28 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   // searches + a prompt instead. Typing or picking a category exits idle.
   bool get _isIdle => _query.isEmpty && _selectedSlug == null;
 
+  // Real accuracy-gated GPS fix for "X km" labels on result cards. No
+  // Kathmandu fallback here: without a real fix the label is hidden rather
+  // than shown wrong (same rule as event cards).
+  double? _userLat;
+  double? _userLng;
+
+  Future<void> _locateUser() async {
+    final pos = await LocationService().getAccurateFix();
+    if (pos == null || !mounted) return;
+    setState(() {
+      _userLat = pos.latitude;
+      _userLng = pos.longitude;
+    });
+  }
+
+  String? _distanceLabel(HeritageSite site) {
+    if (_userLat == null || _userLng == null) return null;
+    final km =
+        GeoDistance.kmTo(_userLat!, _userLng!, site.latitude, site.longitude);
+    return km == null ? null : GeoDistance.shortLabel(km);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +68,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       provider.fetchSites();
       provider.loadRecentSearches();
+      _locateUser(); // relabels result cards when a real fix lands
     });
   }
 
@@ -421,7 +446,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               return HeritageGridCard(
                 name: site.name,
                 location: site.district,
-                distance: site.district,
+                distance: _distanceLabel(site),
                 category: site.category,
                 imageUrl: site.imageUrl,
                 onTap: () => Navigator.pushNamed(

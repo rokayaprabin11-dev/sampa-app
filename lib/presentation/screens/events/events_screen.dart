@@ -3,6 +3,7 @@ import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
@@ -110,11 +111,12 @@ class _EventsScreenState extends State<EventsScreen> {
                 itemCount: eventProvider.currentEvents.length,
                 itemBuilder: (context, index) {
                   final event = eventProvider.currentEvents[index];
+                  final km = eventProvider.distanceKmOf(event);
                   return _EventListCard(
                     title: event.title,
                     date: _formatEventDate(event.startDate),
                     location: event.locationName,
-                    distance: '5.6 km',
+                    distance: km == null ? null : GeoDistance.shortLabel(km),
                     tag: event.eventType,
                     imageUrl: event.imageUrl,
                     shortDescription: event.shortDescription,
@@ -580,7 +582,8 @@ class _EventListCard extends StatelessWidget {
   final String title;
   final String date;
   final String location;
-  final String distance;
+  /// Compact "1.2 km" chip; null hides it (no GPS fix or event lacks coords).
+  final String? distance;
   final String tag;
   final String imageUrl;
   final String shortDescription;
@@ -666,8 +669,10 @@ class _EventListCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        _Badge(icon: Icons.location_on, label: distance),
-                        const SizedBox(width: 8),
+                        if (distance != null) ...[
+                          _Badge(icon: Icons.location_on, label: distance!),
+                          const SizedBox(width: 8),
+                        ],
                         _Badge(label: tag),
                       ],
                     ),

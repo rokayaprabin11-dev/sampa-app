@@ -806,6 +806,12 @@ abstract class AppLocalizations {
   /// **'{distance} km away'**
   String distanceKm(String distance);
 
+  /// No description provided for @distanceM.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} m away'**
+  String distanceM(String distance);
+
   /// No description provided for @establishedYear.
   ///
   /// In en, this message translates to:

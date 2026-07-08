@@ -133,6 +133,10 @@
   "@distanceKm": {
     "placeholders": { "distance": { "type": "String" } }
   },
+  "distanceM": "{distance} m away",
+  "@distanceM": {
+    "placeholders": { "distance": { "type": "String" } }
+  },
   "establishedYear": "Est. {year}",
   "@establishedYear": {
     "placeholders": { "year": { "type": "int" } }

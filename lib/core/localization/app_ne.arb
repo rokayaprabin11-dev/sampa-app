@@ -133,6 +133,10 @@
   "@distanceKm": {
     "placeholders": { "distance": { "type": "String" } }
   },
+  "distanceM": "{distance} मि. टाढा",
+  "@distanceM": {
+    "placeholders": { "distance": { "type": "String" } }
+  },
   "establishedYear": "स्था. {year}",
   "@establishedYear": {
     "placeholders": { "year": { "type": "int" } }

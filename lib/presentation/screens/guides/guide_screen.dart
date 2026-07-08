@@ -1,6 +1,6 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:sampada/core/services/location_service.dart';
+import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -24,10 +24,12 @@ class _GuideScreenState extends State<GuideScreen> {
   String _selectedFilter = 'Nearby';
   final _searchController = TextEditingController();
 
-  // Reference point for distance labels — Kathmandu fallback until a real
-  // accuracy-gated GPS fix (cached 5 min in LocationService) replaces it.
-  double _refLat = 27.7172;
-  double _refLng = 85.3240;
+  // Reference point for distance labels — populated only by a real
+  // accuracy-gated GPS fix (cached 5 min in LocationService). Until then
+  // labels stay hidden instead of showing a Kathmandu-based guess (same rule
+  // as event and heritage cards).
+  double? _refLat;
+  double? _refLng;
 
   Future<void> _locateUser() async {
     final pos = await LocationService().getAccurateFix();
@@ -77,19 +79,16 @@ class _GuideScreenState extends State<GuideScreen> {
 
   bool _isTopGuide(Map<String, dynamic> g) => _ratingOf(g) >= 4.5 && _reviewsOf(g) >= 10;
 
-  String? _distanceLabel(Map<String, dynamic> g) {
+  double? _distanceKm(Map<String, dynamic> g) {
+    if (_refLat == null || _refLng == null) return null;
     final lat = g['latitude'], lng = g['longitude'];
-    if (lat is num && lng is num) {
-      const r = 6371.0;
-      final dLat = (lat - _refLat) * math.pi / 180;
-      final dLng = (lng - _refLng) * math.pi / 180;
-      final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-          math.cos(_refLat * math.pi / 180) * math.cos(lat * math.pi / 180) *
-              math.sin(dLng / 2) * math.sin(dLng / 2);
-      final km = r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-      return '${km.toStringAsFixed(1)} km';
-    }
-    return null;
+    if (lat is! num || lng is! num) return null;
+    return GeoDistance.kmTo(_refLat!, _refLng!, lat.toDouble(), lng.toDouble());
+  }
+
+  String? _distanceLabel(Map<String, dynamic> g) {
+    final km = _distanceKm(g);
+    return km == null ? null : GeoDistance.shortLabel(km);
   }
 
   String _locationOf(Map<String, dynamic> g) {
@@ -126,10 +125,13 @@ class _GuideScreenState extends State<GuideScreen> {
         list.sort((a, b) => ((b['languages'] as List?)?.length ?? 0).compareTo((a['languages'] as List?)?.length ?? 0));
       case 'Nearby':
       default:
+        // Closest first when we have a real fix; guides without coordinates
+        // (or before the fix arrives) fall back to rating order.
         list.sort((a, b) {
-          final da = _distanceLabel(a) == null ? 1 : 0;
-          final db = _distanceLabel(b) == null ? 1 : 0;
-          if (da != db) return da - db;
+          final da = _distanceKm(a);
+          final db = _distanceKm(b);
+          if (da != null && db != null && da != db) return da.compareTo(db);
+          if ((da == null) != (db == null)) return da == null ? 1 : -1;
           return _ratingOf(b).compareTo(_ratingOf(a));
         });
     }

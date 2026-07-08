@@ -369,6 +369,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String distanceM(String distance) {
+    return '$distance m away';
+  }
+
+  @override
   String establishedYear(int year) {
     return 'Est. $year';
   }

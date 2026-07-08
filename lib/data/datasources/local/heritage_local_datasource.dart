@@ -1,7 +1,7 @@
-import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sampada/core/database/database_helper.dart';
+import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/core/services/content_translator.dart';
 import 'package:sampada/data/models/heritage_site_model.dart';
 
@@ -127,8 +127,8 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
 
       if (lat != null && lng != null && sites.isNotEmpty) {
         sites.sort((a, b) {
-          final dA = _haversineKm(lat, lng, a.latitude, a.longitude);
-          final dB = _haversineKm(lat, lng, b.latitude, b.longitude);
+          final dA = GeoDistance.haversineKm(lat, lng, a.latitude, a.longitude);
+          final dB = GeoDistance.haversineKm(lat, lng, b.latitude, b.longitude);
           return dA.compareTo(dB);
         });
       }
@@ -161,8 +161,9 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
 
       final sites = rows.map(HeritageSiteModel.fromMap).toList()
         ..sort((a, b) {
-          return _haversineKm(lat, lng, a.latitude, a.longitude)
-              .compareTo(_haversineKm(lat, lng, b.latitude, b.longitude));
+          return GeoDistance.haversineKm(lat, lng, a.latitude, a.longitude)
+              .compareTo(
+                  GeoDistance.haversineKm(lat, lng, b.latitude, b.longitude));
         });
 
       return sites.take(limit).toList();
@@ -210,17 +211,4 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
     }
   }
 
-  double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371.0;
-    final dLat = _rad(lat2 - lat1);
-    final dLon = _rad(lon2 - lon1);
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_rad(lat1)) *
-            math.cos(_rad(lat2)) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2);
-    return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-  }
-
-  double _rad(double deg) => deg * math.pi / 180;
 }

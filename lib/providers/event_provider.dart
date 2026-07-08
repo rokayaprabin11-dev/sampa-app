@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:nepali_utils/nepali_utils.dart';
 import 'package:sampada/core/services/location_service.dart';
+import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/data/models/cultural_event.dart';
 import 'package:sampada/data/repositories/event_repository.dart';
 
@@ -46,15 +46,29 @@ class EventProvider with ChangeNotifier {
   // replaced by a real accuracy-gated GPS fix (cached 5 min) when available.
   double _userLat = 27.7172;
   double _userLng = 85.3240;
+  bool _hasRealFix = false;
+
+  /// True once an accuracy-gated GPS fix replaced the Kathmandu fallback.
+  /// Distance *labels* are only trustworthy then; ranking works either way.
+  bool get hasRealFix => _hasRealFix;
+
+  /// Distance user → event in km, or null when the event has no coordinates
+  /// or the user's real position is still unknown (fallback would lie).
+  double? distanceKmOf(CulturalEvent e) => _hasRealFix
+      ? GeoDistance.kmTo(_userLat, _userLng, e.latitude, e.longitude)
+      : null;
 
   /// Best-effort GPS refresh — keeps the Kathmandu fallback when the user
   /// denies permission or no trustworthy fix arrives in time.
   Future<void> _refreshUserLocation() async {
     final pos = await LocationService().getAccurateFix();
     if (pos == null) return;
-    if (pos.latitude == _userLat && pos.longitude == _userLng) return;
+    if (_hasRealFix && pos.latitude == _userLat && pos.longitude == _userLng) {
+      return;
+    }
     _userLat = pos.latitude;
     _userLng = pos.longitude;
+    _hasRealFix = true;
     notifyListeners(); // re-rank nearbyEvents with the real position
   }
 
@@ -111,20 +125,17 @@ class EventProvider with ChangeNotifier {
 
     if (upcomingEvents.isEmpty) return [];
 
-    // 2. Score by proximity
+    // 2. Score by proximity (events without coordinates sort last).
     final List<Map<String, dynamic>> scoredEvents = upcomingEvents.map((event) {
-      final distance = _calculateDistance(_userLat, _userLng, event.latitude, event.longitude);
-      return {'event': event, 'distance': distance};
+      final distance =
+          GeoDistance.kmTo(_userLat, _userLng, event.latitude, event.longitude);
+      return {'event': event, 'distance': distance ?? double.infinity};
     }).toList();
 
     // 3. Sort by distance ascending
     scoredEvents.sort((a, b) => (a['distance'] as double).compareTo(b['distance'] as double));
 
     return scoredEvents.map((e) => e['event'] as CulturalEvent).toList();
-  }
-
-  double _calculateDistance(double lat1, double lon1, double lat2, double longitude2) {
-    return math.sqrt(math.pow(lat2 - lat1, 2) + math.pow(longitude2 - lon1, 2)) * 111; // Approx km
   }
 
   /// All loaded events whose [startDate, endDate] range (AD, date-only)
