@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -156,8 +157,8 @@ class _GuideScreenState extends State<GuideScreen> {
         children: [
           const Icon(Icons.hourglass_top, size: AppDimensions.iconSm, color: AppColors.kColorPendingText),
           const SizedBox(width: AppDimensions.sp6),
-          const Text('Request pending — awaiting response',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.kColorPendingText)),
+          Text(AppLocalizations.of(context)!.requestPending,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.kColorPendingText)),
         ],
       ),
     );
@@ -178,7 +179,7 @@ class _GuideScreenState extends State<GuideScreen> {
         children: [
           Icon(Icons.person_outline, size: AppDimensions.iconSm, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
           const SizedBox(width: 6),
-          Text('This is your guide profile',
+          Text(AppLocalizations.of(context)!.yourGuideProfile,
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
         ],
       ),
@@ -230,6 +231,7 @@ class _GuideScreenState extends State<GuideScreen> {
 
   /// Returns (rating, text) or null if cancelled.
   Future<(int, String)?> _showReviewDialog(Map<String, dynamic> guide) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.goldMain : AppColors.kColorPrimary;
     final user = guide['user'] as Map<String, dynamic>? ?? {};
@@ -243,7 +245,7 @@ class _GuideScreenState extends State<GuideScreen> {
         builder: (ctx, setLocal) => AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-          title: Text('Review $name', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+          title: Text(l10n.reviewGuide(name), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +269,7 @@ class _GuideScreenState extends State<GuideScreen> {
                 maxLength: 300,
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
                 decoration: InputDecoration(
-                  hintText: 'Share your experience (optional)…',
+                  hintText: l10n.reviewHint,
                   hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 13),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                 ),
@@ -275,11 +277,11 @@ class _GuideScreenState extends State<GuideScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, null), child: Text('Cancel', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey))),
+            TextButton(onPressed: () => Navigator.pop(ctx, null), child: Text(l10n.btnCancel, style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey))),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, (rating, controller.text.trim())),
               style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: isDark ? Colors.black : Colors.white),
-              child: const Text('Submit'),
+              child: Text(l10n.btnSubmit),
             ),
           ],
         ),
@@ -291,6 +293,7 @@ class _GuideScreenState extends State<GuideScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -313,14 +316,14 @@ class _GuideScreenState extends State<GuideScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: Row(
                     children: [
-                      _statCard(context, '${all.length}', 'Guides Available'),
+                      _statCard(context, '${all.length}', l10n.statGuidesAvailable),
                       const SizedBox(width: 12),
-                      _statCard(context, '77', 'Districts Covered'),
+                      _statCard(context, '77', l10n.statDistrictsCovered),
                       const SizedBox(width: 12),
                       _statCard(
                         context,
                         all.isEmpty ? '–' : (all.map(_ratingOf).reduce((a, b) => a + b) / all.length).toStringAsFixed(1),
-                        'Avg Rating',
+                        l10n.avgRating,
                       ),
                     ],
                   ),
@@ -352,7 +355,7 @@ class _GuideScreenState extends State<GuideScreen> {
               else ...[
                 // Featured section
                 if (featured.isNotEmpty) ...[
-                  SliverToBoxAdapter(child: _sectionHeader(context, isDark, 'FEATURED GUIDES', showSeeAll: true)),
+                  SliverToBoxAdapter(child: _sectionHeader(context, isDark, l10n.sectionFeaturedGuides, showSeeAll: true)),
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (_, i) => _featuredCard(context, isDark, featured[i]),
@@ -362,7 +365,7 @@ class _GuideScreenState extends State<GuideScreen> {
                 ],
                 // Nearby section
                 if (nearby.isNotEmpty) ...[
-                  SliverToBoxAdapter(child: _sectionHeader(context, isDark, 'NEARBY GUIDES')),
+                  SliverToBoxAdapter(child: _sectionHeader(context, isDark, l10n.sectionNearbyGuides)),
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (_, i) => _nearbyCard(context, isDark, nearby[i]),
@@ -470,7 +473,7 @@ class _GuideScreenState extends State<GuideScreen> {
                     onChanged: (_) => setState(() {}),
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: 'Search guides by name, language...',
+                      hintText: AppLocalizations.of(context)!.searchGuidesHint,
                       hintStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary, fontSize: 14),
                       border: InputBorder.none,
                       isDense: true,
@@ -516,7 +519,7 @@ class _GuideScreenState extends State<GuideScreen> {
         children: [
           Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.0, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
           if (showSeeAll)
-            Text('See all →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
+            Text(AppLocalizations.of(context)!.guidesSeeAll, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
         ],
       ),
     );
@@ -653,7 +656,7 @@ class _GuideScreenState extends State<GuideScreen> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('Available today 9 AM – 6 PM', style: TextStyle(fontSize: 10, color: sub), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(AppLocalizations.of(context)!.availableToday, style: TextStyle(fontSize: 10, color: sub), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -661,8 +664,8 @@ class _GuideScreenState extends State<GuideScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('NPR $rate', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: accent)),
-                      Text('per half day', style: TextStyle(fontSize: 10, color: sub)),
+                      Text(AppLocalizations.of(context)!.nprAmount(rate.toString()), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: accent)),
+                      Text(AppLocalizations.of(context)!.labelPerHalfDay, style: TextStyle(fontSize: 10, color: sub)),
                     ],
                   ),
               ],
@@ -693,6 +696,7 @@ class _GuideScreenState extends State<GuideScreen> {
   }
 
   Widget _nearbyCard(BuildContext context, bool isDark, Map<String, dynamic> guide) {
+    final l10n = AppLocalizations.of(context)!;
     final user = guide['user'] as Map<String, dynamic>? ?? {};
     final fullName = (user['full_name'] ?? user['username'] ?? 'Guide').toString();
     final rating = _ratingOf(guide);
@@ -754,7 +758,7 @@ class _GuideScreenState extends State<GuideScreen> {
                   ),
                 ),
                 if (rate != null)
-                  Text('NPR $rate', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: accent)),
+                  Text(l10n.nprAmount(rate.toString()), style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: accent)),
               ],
             ),
             if (specialties.isNotEmpty || languages.isNotEmpty) ...[
@@ -790,7 +794,7 @@ class _GuideScreenState extends State<GuideScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 9),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
-                  child: const Text('Request Guide', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: Text(l10n.btnRequestGuide, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ),
           ],
@@ -930,7 +934,7 @@ class _GuideScreenState extends State<GuideScreen> {
           children: [
             Icon(Icons.error_outline, color: Colors.red.shade700),
             const SizedBox(width: 12),
-            Expanded(child: Text('Failed to load guides. Tap refresh to retry.', style: TextStyle(color: Colors.red.shade700, fontSize: 13))),
+            Expanded(child: Text(AppLocalizations.of(context)!.failedLoadGuides, style: TextStyle(color: Colors.red.shade700, fontSize: 13))),
           ],
         ),
       ),

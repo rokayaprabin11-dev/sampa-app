@@ -241,20 +241,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
       ),
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  'Auto Sync',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  l10n.autoSync,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.sync),
-                title: const Text('On'),
+                title: Text(l10n.settingsOn),
                 onTap: () {
                   provider.setSyncMode(AutoSyncMode.dataAndWifi);
                   Navigator.pop(context);
@@ -262,7 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.wifi),
-                title: const Text('Wi-Fi Only'),
+                title: Text(l10n.settingsWifiOnly),
                 onTap: () {
                   provider.setSyncMode(AutoSyncMode.wifiOnly);
                   Navigator.pop(context);
@@ -270,7 +271,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.sync_disabled),
-                title: const Text('Off'),
+                title: Text(l10n.settingsOff),
                 onTap: () {
                   provider.setSyncMode(AutoSyncMode.off);
                   Navigator.pop(context);

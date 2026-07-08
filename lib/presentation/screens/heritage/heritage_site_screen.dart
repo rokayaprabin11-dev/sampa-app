@@ -107,6 +107,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_site == null) {
       return Scaffold(
         backgroundColor: Colors.black,
@@ -203,7 +204,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                           ),
                           const SizedBox(height: 8),
                           if (_site!.isUnesco) ...[
-                            _unescoTag(cs, isDark),
+                            _unescoTag(cs, isDark, l10n.unescoHeritage),
                             const SizedBox(height: 8),
                           ],
                           Row(children: [
@@ -227,7 +228,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('About this Site',
+                            Text(l10n.sectionAboutSite,
                                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
                             const SizedBox(height: 8),
                             if (_loadingDetail)
@@ -268,7 +269,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                         child: Padding(
                                           padding: const EdgeInsets.only(top: 6),
                                           child: Text(
-                                            _descExpanded ? 'Show Less' : 'Learn More',
+                                            _descExpanded ? l10n.btnShowLess : l10n.btnLearnMore,
                                             style: const TextStyle(
                                                 color: Color(0xFFD4520A),
                                                 fontSize: 13,
@@ -281,7 +282,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                               },
                             ),
                             const SizedBox(height: 18),
-                            Text('Gallery',
+                            Text(l10n.sectionGallery,
                                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
                             const SizedBox(height: 10),
                             if (gallery.isEmpty)
@@ -289,7 +290,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                 Icon(Icons.photo_library_outlined, size: 18,
                                     color: cs.onSurface.withValues(alpha: 0.35)),
                                 const SizedBox(width: 8),
-                                Text('No sub heritage available',
+                                Text(l10n.noSubHeritage,
                                     style: TextStyle(color: cs.onSurface.withValues(alpha: 0.55), fontSize: 13)),
                               ])
                             else
@@ -354,7 +355,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                             Center(
                               child: SizedBox(
                                 width: 240,
-                                child: _actionBtn(Icons.map_outlined, 'View on Map', cs, () {
+                                child: _actionBtn(Icons.map_outlined, l10n.btnViewOnMap, cs, () {
                                   Navigator.pushNamed(context, AppStrings.mapPath, arguments: _site);
                                 }),
                               ),
@@ -363,7 +364,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                             Row(mainAxisSize: MainAxisSize.min, children: [
                               Icon(Icons.check_circle, color: Colors.green.shade700, size: 14),
                               const SizedBox(width: 5),
-                              Text('Available Offline',
+                              Text(l10n.labelAvailableOffline,
                                   style: TextStyle(color: Colors.green.shade700, fontSize: 12, fontWeight: FontWeight.w500)),
                             ]),
                           ],
@@ -455,18 +456,18 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
         ),
       );
 
-  Widget _unescoTag(ColorScheme cs, bool isDark) => Container(
+  Widget _unescoTag(ColorScheme cs, bool isDark, String unescoLabel) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
     decoration: BoxDecoration(
       color: isDark ? AppColors.darkBgCard : AppColors.goldSurface,
       borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
       border: Border.all(color: cs.outline),
     ),
-    child: const Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(Icons.emoji_events, color: Color(0xFFD4520A), size: 13),
-      SizedBox(width: 5),
-      Text('UNESCO Heritage',
-          style: TextStyle(color: AppColors.goldDark, fontWeight: FontWeight.bold, fontSize: 11)),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      const Icon(Icons.emoji_events, color: Color(0xFFD4520A), size: 13),
+      const SizedBox(width: 5),
+      Text(unescoLabel,
+          style: const TextStyle(color: AppColors.goldDark, fontWeight: FontWeight.bold, fontSize: 11)),
     ]),
   );
 
@@ -511,6 +512,7 @@ class _SubHeritageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n  = AppLocalizations.of(context)!;
     final size  = MediaQuery.of(context).size;
     final top   = MediaQuery.of(context).padding.top;
     final title = image.name.isNotEmpty ? image.name : (image.caption.isNotEmpty ? image.caption : siteName);
@@ -571,7 +573,7 @@ class _SubHeritageScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Divider(color: cs.outline, thickness: 1.5),
                   const SizedBox(height: 12),
-                  Text('About this Site',
+                  Text(l10n.sectionAboutSite,
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
                   const SizedBox(height: 8),
                   Text(

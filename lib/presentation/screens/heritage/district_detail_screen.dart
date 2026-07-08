@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -175,7 +176,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                           const Text('🥇', style: TextStyle(fontSize: 14)),
                           const SizedBox(width: 4),
                           Text(
-                            'UNESCO World Heritage Zone',
+                            AppLocalizations.of(context)!.unescoZone,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -201,7 +202,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
 
                     // About
                     Text(
-                      'About',
+                      AppLocalizations.of(context)!.labelAbout,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -246,7 +247,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
 
                     // Top Sites
                     Text(
-                      'Top Sites',
+                      AppLocalizations.of(context)!.topSites,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -264,7 +265,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Text(
-                          'No published sites yet.',
+                          AppLocalizations.of(context)!.noPublishedSites,
                           style: TextStyle(
                             color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),
                             fontSize: 14,

@@ -120,6 +120,45 @@ class AppLocalizationsNe extends AppLocalizations {
   String get btnClearFilter => 'फिल्टर हटाउनुहोस्';
 
   @override
+  String get btnForgotPassword => 'पासवर्ड बिर्सनुभयो?';
+
+  @override
+  String get btnBackToLogin => 'लगइनमा फर्कनुहोस्';
+
+  @override
+  String get btnResendEmail => 'इमेल पुनः पठाउनुहोस्';
+
+  @override
+  String get btnDeleteAccount => 'खाता मेटाउनुहोस्';
+
+  @override
+  String get btnBackToHome => 'गृहमा फर्कनुहोस्';
+
+  @override
+  String get btnRequestGuide => 'गाइड अनुरोध गर्नुहोस्';
+
+  @override
+  String get btnAccept => 'स्वीकार गर्नुहोस्';
+
+  @override
+  String get btnReject => 'अस्वीकार गर्नुहोस्';
+
+  @override
+  String get btnViewMyListing => 'मेरो सूची हेर्नुहोस्';
+
+  @override
+  String get btnEditProfile => 'प्रोफाइल सम्पादन गर्नुहोस्';
+
+  @override
+  String get btnBookThisGuide => 'यो गाइड बुक गर्नुहोस्';
+
+  @override
+  String get btnSaveChanges => 'परिवर्तनहरू सुरक्षित गर्नुहोस्';
+
+  @override
+  String get btnLearnMore => 'थप जान्नुहोस्';
+
+  @override
   String get catAll => 'सबै';
 
   @override
@@ -525,4 +564,336 @@ class AppLocalizationsNe extends AppLocalizations {
 
   @override
   String get aboutSampada => 'सम्पदा बारे';
+
+  @override
+  String get noFeaturedSites => 'कुनै प्रमुख सम्पदा स्थल फेला परेन';
+
+  @override
+  String get noSubHeritage => 'कुनै उप-सम्पदा उपलब्ध छैन';
+
+  @override
+  String get unescoHeritage => 'युनेस्को सम्पदा';
+
+  @override
+  String get heritageMapTitle => 'सम्पदा नक्सा';
+
+  @override
+  String get clearHistory => 'इतिहास मेटाउनुहोस्';
+
+  @override
+  String get clearHistoryConfirm =>
+      'के तपाईं सम्पूर्ण भ्रमण इतिहास मेटाउन निश्चित हुनुहुन्छ?';
+
+  @override
+  String get searchHeritageHint => 'सम्पदा स्थल खोज्नुहोस्...';
+
+  @override
+  String get recentSearches => 'हालैका खोजहरू';
+
+  @override
+  String get btnClear => 'हटाउनुहोस्';
+
+  @override
+  String get exploreHeritage => 'सम्पदा अन्वेषण';
+
+  @override
+  String get searchHeritageEmptyTitle => 'सम्पदा स्थल खोज्नुहोस्';
+
+  @override
+  String get searchHeritageEmptyBody =>
+      'नाम वा सहर टाइप गर्नुहोस्, वा नेपालको सम्पदा अन्वेषण गर्न माथिको कुनै वर्ग छान्नुहोस्।';
+
+  @override
+  String get labelNotFound => 'फेला परेन';
+
+  @override
+  String get settingsOn => 'सक्रिय';
+
+  @override
+  String get settingsWifiOnly => 'वाइ-फाइ मात्र';
+
+  @override
+  String get settingsOff => 'निष्क्रिय';
+
+  @override
+  String get langEngShort => 'अङ्ग्रेजी';
+
+  @override
+  String get langNepShort => 'नेपाली';
+
+  @override
+  String get resetPassword => 'पासवर्ड रिसेट गर्नुहोस्';
+
+  @override
+  String get resetPasswordDesc =>
+      'आफ्नो इमेल ठेगाना प्रविष्ट गर्नुहोस्, हामी तपाईंलाई पासवर्ड रिसेट लिङ्क पठाउनेछौं।';
+
+  @override
+  String get passwordResetSent => 'पासवर्ड रिसेट लिङ्क तपाईंको इमेलमा पठाइयो।';
+
+  @override
+  String get btnSendLink => 'लिङ्क पठाउनुहोस्';
+
+  @override
+  String get verificationResent => 'प्रमाणीकरण इमेल पुनः पठाइयो!';
+
+  @override
+  String get chooseFromGallery => 'ग्यालरीबाट छान्नुहोस्';
+
+  @override
+  String get takePhoto => 'फोटो खिच्नुहोस्';
+
+  @override
+  String get enterEmailToReset =>
+      'पासवर्ड रिसेट गर्न कृपया आफ्नो इमेल प्रविष्ट गर्नुहोस्';
+
+  @override
+  String get passwordResetEmailSent => 'पासवर्ड रिसेट इमेल पठाइयो!';
+
+  @override
+  String get enterPasswordConfirm =>
+      'पुष्टि गर्न आफ्नो पासवर्ड प्रविष्ट गर्नुहोस्';
+
+  @override
+  String get confirmChanges => 'परिवर्तनहरू पुष्टि गर्नुहोस्';
+
+  @override
+  String get enterCurrentPassword =>
+      'परिवर्तनहरू सुरक्षित गर्न कृपया आफ्नो हालको पासवर्ड प्रविष्ट गर्नुहोस्।';
+
+  @override
+  String uploadFailed(String error) {
+    return 'अपलोड असफल भयो: $error';
+  }
+
+  @override
+  String get fileTooLarge => 'फाइल ५ MB वा सोभन्दा कम हुनुपर्छ।';
+
+  @override
+  String get onlyJpgPng => 'JPG वा PNG फाइलहरू मात्र अनुमति छ।';
+
+  @override
+  String get becomeGuide => 'गाइड बन्नुहोस्';
+
+  @override
+  String get becomeGuideSubtitle => 'आफ्नो सम्पदा ज्ञान साझा गर्नुहोस्';
+
+  @override
+  String get selectAllApply => 'लागू हुने सबै छान्नुहोस्';
+
+  @override
+  String get guideExpertise => 'गाइड विशेषज्ञता';
+
+  @override
+  String get guideExpertiseDesc =>
+      'आफ्नो ज्ञान र अनुभवबारे हामीलाई बताउनुहोस्।';
+
+  @override
+  String get yearsExperience => 'अनुभवका वर्षहरू';
+
+  @override
+  String get knowledgeLevel => 'ज्ञानको स्तर';
+
+  @override
+  String get verification => 'प्रमाणीकरण';
+
+  @override
+  String get verificationDesc =>
+      'यात्रुहरूसँग विश्वास निर्माण गर्न आफ्नो पहिचान प्रमाणित गर्न हामीलाई सहयोग गर्नुहोस्।';
+
+  @override
+  String get governmentId => 'सरकारी परिचयपत्र';
+
+  @override
+  String get governmentIdDesc =>
+      'आफ्नो सरकारी परिचयपत्रको स्पष्ट फोटो अपलोड गर्नुहोस्।';
+
+  @override
+  String get profilePhoto => 'प्रोफाइल फोटो';
+
+  @override
+  String get profilePhotoDesc => 'तपाईंको प्रोफाइलबाट पूर्वावलोकन।';
+
+  @override
+  String get certification => 'प्रमाणपत्र';
+
+  @override
+  String get certificationDesc =>
+      'कुनै गाइडिङ लाइसेन्स वा प्रमाणपत्र अपलोड गर्नुहोस्।';
+
+  @override
+  String get additionalInfo => 'थप जानकारी';
+
+  @override
+  String get earnFromHeritage => 'नेपालको जीवन्त सम्पदा साझा गरेर कमाउनुहोस्';
+
+  @override
+  String get fileTypeHint => 'JPG, PNG वा PDF (अधिकतम ५MB)';
+
+  @override
+  String get pendingReview => 'समीक्षा बाँकी';
+
+  @override
+  String get applicationReviewMsg =>
+      'धन्यवाद! हाम्रो टोलीले तपाईंको आवेदन समीक्षा गर्दै छ र तपाईंको विवरण प्रमाणित गर्नेछ। तपाईंलाई १–२ कार्य दिनभित्र सूचित गरिनेछ।';
+
+  @override
+  String get applicationReviewNote =>
+      'यो आवेदन समीक्षा नभएसम्म तपाईं अर्को आवेदन पेश गर्न सक्नुहुन्न।';
+
+  @override
+  String get aboutYourselfDesc =>
+      'आफ्नो बारेमा र सम्पदाप्रतिको आफ्नो रुचिबारे केही बताउनुहोस्।';
+
+  @override
+  String get confirmInfoAccurate =>
+      'मैले उपलब्ध गराएको जानकारी सत्य र सही छ भनी म पुष्टि गर्दछु।';
+
+  @override
+  String get selectDateTimeSlot => 'कृपया मिति र समय स्लट छान्नुहोस्।';
+
+  @override
+  String get bookingRequestSent =>
+      'बुकिङ अनुरोध पठाइयो! गाइडले चाँडै पुष्टि गर्नेछन्।';
+
+  @override
+  String bookingFailed(String error) {
+    return 'बुकिङ असफल भयो: $error';
+  }
+
+  @override
+  String get loginRequired => 'लगइन आवश्यक';
+
+  @override
+  String get loginRequiredDesc => 'गाइड बुक गर्न तपाईं लगइन हुनुपर्छ।';
+
+  @override
+  String get specialRequestsHint => 'कुनै विशेष अनुरोध, हेर्नुपर्ने स्थलहरू...';
+
+  @override
+  String get confirmBookingRequest => 'बुकिङ अनुरोध पुष्टि गर्नुहोस्';
+
+  @override
+  String get profileUpdated => 'प्रोफाइल अपडेट भयो।';
+
+  @override
+  String get couldntSave => 'सुरक्षित गर्न सकिएन। कृपया पुनः प्रयास गर्नुहोस्।';
+
+  @override
+  String get requestPending => 'अनुरोध बाँकी — प्रतिक्रियाको प्रतीक्षामा';
+
+  @override
+  String get yourGuideProfile => 'यो तपाईंको गाइड प्रोफाइल हो';
+
+  @override
+  String reviewGuide(String name) {
+    return '$name लाई समीक्षा गर्नुहोस्';
+  }
+
+  @override
+  String get reviewHint => 'आफ्नो अनुभव साझा गर्नुहोस् (वैकल्पिक)…';
+
+  @override
+  String get searchGuidesHint => 'नाम, भाषाद्वारा गाइड खोज्नुहोस्...';
+
+  @override
+  String get guidesSeeAll => 'सबै हेर्नुहोस् →';
+
+  @override
+  String get availableToday => 'आज उपलब्ध बिहान ९ – साँझ ६';
+
+  @override
+  String get notAcceptingBookings => 'बुकिङ स्वीकार गरिँदैन';
+
+  @override
+  String nprAmount(String amount) {
+    return 'रु $amount';
+  }
+
+  @override
+  String get failedLoadGuides =>
+      'गाइडहरू लोड गर्न असफल। पुनः प्रयास गर्न रिफ्रेस थिच्नुहोस्।';
+
+  @override
+  String get avgRating => 'औसत मूल्याङ्कन';
+
+  @override
+  String get labelAbout => 'बारेमा';
+
+  @override
+  String get bookingRequests => 'बुकिङ अनुरोधहरू';
+
+  @override
+  String get myGuideProfile => 'मेरो गाइड प्रोफाइल';
+
+  @override
+  String get manageListing => 'आफ्नो सूची व्यवस्थापन गर्नुहोस्';
+
+  @override
+  String get thisMonthEarnings => 'यस महिनाको आम्दानी';
+
+  @override
+  String get availabilitySettings => 'उपलब्धता र सेटिङ्स';
+
+  @override
+  String get couldntSaveSetting =>
+      'सेटिङ सुरक्षित गर्न सकिएन। पुनः प्रयास गर्नुहोस्।';
+
+  @override
+  String get verifiedGuideActive => 'प्रमाणित गाइड · सक्रिय';
+
+  @override
+  String get labelActive => 'सक्रिय';
+
+  @override
+  String get unescoZone => 'युनेस्को विश्व सम्पदा क्षेत्र';
+
+  @override
+  String get topSites => 'प्रमुख स्थलहरू';
+
+  @override
+  String get noPublishedSites => 'अहिलेसम्म कुनै प्रकाशित स्थल छैन।';
+
+  @override
+  String get deleteAccountWarning =>
+      'यसले तपाईंको खाता र बुकमार्क, भ्रमण र बुकिङ सहित सम्पूर्ण डेटा स्थायी रूपमा मेटाउनेछ। यो कार्य पूर्ववत गर्न सकिँदैन।';
+
+  @override
+  String get fieldBio => 'परिचय';
+
+  @override
+  String get bioHint => 'पर्यटकहरूलाई आफ्नो बारेमा बताउनुहोस्';
+
+  @override
+  String get fieldHourlyRate => 'प्रति घण्टा दर (रु)';
+
+  @override
+  String get rateHint => 'जस्तै १५००';
+
+  @override
+  String get languagesHint => 'अङ्ग्रेजी, नेपाली, नेवारी';
+
+  @override
+  String get fieldSpecialties => 'विशेषताहरू';
+
+  @override
+  String get specialtiesHint => 'इतिहास, मन्दिर, फोटोग्राफी';
+
+  @override
+  String get statGuidesAvailable => 'उपलब्ध गाइडहरू';
+
+  @override
+  String get statDistrictsCovered => 'समेटिएका जिल्लाहरू';
+
+  @override
+  String get sectionFeaturedGuides => 'प्रमुख गाइडहरू';
+
+  @override
+  String get sectionNearbyGuides => 'नजिकका गाइडहरू';
+
+  @override
+  String get labelPerHour => 'प्रति घण्टा';
+
+  @override
+  String get joinVerifiedGuides => '२४८ प्रमाणित गाइडहरूमा सामेल हुनुहोस्';
 }

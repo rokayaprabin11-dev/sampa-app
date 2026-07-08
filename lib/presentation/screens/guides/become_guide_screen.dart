@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -143,7 +144,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     if (bytes > 5 * 1024 * 1024) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('File must be 5 MB or less.'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context)!.fileTooLarge), backgroundColor: Colors.red),
         );
       }
       return;
@@ -154,7 +155,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     if (!['jpg', 'jpeg', 'png'].contains(ext)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Only JPG or PNG files are allowed.'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context)!.onlyJpgPng), backgroundColor: Colors.red),
         );
       }
       return;
@@ -317,7 +318,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context)!.uploadFailed(e.toString())), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -401,6 +402,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   // Shown after a successful submit, or when a pending application already
   // exists. Blocks re-submission until admin approves/rejects/revokes.
   Widget _buildSubmittedScreen(BuildContext context, bool isDark) {
+    final l10n = AppLocalizations.of(context)!;
     final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -435,21 +437,20 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                         color: const Color(0xFFFDF3DC),
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                       ),
-                      child: const Text(
-                        'Pending Review',
-                        style: TextStyle(color: Color(0xFF9A6200), fontWeight: FontWeight.bold, fontSize: 12),
+                      child: Text(
+                        l10n.pendingReview,
+                        style: const TextStyle(color: Color(0xFF9A6200), fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Thank you! Our team is reviewing your application and will '
-                      'verify your details. You\'ll be notified within 1–2 business days.',
+                      l10n.applicationReviewMsg,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? AppColors.darkTextSecondary : Colors.grey[700]),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'You can\'t submit another application until this one has been reviewed.',
+                      l10n.applicationReviewNote,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12.5, height: 1.5, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : Colors.grey[600]),
                     ),
@@ -464,7 +465,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                           foregroundColor: isDark ? Colors.black : Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
                         ),
-                        child: const Text('Back to Home', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                        child: Text(l10n.btnBackToHome, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -506,11 +507,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                 onPressed: _prevStep,
               ),
               const SizedBox(width: 8),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Become a Guide', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                  Text('Share your heritage knowledge', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.becomeGuide, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(AppLocalizations.of(context)!.becomeGuideSubtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ],
@@ -656,7 +657,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
 
         _secHeader(context, isDark, 'Languages Spoken', Icons.language),
         const SizedBox(height: 4),
-        Text('Select all that apply', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.selectAllApply, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8, runSpacing: 8,
@@ -674,7 +675,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         _secHeader(context, isDark, 'Short Introduction', Icons.edit_outlined),
         const SizedBox(height: 4),
         Text(
-          'Tell us a little about yourself and your passion for heritage.',
+          AppLocalizations.of(context)!.aboutYourselfDesc,
           style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
         ),
         const SizedBox(height: 12),
@@ -709,8 +710,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Guide Expertise', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  Text('Tell us about your knowledge and experience.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+                  Text(AppLocalizations.of(context)!.guideExpertise, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                  Text(AppLocalizations.of(context)!.guideExpertiseDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
                 ],
               ),
             ),
@@ -741,7 +742,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         ),
         const SizedBox(height: 24),
 
-        Text('Years of Experience', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.yearsExperience, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
         _dropdown(context, isDark, _yearsExperience, _experienceLevels,
             (v) => setState(() => _yearsExperience = v!), prefixIcon: Icons.bar_chart),
@@ -772,7 +773,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         ),
         const SizedBox(height: 24),
 
-        Text('Knowledge Level', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.knowledgeLevel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
         _dropdown(context, isDark, _knowledgeLevel, _knowledgeLevels,
             (v) => setState(() => _knowledgeLevel = v!), prefixIcon: Icons.bar_chart),
@@ -798,8 +799,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Verification', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  Text('Help us verify your identity to build trust with travelers.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+                  Text(AppLocalizations.of(context)!.verification, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                  Text(AppLocalizations.of(context)!.verificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
                 ],
               ),
             ),
@@ -807,9 +808,9 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         ),
         const SizedBox(height: 24),
 
-        Text('Government ID', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.governmentId, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 4),
-        Text('Upload a clear photo of your government ID.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.governmentIdDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -820,9 +821,9 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         ),
         const SizedBox(height: 24),
 
-        Text('Profile Photo', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.profilePhoto, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 4),
-        Text('Preview from your profile.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.profilePhotoDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
         const SizedBox(height: 12),
         Center(
           child: CircleAvatar(
@@ -840,18 +841,18 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
 
         Row(
           children: [
-            Text('Certification', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+            Text(AppLocalizations.of(context)!.certification, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(width: 6),
             Text('(Optional)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
           ],
         ),
         const SizedBox(height: 4),
-        Text('Upload any guiding license or certification.', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.certificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
         const SizedBox(height: 12),
         _uploadBox(context, isDark, 'Upload Certificate', Icons.workspace_premium_outlined, _certification != null, () => _pickImage((f) => _certification = f)),
         const SizedBox(height: 24),
 
-        Text('Additional Information', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.additionalInfo, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 16),
 
         _label(context, isDark, 'Emergency Contact Number'),
@@ -888,7 +889,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'I confirm that the information provided is true and accurate.',
+                  AppLocalizations.of(context)!.confirmInfoAccurate,
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
                 ),
               ),
@@ -916,8 +917,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Join 248 verified guides', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                Text('Earn from sharing Nepal\'s living heritage', style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : Colors.grey)),
+                Text(AppLocalizations.of(context)!.joinVerifiedGuides, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                Text(AppLocalizations.of(context)!.earnFromHeritage, style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : Colors.grey)),
               ],
             ),
           ],
@@ -1223,7 +1224,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
             ),
             if (!uploaded) ...[
               const SizedBox(height: 4),
-              Text('JPG, PNG or PDF (Max 5MB)', textAlign: TextAlign.center, style: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 10)),
+              Text(AppLocalizations.of(context)!.fileTypeHint, textAlign: TextAlign.center, style: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 10)),
             ],
           ],
         ),

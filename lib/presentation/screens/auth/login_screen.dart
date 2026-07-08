@@ -161,9 +161,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     _showForgotPasswordDialog(context);
                   },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.btnForgotPassword,
+                    style: const TextStyle(
                       color: AppColors.brownAccent,
                       fontWeight: FontWeight.w600,
                     ),
@@ -319,6 +319,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPasswordDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final resetEmailController = TextEditingController(text: _emailController.text);
     
     showDialog(
@@ -326,22 +327,22 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-        title: const Text(
-          'Reset Password',
-          style: TextStyle(color: AppColors.textHeadline, fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.resetPassword,
+          style: const TextStyle(color: AppColors.textHeadline, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Enter your email address and we will send you a link to reset your password.',
-              style: TextStyle(color: AppColors.textSecondary),
+            Text(
+              l10n.resetPasswordDesc,
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: resetEmailController,
               decoration: InputDecoration(
-                labelText: 'Email',
+                labelText: l10n.email,
                 labelStyle: const TextStyle(color: AppColors.textSecondary),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
               ),
@@ -351,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(l10n.btnCancel, style: const TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -372,8 +373,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   } else {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Password reset link sent to your email.'),
+                      SnackBar(
+                        content: Text(l10n.passwordResetSent),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -386,7 +387,7 @@ class _LoginScreenState extends State<LoginScreen> {
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
-            child: const Text('Send Link'),
+            child: Text(l10n.btnSendLink),
           ),
         ],
       ),

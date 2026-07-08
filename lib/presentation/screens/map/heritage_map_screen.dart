@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:sampada/data/models/heritage_site.dart';
+import 'package:sampada/generated/app_localizations.dart';
 
 class HeritageMapScreen extends StatefulWidget {
   final List<HeritageSite> sites;
@@ -25,7 +26,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Heritage Map')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.heritageMapTitle)),
       body: FlutterMap(
         options: const MapOptions(
           initialCenter: _nepalCenter,

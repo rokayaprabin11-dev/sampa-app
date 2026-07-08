@@ -311,9 +311,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
               ),
             ),
-            child: const Text(
-              'Back to Login',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            child: Text(
+              l10n.btnBackToLogin,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
         ),
@@ -322,12 +322,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           onPressed: () {
             context.read<AuthProvider>().sendEmailVerification();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Verification email resent!')),
+              SnackBar(content: Text(l10n.verificationResent)),
             );
           },
-          child: const Text(
-            'Resend Email',
-            style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.bold),
+          child: Text(
+            l10n.btnResendEmail,
+            style: const TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.bold),
           ),
         ),
       ],

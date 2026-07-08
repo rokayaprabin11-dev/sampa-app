@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -71,24 +72,25 @@ class _GuideEditScreenState extends State<GuideEditScreen> {
     setState(() => _saving = false);
     if (err == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)),
       );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Couldn't save. Please try again.")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.couldntSave)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(l10n.btnEditProfile),
         backgroundColor: Colors.transparent,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
@@ -98,11 +100,11 @@ class _GuideEditScreenState extends State<GuideEditScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _field('Bio', _bio, maxLines: 4, hint: 'Tell tourists about yourself'),
-            _field('Hourly rate (NPR)', _rate,
-                keyboardType: TextInputType.number, hint: 'e.g. 1500'),
-            _field('Languages', _languages, hint: 'English, Nepali, Newari'),
-            _field('Specialties', _specialties, hint: 'History, Temples, Photography'),
+            _field(l10n.fieldBio, _bio, maxLines: 4, hint: l10n.bioHint),
+            _field(l10n.fieldHourlyRate, _rate,
+                keyboardType: TextInputType.number, hint: l10n.rateHint),
+            _field(l10n.labelLanguages, _languages, hint: l10n.languagesHint),
+            _field(l10n.fieldSpecialties, _specialties, hint: l10n.specialtiesHint),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _saving ? null : _save,
@@ -116,8 +118,8 @@ class _GuideEditScreenState extends State<GuideEditScreen> {
                   ? const SizedBox(
                       height: 20, width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Save Changes',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  : Text(l10n.btnSaveChanges,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             ),
           ],
         ),

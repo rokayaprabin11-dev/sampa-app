@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -119,7 +120,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   profileProvider.isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : downloads.isEmpty
-                          ? const Center(child: Text('No downloads found.'))
+                          ? Center(child: Text(AppLocalizations.of(context)!.emptyDownloads))
                           : ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),

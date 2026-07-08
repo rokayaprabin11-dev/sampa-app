@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/providers/profile_provider.dart';
@@ -26,6 +27,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final profileProvider = context.watch<ProfileProvider>();
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -99,7 +101,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
             child: profileProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : profileProvider.visitHistory.isEmpty
-                    ? const Center(child: Text('No visit history found.'))
+                    ? Center(child: Text(l10n.emptyVisitHistory))
                     : ListView.builder(
                         padding: const EdgeInsets.all(20),
                         itemCount: profileProvider.visitHistory.length,
@@ -128,22 +130,23 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
   }
 
   void _showDeleteConfirmation(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear History'),
-        content: const Text('Are you sure you want to delete all visit history?'),
+        title: Text(l10n.clearHistory),
+        content: Text(l10n.clearHistoryConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.btnCancel),
           ),
           TextButton(
             onPressed: () {
               context.read<ProfileProvider>().clearVisitHistory();
               Navigator.pop(context);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.btnDelete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

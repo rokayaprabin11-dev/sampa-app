@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -140,7 +141,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload failed: $e')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.uploadFailed(e.toString()))),
       );
     } finally {
       if (mounted) setState(() => _uploadingPhoto = false);
@@ -171,7 +172,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'),
+              title: Text(AppLocalizations.of(context)!.chooseFromGallery),
               onTap: () {
                 Navigator.pop(context);
                 _pickAndUploadImage(ImageSource.gallery);
@@ -179,7 +180,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Take Photo'),
+              title: Text(AppLocalizations.of(context)!.takePhoto),
               onTap: () {
                 Navigator.pop(context);
                 _pickAndUploadImage(ImageSource.camera);
@@ -193,6 +194,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final authProvider = context.watch<AuthProvider>();
     final isGoogle = authProvider.isGoogleUser;
@@ -428,14 +430,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           final email = _emailController.text.trim();
                           if (email.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please enter your email to reset password')),
+                              SnackBar(content: Text(l10n.enterEmailToReset)),
                             );
                             return;
                           }
                           await authProvider.sendPasswordResetEmail(email);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Password reset email sent!')),
+                              SnackBar(content: Text(l10n.passwordResetEmailSent)),
                             );
                           }
                         },
@@ -444,9 +446,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.btnForgotPassword,
+                          style: const TextStyle(
                             color: Color(0xFFC89932),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -545,7 +547,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7B1E00)),
                           )
-                        : const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
+                        : Text(l10n.btnSignOut, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton(
@@ -559,14 +561,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         context: context,
                         builder: (ctx) => StatefulBuilder(
                           builder: (ctx, setState) => AlertDialog(
-                            title: const Text('Delete Account'),
+                            title: Text(l10n.btnDeleteAccount),
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'This will permanently delete your account and all your data including bookmarks, visits, and bookings. This action cannot be undone.',
-                                  style: TextStyle(fontSize: 13),
+                                Text(
+                                  l10n.deleteAccountWarning,
+                                  style: const TextStyle(fontSize: 13),
                                 ),
                                 if (!isGoogle) ...[
                                   const SizedBox(height: 16),
@@ -574,7 +576,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                     controller: passwordController,
                                     obscureText: obscure,
                                     decoration: InputDecoration(
-                                      labelText: 'Enter your password to confirm',
+                                      labelText: l10n.enterPasswordConfirm,
                                       border: const OutlineInputBorder(),
                                       suffixIcon: IconButton(
                                         icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
@@ -594,11 +596,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text('Cancel'),
+                                child: Text(l10n.btnCancel),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                child: Text(l10n.btnDelete, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
@@ -630,7 +632,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
                       elevation: 0,
                     ),
-                    child: const Text('Delete Account', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(l10n.btnDeleteAccount, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 40),
                 ],
@@ -758,6 +760,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   }
 
   void _showPasswordConfirmationDialog({required Function(String) onConfirm}) {
+    final l10n = AppLocalizations.of(context)!;
     final passwordController = TextEditingController();
     bool obscurePassword = true;
 
@@ -765,17 +768,17 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Confirm Changes'),
+          title: Text(l10n.confirmChanges),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Please enter your current password to save changes.'),
+              Text(l10n.enterCurrentPassword),
               const SizedBox(height: 16),
               TextField(
                 controller: passwordController,
                 obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: l10n.password,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -788,7 +791,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(l10n.btnCancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -798,7 +801,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   onConfirm(password);
                 }
               },
-              child: const Text('Confirm'),
+              child: Text(l10n.btnConfirm),
             ),
           ],
         ),

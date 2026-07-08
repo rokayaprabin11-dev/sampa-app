@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
@@ -173,9 +174,9 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Explore Heritage',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.exploreHeritage,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -201,7 +202,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
-                hintText: 'Search heritage sites...',
+                hintText: AppLocalizations.of(context)!.searchHeritageHint,
                 hintStyle: const TextStyle(color: Color(0xFFB08060), fontSize: 14),
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF8C7162), size: 22),
@@ -276,15 +277,15 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             child: const Icon(Icons.travel_explore_rounded, size: 46, color: Color(0xFFD4520A)),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Search heritage sites',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF331609)),
+          Text(
+            AppLocalizations.of(context)!.searchHeritageEmptyTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF331609)),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Type a name or city, or pick a category above to explore Nepal's heritage.",
+          Text(
+            AppLocalizations.of(context)!.searchHeritageEmptyBody,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Color(0xFF8C7162), height: 1.5),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF8C7162), height: 1.5),
           ),
         ],
       ),
@@ -306,12 +307,12 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Recent searches',
-                      style: TextStyle(color: Color(0xFF8C7162), fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text(AppLocalizations.of(context)!.recentSearches,
+                      style: const TextStyle(color: Color(0xFF8C7162), fontSize: 13, fontWeight: FontWeight.w600)),
                   GestureDetector(
                     onTap: provider.clearRecentSearches,
-                    child: const Text('Clear',
-                        style: TextStyle(color: Color(0xFFD4520A), fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text(AppLocalizations.of(context)!.btnClear,
+                        style: const TextStyle(color: Color(0xFFD4520A), fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -475,9 +476,9 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Not Found',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.labelNotFound,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF331609),

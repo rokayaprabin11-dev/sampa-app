@@ -320,6 +320,84 @@ abstract class AppLocalizations {
   /// **'Clear Filter'**
   String get btnClearFilter;
 
+  /// No description provided for @btnForgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get btnForgotPassword;
+
+  /// No description provided for @btnBackToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Login'**
+  String get btnBackToLogin;
+
+  /// No description provided for @btnResendEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend Email'**
+  String get btnResendEmail;
+
+  /// No description provided for @btnDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get btnDeleteAccount;
+
+  /// No description provided for @btnBackToHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get btnBackToHome;
+
+  /// No description provided for @btnRequestGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Guide'**
+  String get btnRequestGuide;
+
+  /// No description provided for @btnAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get btnAccept;
+
+  /// No description provided for @btnReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get btnReject;
+
+  /// No description provided for @btnViewMyListing.
+  ///
+  /// In en, this message translates to:
+  /// **'View My Listing'**
+  String get btnViewMyListing;
+
+  /// No description provided for @btnEditProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get btnEditProfile;
+
+  /// No description provided for @btnBookThisGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Book This Guide'**
+  String get btnBookThisGuide;
+
+  /// No description provided for @btnSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get btnSaveChanges;
+
+  /// No description provided for @btnLearnMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn More'**
+  String get btnLearnMore;
+
   /// No description provided for @catAll.
   ///
   /// In en, this message translates to:
@@ -1099,6 +1177,618 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About Sampada'**
   String get aboutSampada;
+
+  /// No description provided for @noFeaturedSites.
+  ///
+  /// In en, this message translates to:
+  /// **'No featured heritage sites found'**
+  String get noFeaturedSites;
+
+  /// No description provided for @noSubHeritage.
+  ///
+  /// In en, this message translates to:
+  /// **'No sub heritage available'**
+  String get noSubHeritage;
+
+  /// No description provided for @unescoHeritage.
+  ///
+  /// In en, this message translates to:
+  /// **'UNESCO Heritage'**
+  String get unescoHeritage;
+
+  /// No description provided for @heritageMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Heritage Map'**
+  String get heritageMapTitle;
+
+  /// No description provided for @clearHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear History'**
+  String get clearHistory;
+
+  /// No description provided for @clearHistoryConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all visit history?'**
+  String get clearHistoryConfirm;
+
+  /// No description provided for @searchHeritageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search heritage sites...'**
+  String get searchHeritageHint;
+
+  /// No description provided for @recentSearches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get recentSearches;
+
+  /// No description provided for @btnClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get btnClear;
+
+  /// No description provided for @exploreHeritage.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore Heritage'**
+  String get exploreHeritage;
+
+  /// No description provided for @searchHeritageEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search heritage sites'**
+  String get searchHeritageEmptyTitle;
+
+  /// No description provided for @searchHeritageEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name or city, or pick a category above to explore Nepal\'s heritage.'**
+  String get searchHeritageEmptyBody;
+
+  /// No description provided for @labelNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Found'**
+  String get labelNotFound;
+
+  /// No description provided for @settingsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsOn;
+
+  /// No description provided for @settingsWifiOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi Only'**
+  String get settingsWifiOnly;
+
+  /// No description provided for @settingsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsOff;
+
+  /// No description provided for @langEngShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Eng'**
+  String get langEngShort;
+
+  /// No description provided for @langNepShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Nep'**
+  String get langNepShort;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPassword;
+
+  /// No description provided for @resetPasswordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and we will send you a link to reset your password.'**
+  String get resetPasswordDesc;
+
+  /// No description provided for @passwordResetSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset link sent to your email.'**
+  String get passwordResetSent;
+
+  /// No description provided for @btnSendLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Link'**
+  String get btnSendLink;
+
+  /// No description provided for @verificationResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification email resent!'**
+  String get verificationResent;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @enterEmailToReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email to reset password'**
+  String get enterEmailToReset;
+
+  /// No description provided for @passwordResetEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent!'**
+  String get passwordResetEmailSent;
+
+  /// No description provided for @enterPasswordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to confirm'**
+  String get enterPasswordConfirm;
+
+  /// No description provided for @confirmChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Changes'**
+  String get confirmChanges;
+
+  /// No description provided for @enterCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your current password to save changes.'**
+  String get enterCurrentPassword;
+
+  /// No description provided for @uploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed: {error}'**
+  String uploadFailed(String error);
+
+  /// No description provided for @fileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File must be 5 MB or less.'**
+  String get fileTooLarge;
+
+  /// No description provided for @onlyJpgPng.
+  ///
+  /// In en, this message translates to:
+  /// **'Only JPG or PNG files are allowed.'**
+  String get onlyJpgPng;
+
+  /// No description provided for @becomeGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Become a Guide'**
+  String get becomeGuide;
+
+  /// No description provided for @becomeGuideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your heritage knowledge'**
+  String get becomeGuideSubtitle;
+
+  /// No description provided for @selectAllApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all that apply'**
+  String get selectAllApply;
+
+  /// No description provided for @guideExpertise.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide Expertise'**
+  String get guideExpertise;
+
+  /// No description provided for @guideExpertiseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about your knowledge and experience.'**
+  String get guideExpertiseDesc;
+
+  /// No description provided for @yearsExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Years of Experience'**
+  String get yearsExperience;
+
+  /// No description provided for @knowledgeLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Knowledge Level'**
+  String get knowledgeLevel;
+
+  /// No description provided for @verification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification'**
+  String get verification;
+
+  /// No description provided for @verificationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Help us verify your identity to build trust with travelers.'**
+  String get verificationDesc;
+
+  /// No description provided for @governmentId.
+  ///
+  /// In en, this message translates to:
+  /// **'Government ID'**
+  String get governmentId;
+
+  /// No description provided for @governmentIdDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a clear photo of your government ID.'**
+  String get governmentIdDesc;
+
+  /// No description provided for @profilePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Photo'**
+  String get profilePhoto;
+
+  /// No description provided for @profilePhotoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview from your profile.'**
+  String get profilePhotoDesc;
+
+  /// No description provided for @certification.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification'**
+  String get certification;
+
+  /// No description provided for @certificationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload any guiding license or certification.'**
+  String get certificationDesc;
+
+  /// No description provided for @additionalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Information'**
+  String get additionalInfo;
+
+  /// No description provided for @earnFromHeritage.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn from sharing Nepal\'s living heritage'**
+  String get earnFromHeritage;
+
+  /// No description provided for @fileTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'JPG, PNG or PDF (Max 5MB)'**
+  String get fileTypeHint;
+
+  /// No description provided for @pendingReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Review'**
+  String get pendingReview;
+
+  /// No description provided for @applicationReviewMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you! Our team is reviewing your application and will verify your details. You\'ll be notified within 1–2 business days.'**
+  String get applicationReviewMsg;
+
+  /// No description provided for @applicationReviewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t submit another application until this one has been reviewed.'**
+  String get applicationReviewNote;
+
+  /// No description provided for @aboutYourselfDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us a little about yourself and your passion for heritage.'**
+  String get aboutYourselfDesc;
+
+  /// No description provided for @confirmInfoAccurate.
+  ///
+  /// In en, this message translates to:
+  /// **'I confirm that the information provided is true and accurate.'**
+  String get confirmInfoAccurate;
+
+  /// No description provided for @selectDateTimeSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select date and time slot.'**
+  String get selectDateTimeSlot;
+
+  /// No description provided for @bookingRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking request sent! The guide will confirm shortly.'**
+  String get bookingRequestSent;
+
+  /// No description provided for @bookingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking failed: {error}'**
+  String bookingFailed(String error);
+
+  /// No description provided for @loginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Required'**
+  String get loginRequired;
+
+  /// No description provided for @loginRequiredDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be logged in to book a guide.'**
+  String get loginRequiredDesc;
+
+  /// No description provided for @specialRequestsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Any special requests, sites to visit...'**
+  String get specialRequestsHint;
+
+  /// No description provided for @confirmBookingRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Booking Request'**
+  String get confirmBookingRequest;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated.'**
+  String get profileUpdated;
+
+  /// No description provided for @couldntSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save. Please try again.'**
+  String get couldntSave;
+
+  /// No description provided for @requestPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Request pending — awaiting response'**
+  String get requestPending;
+
+  /// No description provided for @yourGuideProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your guide profile'**
+  String get yourGuideProfile;
+
+  /// No description provided for @reviewGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Review {name}'**
+  String reviewGuide(String name);
+
+  /// No description provided for @reviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your experience (optional)…'**
+  String get reviewHint;
+
+  /// No description provided for @searchGuidesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search guides by name, language...'**
+  String get searchGuidesHint;
+
+  /// No description provided for @guidesSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all →'**
+  String get guidesSeeAll;
+
+  /// No description provided for @availableToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Available today 9 AM – 6 PM'**
+  String get availableToday;
+
+  /// No description provided for @notAcceptingBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Not accepting bookings'**
+  String get notAcceptingBookings;
+
+  /// No description provided for @nprAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'NPR {amount}'**
+  String nprAmount(String amount);
+
+  /// No description provided for @failedLoadGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load guides. Tap refresh to retry.'**
+  String get failedLoadGuides;
+
+  /// No description provided for @avgRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Rating'**
+  String get avgRating;
+
+  /// No description provided for @labelAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get labelAbout;
+
+  /// No description provided for @bookingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'BOOKING REQUESTS'**
+  String get bookingRequests;
+
+  /// No description provided for @myGuideProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'My Guide Profile'**
+  String get myGuideProfile;
+
+  /// No description provided for @manageListing.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your listing'**
+  String get manageListing;
+
+  /// No description provided for @thisMonthEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month\'s Earnings'**
+  String get thisMonthEarnings;
+
+  /// No description provided for @availabilitySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'AVAILABILITY & SETTINGS'**
+  String get availabilitySettings;
+
+  /// No description provided for @couldntSaveSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save setting. Try again.'**
+  String get couldntSaveSetting;
+
+  /// No description provided for @verifiedGuideActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified Guide · Active'**
+  String get verifiedGuideActive;
+
+  /// No description provided for @labelActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get labelActive;
+
+  /// No description provided for @unescoZone.
+  ///
+  /// In en, this message translates to:
+  /// **'UNESCO World Heritage Zone'**
+  String get unescoZone;
+
+  /// No description provided for @topSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Sites'**
+  String get topSites;
+
+  /// No description provided for @noPublishedSites.
+  ///
+  /// In en, this message translates to:
+  /// **'No published sites yet.'**
+  String get noPublishedSites;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete your account and all your data including bookmarks, visits, and bookings. This action cannot be undone.'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @fieldBio.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get fieldBio;
+
+  /// No description provided for @bioHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell tourists about yourself'**
+  String get bioHint;
+
+  /// No description provided for @fieldHourlyRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Hourly rate (NPR)'**
+  String get fieldHourlyRate;
+
+  /// No description provided for @rateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 1500'**
+  String get rateHint;
+
+  /// No description provided for @languagesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'English, Nepali, Newari'**
+  String get languagesHint;
+
+  /// No description provided for @fieldSpecialties.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialties'**
+  String get fieldSpecialties;
+
+  /// No description provided for @specialtiesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'History, Temples, Photography'**
+  String get specialtiesHint;
+
+  /// No description provided for @statGuidesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Guides Available'**
+  String get statGuidesAvailable;
+
+  /// No description provided for @statDistrictsCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Districts Covered'**
+  String get statDistrictsCovered;
+
+  /// No description provided for @sectionFeaturedGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'FEATURED GUIDES'**
+  String get sectionFeaturedGuides;
+
+  /// No description provided for @sectionNearbyGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'NEARBY GUIDES'**
+  String get sectionNearbyGuides;
+
+  /// No description provided for @labelPerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'per hour'**
+  String get labelPerHour;
+
+  /// No description provided for @joinVerifiedGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'Join 248 verified guides'**
+  String get joinVerifiedGuides;
 }
 
 class _AppLocalizationsDelegate

@@ -241,10 +241,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (_, p, __) => p.districts.length > 8
                         ? TextButton(
                             onPressed: () => Navigator.pushNamed(context, AppStrings.searchPath),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Text('See All', style: TextStyle(color: Color(0xFFD4520A))),
-                                Icon(Icons.arrow_forward, size: 16, color: Color(0xFFD4520A)),
+                                Text(l10n.seeAll, style: const TextStyle(color: Color(0xFFD4520A))),
+                                const Icon(Icons.arrow_forward, size: 16, color: Color(0xFFD4520A)),
                               ],
                             ),
                           )
@@ -538,10 +538,10 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
             ),
           );
         } else if (featured.isEmpty) {
-          content = const SizedBox(
-            key: ValueKey('featured-empty'),
+          content = SizedBox(
+            key: const ValueKey('featured-empty'),
             height: 200,
-            child: Center(child: Text('No featured heritage sites found')),
+            child: Center(child: Text(AppLocalizations.of(context)!.noFeaturedSites)),
           );
         } else {
           content = SizedBox(

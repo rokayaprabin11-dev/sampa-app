@@ -76,9 +76,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         TextButton(
                           onPressed: () => context.read<NotificationProvider>().markAllRead(),
-                          child: const Text(
-                            'Mark all read',
-                            style: TextStyle(color: Color(0xFFC89932), fontSize: 14),
+                          child: Text(
+                            l10n.notifMarkAllRead,
+                            style: const TextStyle(color: Color(0xFFC89932), fontSize: 14),
                           ),
                         ),
                       ],
@@ -201,7 +201,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               size: 64, color: isDark ? AppColors.darkTextSecondary : const Color(0xFFB08060)),
           const SizedBox(height: 16),
           Text(
-            'No notifications yet',
+            AppLocalizations.of(context)!.emptyNotifications,
             style: TextStyle(
               fontSize: 16,
               color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),

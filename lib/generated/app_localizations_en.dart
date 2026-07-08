@@ -120,6 +120,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get btnClearFilter => 'Clear Filter';
 
   @override
+  String get btnForgotPassword => 'Forgot Password?';
+
+  @override
+  String get btnBackToLogin => 'Back to Login';
+
+  @override
+  String get btnResendEmail => 'Resend Email';
+
+  @override
+  String get btnDeleteAccount => 'Delete Account';
+
+  @override
+  String get btnBackToHome => 'Back to Home';
+
+  @override
+  String get btnRequestGuide => 'Request Guide';
+
+  @override
+  String get btnAccept => 'Accept';
+
+  @override
+  String get btnReject => 'Reject';
+
+  @override
+  String get btnViewMyListing => 'View My Listing';
+
+  @override
+  String get btnEditProfile => 'Edit Profile';
+
+  @override
+  String get btnBookThisGuide => 'Book This Guide';
+
+  @override
+  String get btnSaveChanges => 'Save Changes';
+
+  @override
+  String get btnLearnMore => 'Learn More';
+
+  @override
   String get catAll => 'All';
 
   @override
@@ -520,4 +559,331 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutSampada => 'About Sampada';
+
+  @override
+  String get noFeaturedSites => 'No featured heritage sites found';
+
+  @override
+  String get noSubHeritage => 'No sub heritage available';
+
+  @override
+  String get unescoHeritage => 'UNESCO Heritage';
+
+  @override
+  String get heritageMapTitle => 'Heritage Map';
+
+  @override
+  String get clearHistory => 'Clear History';
+
+  @override
+  String get clearHistoryConfirm =>
+      'Are you sure you want to delete all visit history?';
+
+  @override
+  String get searchHeritageHint => 'Search heritage sites...';
+
+  @override
+  String get recentSearches => 'Recent searches';
+
+  @override
+  String get btnClear => 'Clear';
+
+  @override
+  String get exploreHeritage => 'Explore Heritage';
+
+  @override
+  String get searchHeritageEmptyTitle => 'Search heritage sites';
+
+  @override
+  String get searchHeritageEmptyBody =>
+      'Type a name or city, or pick a category above to explore Nepal\'s heritage.';
+
+  @override
+  String get labelNotFound => 'Not Found';
+
+  @override
+  String get settingsOn => 'On';
+
+  @override
+  String get settingsWifiOnly => 'Wi-Fi Only';
+
+  @override
+  String get settingsOff => 'Off';
+
+  @override
+  String get langEngShort => 'Eng';
+
+  @override
+  String get langNepShort => 'Nep';
+
+  @override
+  String get resetPassword => 'Reset Password';
+
+  @override
+  String get resetPasswordDesc =>
+      'Enter your email address and we will send you a link to reset your password.';
+
+  @override
+  String get passwordResetSent => 'Password reset link sent to your email.';
+
+  @override
+  String get btnSendLink => 'Send Link';
+
+  @override
+  String get verificationResent => 'Verification email resent!';
+
+  @override
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get enterEmailToReset => 'Please enter your email to reset password';
+
+  @override
+  String get passwordResetEmailSent => 'Password reset email sent!';
+
+  @override
+  String get enterPasswordConfirm => 'Enter your password to confirm';
+
+  @override
+  String get confirmChanges => 'Confirm Changes';
+
+  @override
+  String get enterCurrentPassword =>
+      'Please enter your current password to save changes.';
+
+  @override
+  String uploadFailed(String error) {
+    return 'Upload failed: $error';
+  }
+
+  @override
+  String get fileTooLarge => 'File must be 5 MB or less.';
+
+  @override
+  String get onlyJpgPng => 'Only JPG or PNG files are allowed.';
+
+  @override
+  String get becomeGuide => 'Become a Guide';
+
+  @override
+  String get becomeGuideSubtitle => 'Share your heritage knowledge';
+
+  @override
+  String get selectAllApply => 'Select all that apply';
+
+  @override
+  String get guideExpertise => 'Guide Expertise';
+
+  @override
+  String get guideExpertiseDesc =>
+      'Tell us about your knowledge and experience.';
+
+  @override
+  String get yearsExperience => 'Years of Experience';
+
+  @override
+  String get knowledgeLevel => 'Knowledge Level';
+
+  @override
+  String get verification => 'Verification';
+
+  @override
+  String get verificationDesc =>
+      'Help us verify your identity to build trust with travelers.';
+
+  @override
+  String get governmentId => 'Government ID';
+
+  @override
+  String get governmentIdDesc => 'Upload a clear photo of your government ID.';
+
+  @override
+  String get profilePhoto => 'Profile Photo';
+
+  @override
+  String get profilePhotoDesc => 'Preview from your profile.';
+
+  @override
+  String get certification => 'Certification';
+
+  @override
+  String get certificationDesc =>
+      'Upload any guiding license or certification.';
+
+  @override
+  String get additionalInfo => 'Additional Information';
+
+  @override
+  String get earnFromHeritage => 'Earn from sharing Nepal\'s living heritage';
+
+  @override
+  String get fileTypeHint => 'JPG, PNG or PDF (Max 5MB)';
+
+  @override
+  String get pendingReview => 'Pending Review';
+
+  @override
+  String get applicationReviewMsg =>
+      'Thank you! Our team is reviewing your application and will verify your details. You\'ll be notified within 1–2 business days.';
+
+  @override
+  String get applicationReviewNote =>
+      'You can\'t submit another application until this one has been reviewed.';
+
+  @override
+  String get aboutYourselfDesc =>
+      'Tell us a little about yourself and your passion for heritage.';
+
+  @override
+  String get confirmInfoAccurate =>
+      'I confirm that the information provided is true and accurate.';
+
+  @override
+  String get selectDateTimeSlot => 'Please select date and time slot.';
+
+  @override
+  String get bookingRequestSent =>
+      'Booking request sent! The guide will confirm shortly.';
+
+  @override
+  String bookingFailed(String error) {
+    return 'Booking failed: $error';
+  }
+
+  @override
+  String get loginRequired => 'Login Required';
+
+  @override
+  String get loginRequiredDesc => 'You need to be logged in to book a guide.';
+
+  @override
+  String get specialRequestsHint => 'Any special requests, sites to visit...';
+
+  @override
+  String get confirmBookingRequest => 'Confirm Booking Request';
+
+  @override
+  String get profileUpdated => 'Profile updated.';
+
+  @override
+  String get couldntSave => 'Couldn\'t save. Please try again.';
+
+  @override
+  String get requestPending => 'Request pending — awaiting response';
+
+  @override
+  String get yourGuideProfile => 'This is your guide profile';
+
+  @override
+  String reviewGuide(String name) {
+    return 'Review $name';
+  }
+
+  @override
+  String get reviewHint => 'Share your experience (optional)…';
+
+  @override
+  String get searchGuidesHint => 'Search guides by name, language...';
+
+  @override
+  String get guidesSeeAll => 'See all →';
+
+  @override
+  String get availableToday => 'Available today 9 AM – 6 PM';
+
+  @override
+  String get notAcceptingBookings => 'Not accepting bookings';
+
+  @override
+  String nprAmount(String amount) {
+    return 'NPR $amount';
+  }
+
+  @override
+  String get failedLoadGuides => 'Failed to load guides. Tap refresh to retry.';
+
+  @override
+  String get avgRating => 'Avg Rating';
+
+  @override
+  String get labelAbout => 'About';
+
+  @override
+  String get bookingRequests => 'BOOKING REQUESTS';
+
+  @override
+  String get myGuideProfile => 'My Guide Profile';
+
+  @override
+  String get manageListing => 'Manage your listing';
+
+  @override
+  String get thisMonthEarnings => 'This Month\'s Earnings';
+
+  @override
+  String get availabilitySettings => 'AVAILABILITY & SETTINGS';
+
+  @override
+  String get couldntSaveSetting => 'Couldn\'t save setting. Try again.';
+
+  @override
+  String get verifiedGuideActive => 'Verified Guide · Active';
+
+  @override
+  String get labelActive => 'Active';
+
+  @override
+  String get unescoZone => 'UNESCO World Heritage Zone';
+
+  @override
+  String get topSites => 'Top Sites';
+
+  @override
+  String get noPublishedSites => 'No published sites yet.';
+
+  @override
+  String get deleteAccountWarning =>
+      'This will permanently delete your account and all your data including bookmarks, visits, and bookings. This action cannot be undone.';
+
+  @override
+  String get fieldBio => 'Bio';
+
+  @override
+  String get bioHint => 'Tell tourists about yourself';
+
+  @override
+  String get fieldHourlyRate => 'Hourly rate (NPR)';
+
+  @override
+  String get rateHint => 'e.g. 1500';
+
+  @override
+  String get languagesHint => 'English, Nepali, Newari';
+
+  @override
+  String get fieldSpecialties => 'Specialties';
+
+  @override
+  String get specialtiesHint => 'History, Temples, Photography';
+
+  @override
+  String get statGuidesAvailable => 'Guides Available';
+
+  @override
+  String get statDistrictsCovered => 'Districts Covered';
+
+  @override
+  String get sectionFeaturedGuides => 'FEATURED GUIDES';
+
+  @override
+  String get sectionNearbyGuides => 'NEARBY GUIDES';
+
+  @override
+  String get labelPerHour => 'per hour';
+
+  @override
+  String get joinVerifiedGuides => 'Join 248 verified guides';
 }

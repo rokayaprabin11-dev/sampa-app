@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:nepali_utils/nepali_utils.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -141,7 +142,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
                   if (e.description.isNotEmpty) ...[
                     const SizedBox(height: 24),
-                    Text('About', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accent)),
+                    Text(AppLocalizations.of(context)!.labelAbout, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accent)),
                     const SizedBox(height: 8),
                     Text(
                       e.description,
@@ -151,7 +152,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
                   if (images.length > 1) ...[
                     const SizedBox(height: 24),
-                    Text('Gallery', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accent)),
+                    Text(AppLocalizations.of(context)!.sectionGallery, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accent)),
                     const SizedBox(height: 12),
                     SizedBox(
                       height: 90,

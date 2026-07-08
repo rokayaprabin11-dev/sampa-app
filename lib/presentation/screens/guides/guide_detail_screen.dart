@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -47,7 +48,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
   Future<void> _submitBooking() async {
     if (_selectedDate == null || _startTime == null || _endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select date and time slot.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.selectDateTimeSlot)),
       );
       return;
     }
@@ -67,8 +68,8 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Booking request sent! The guide will confirm shortly.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.bookingRequestSent),
           backgroundColor: AppColors.statusSuccess,
         ),
       );
@@ -76,7 +77,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Booking failed: ${e.toString()}'), backgroundColor: AppColors.statusError),
+        SnackBar(content: Text(AppLocalizations.of(context)!.bookingFailed(e.toString())), backgroundColor: AppColors.statusError),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -85,6 +86,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final guide = widget.guide;
     final user = guide['user'] as Map<String, dynamic>? ?? {};
@@ -288,12 +290,12 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                         showDialog(
                           context: context,
                           builder: (_) => AlertDialog(
-                            title: const Text('Login Required'),
-                            content: const Text('You need to be logged in to book a guide.'),
+                            title: Text(l10n.loginRequired),
+                            content: Text(l10n.loginRequiredDesc),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
+                                child: Text(l10n.btnCancel),
                               ),
                               ElevatedButton(
                                 onPressed: () {
@@ -301,7 +303,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                                   Navigator.pushNamed(context, AppStrings.loginPath);
                                 },
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7B1E00)),
-                                child: const Text('Login', style: TextStyle(color: Colors.white)),
+                                child: Text(l10n.login, style: const TextStyle(color: Colors.white)),
                               ),
                             ],
                           ),
@@ -323,8 +325,8 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                         children: [
                           const Icon(Icons.calendar_today, color: AppColors.kColorBgWarm, size: 20),
                           const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text('Book This Guide', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                          Expanded(
+                            child: Text(l10n.btnBookThisGuide, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                           ),
                           Icon(_bookingExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.white70),
                         ],
@@ -348,6 +350,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
   }
 
   Widget _buildBookingForm(BuildContext context, bool isDark) {
+    final l10n = AppLocalizations.of(context)!;
     final cardColor = isDark ? AppColors.darkBgCard : Colors.white;
     final borderColor = isDark ? AppColors.darkBorder : const Color(0xFFF7EED3);
 
@@ -427,7 +430,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
             maxLines: 3,
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
             decoration: InputDecoration(
-              hintText: 'Any special requests, sites to visit...',
+              hintText: l10n.specialRequestsHint,
               hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 13),
               contentPadding: const EdgeInsets.all(12),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8))),
@@ -449,7 +452,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
               ),
               child: _submitting
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text('Confirm Booking Request', style: TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  : Text(l10n.confirmBookingRequest, style: TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
             ),
           ),
         ],

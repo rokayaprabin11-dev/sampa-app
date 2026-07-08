@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -112,7 +113,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       children: [
         Row(
           children: [
-            Text('BOOKING REQUESTS',
+            Text(AppLocalizations.of(context)!.bookingRequests,
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: accent)),
             const SizedBox(width: 8),
             Container(
@@ -131,6 +132,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   }
 
   Widget _requestCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
+    final l10n = AppLocalizations.of(context)!;
     final id = b['id'] as int;
     final name = (b['tourist_name'] ?? 'Tourist').toString();
     final date = (b['date'] ?? '').toString();
@@ -189,7 +191,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
-                  child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  child: Text(l10n.btnReject, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -203,7 +205,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
-                  child: const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  child: Text(l10n.btnAccept, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 ),
               ),
             ],
@@ -244,11 +246,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 8),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('My Guide Profile', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                  Text('Manage your listing', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.myGuideProfile, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(AppLocalizations.of(context)!.manageListing, style: const TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ],
@@ -276,7 +278,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              isVerified ? 'Verified Guide · Active' : 'Active',
+              isVerified ? AppLocalizations.of(context)!.verifiedGuideActive : AppLocalizations.of(context)!.labelActive,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -345,8 +347,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('NPR $rate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent)),
-                    Text('per hour', style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
+                    Text(AppLocalizations.of(context)!.nprAmount(rate.toString()), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent)),
+                    Text(AppLocalizations.of(context)!.labelPerHour, style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162))),
                   ],
                 ),
             ],
@@ -391,7 +393,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    _availableForBookings ? 'Available today 9 AM – 6 PM' : 'Not accepting bookings',
+                    _availableForBookings ? AppLocalizations.of(context)!.availableToday : AppLocalizations.of(context)!.notAcceptingBookings,
                     style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162)),
                   ),
                 ),
@@ -448,7 +450,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'AVAILABILITY & SETTINGS',
+          AppLocalizations.of(context)!.availabilitySettings,
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
@@ -508,6 +510,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   // ─── Action buttons ───────────────────────────────────────────
 
   Widget _buildActions(BuildContext context, bool isDark, Map<String, dynamic> p) {
+    final l10n = AppLocalizations.of(context)!;
     final accent = _accent(isDark);
     return Row(
       children: [
@@ -523,7 +526,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
-            child: const Text('View My Listing', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            child: Text(l10n.btnViewMyListing, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
         ),
         const SizedBox(width: 12),
@@ -536,7 +539,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
-            child: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            child: Text(l10n.btnEditProfile, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
         ),
       ],
@@ -564,10 +567,10 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("This Month's Earnings",
+                Text(AppLocalizations.of(context)!.thisMonthEarnings,
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF9A6200))),
                 const SizedBox(height: 4),
-                Text('NPR $earnings',
+                Text(AppLocalizations.of(context)!.nprAmount(earnings.toString()),
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF9A6200))),
               ],
             ),
@@ -604,7 +607,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Couldn't save setting. Try again.")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.couldntSaveSetting)),
       );
     }
   }

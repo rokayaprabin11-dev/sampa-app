@@ -271,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Eng', style: TextStyle(fontSize: 14, color: Color(0xFF8C7162))),
+                        Text(l10n.langEngShort, style: const TextStyle(fontSize: 14, color: Color(0xFF8C7162))),
                         const SizedBox(width: 8),
                         SizedBox(
                           height: 30,
@@ -288,7 +288,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text('Nep', style: TextStyle(fontSize: 14, color: Color(0xFF8C7162))),
+                        Text(l10n.langNepShort, style: const TextStyle(fontSize: 14, color: Color(0xFF8C7162))),
                       ],
                     ),
                   ),

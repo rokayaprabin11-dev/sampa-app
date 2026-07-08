@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -80,7 +81,7 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
     return Scaffold(
       backgroundColor: AppColors.offWhite,
       appBar: AppBar(
-        title: const Text('Map'),
+        title: Text(AppLocalizations.of(context)!.navMap),
         backgroundColor: AppColors.primaryBrown,
         foregroundColor: Colors.white,
         actions: [
