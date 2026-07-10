@@ -32,7 +32,12 @@ class _GuideScreenState extends State<GuideScreen> {
   double? _refLng;
 
   Future<void> _locateUser() async {
-    final pos = await LocationService().getAccurateFix();
+    final svc = LocationService();
+    // Accuracy-gated fix first; degrade to the best poor fix, then to one raw
+    // fix (emulator / indoors) — a rough real position beats no label. Only
+    // permission denied / services off leaves labels hidden.
+    final (fix, _) = await svc.getFixWithQuality();
+    final pos = fix ?? await svc.getCurrentPosition();
     if (pos == null || !mounted) return;
     setState(() {
       _refLat = pos.latitude;
@@ -622,9 +627,19 @@ class _GuideScreenState extends State<GuideScreen> {
                         children: [
                           Icon(Icons.location_on, size: 11, color: sub),
                           const SizedBox(width: 2),
-                          Text(
-                            [if (dist != null) dist, _locationOf(guide)].join(' · '),
-                            style: TextStyle(fontSize: 11, color: sub),
+                          Flexible(
+                            child: Text.rich(
+                              TextSpan(children: [
+                                if (dist != null)
+                                  TextSpan(
+                                    text: '$dist · ',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: accent),
+                                  ),
+                                TextSpan(text: _locationOf(guide), style: TextStyle(fontSize: 11, color: sub)),
+                              ]),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -762,9 +777,22 @@ class _GuideScreenState extends State<GuideScreen> {
                         children: [
                           Icon(Icons.location_on, size: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
                           const SizedBox(width: 2),
-                          Text(
-                            [if (dist != null) dist, _locationOf(guide)].join(' · '),
-                            style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
+                          Flexible(
+                            child: Text.rich(
+                              TextSpan(children: [
+                                if (dist != null)
+                                  TextSpan(
+                                    text: '$dist · ',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: accent),
+                                  ),
+                                TextSpan(
+                                  text: _locationOf(guide),
+                                  style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
+                                ),
+                              ]),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),

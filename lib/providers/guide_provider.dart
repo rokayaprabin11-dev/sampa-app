@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/network/api_constants.dart';
 import 'package:sampada/core/network/network_exceptions.dart';
+import 'package:sampada/core/services/location_service.dart';
 
 class GuideProvider with ChangeNotifier {
   final ApiClient _apiClient;
@@ -25,7 +27,54 @@ class GuideProvider with ChangeNotifier {
     _myBookings = [];
     _incomingBookings = [];
     _error = null;
+    _syncLiveTracking(); // profile gone → stop pushing this user's location
     notifyListeners();
+  }
+
+  // ─── Live location (guide side) ───────────────────────────────
+  // While the logged-in user is an approved guide who is available for
+  // bookings, push a validated GPS fix every [_livePingInterval] so tourists
+  // see a current distance on guide cards. Foreground-only by design: the
+  // timer dies with the app; it restarts whenever the profile is refetched.
+
+  Timer? _liveLocationTimer;
+  static const Duration _livePingInterval = Duration(minutes: 5);
+
+  void _syncLiveTracking() {
+    final p = _myProfile;
+    final shouldTrack = p != null &&
+        p['status'] == 'approved' &&
+        (p['available_for_bookings'] as bool? ?? false);
+    if (shouldTrack && _liveLocationTimer == null) {
+      _pushLiveLocation(); // immediate first ping
+      _liveLocationTimer =
+          Timer.periodic(_livePingInterval, (_) => _pushLiveLocation());
+    } else if (!shouldTrack) {
+      _liveLocationTimer?.cancel();
+      _liveLocationTimer = null;
+    }
+  }
+
+  Future<void> _pushLiveLocation() async {
+    // Accuracy-gated (Kalman-smoothed) fix first, one raw fix as fallback.
+    // The backend drops mocked or >200 m fixes, so junk never goes live.
+    final svc = LocationService();
+    final pos = await svc.getAccurateFix() ?? await svc.getCurrentPosition();
+    if (pos == null) return;
+    try {
+      await _apiClient.post(ApiEndpoints.guideLocationUpdate, data: {
+        'lat': pos.latitude,
+        'lng': pos.longitude,
+        'accuracy_m': pos.accuracy,
+        'is_mocked': pos.isMocked,
+      });
+    } catch (_) {/* best-effort; the next tick retries */}
+  }
+
+  @override
+  void dispose() {
+    _liveLocationTimer?.cancel();
+    super.dispose();
   }
 
   List<Map<String, dynamic>> get guides => _guides;
@@ -65,13 +114,16 @@ class GuideProvider with ChangeNotifier {
 
   Future<void> fetchMyProfile() async {
     try {
-      _myProfile = await _apiClient.get(ApiEndpoints.guideMe);
+      final data = await _apiClient.get(ApiEndpoints.guideMe);
+      _myProfile = (data is Map<String, dynamic>) ? data : null;
+      _syncLiveTracking();
       notifyListeners();
     } on ServerException catch (e) {
       // 404 = the logged-in user simply isn't a guide. Expected, not an error —
       // clear any stale profile silently instead of logging noise.
       if (e.statusCode == 404) {
         _myProfile = null;
+        _syncLiveTracking();
         notifyListeners();
       } else {
         debugPrint('Error fetching guide profile: $e');
@@ -87,6 +139,7 @@ class GuideProvider with ChangeNotifier {
     try {
       final result = await _apiClient.patch(ApiEndpoints.guideMe, data: data);
       if (result is Map<String, dynamic>) _myProfile = result;
+      _syncLiveTracking(); // available_for_bookings may have toggled
       notifyListeners();
       return null;
     } catch (e) {

@@ -76,10 +76,15 @@ class NotificationService {
       final n = msg.notification;
       if (n != null) {
         await _saveToLocal(msg);
+        // Image can arrive as data['image_url'] (our senders) or on the
+        // platform notification block (notification.image) — accept both.
+        final image = (msg.data['image_url'] as String?) ??
+            n.android?.imageUrl ??
+            n.apple?.imageUrl;
         await _showRich(
           title: n.title ?? '',
           body: n.body ?? '',
-          imageUrl: msg.data['image_url'] as String?,
+          imageUrl: image,
           payload: _encodePayload(msg),
         );
       }

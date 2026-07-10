@@ -34,4 +34,5 @@ class TextSizeProvider with ChangeNotifier {
     _textSize = size;
     notifyListeners();
   }
+
 }
