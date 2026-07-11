@@ -5,6 +5,7 @@ import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:nepali_utils/nepali_utils.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/data/models/cultural_event.dart';
 import 'package:sampada/providers/event_provider.dart';
 
@@ -152,6 +153,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           : null,
                     ),
                   ],
+                  if (e.latitude != 0.0 && e.longitude != 0.0) ...[
+                    const SizedBox(height: 16),
+                    _viewOnMapButton(context, isDark, accent),
+                  ],
 
                   if (e.shortDescription.isNotEmpty) ...[
                     const SizedBox(height: 20),
@@ -275,6 +280,33 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _viewOnMapButton(BuildContext context, bool isDark, Color accent) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => Navigator.pushNamed(
+          context,
+          AppStrings.mapPath,
+          arguments: widget.event,
+        ),
+        icon: Icon(Icons.map_outlined, size: 18, color: accent),
+        label: Text(
+          AppLocalizations.of(context)!.btnViewOnMap,
+          style: TextStyle(
+              color: accent, fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          side: BorderSide(
+              color: isDark ? AppColors.darkBorder : const Color(0xFFE0D3C2)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+          ),
+        ),
+      ),
     );
   }
 

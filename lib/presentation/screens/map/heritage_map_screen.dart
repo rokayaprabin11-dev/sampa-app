@@ -14,9 +14,12 @@ import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/core/services/route_service.dart';
 import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/injection.dart' as di;
+import 'package:sampada/data/models/cultural_event.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
+import 'package:sampada/presentation/screens/events/event_detail_screen.dart';
+import 'package:sampada/providers/event_provider.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 
 const _nepalCenter = LatLng(28.3949, 84.1240);
@@ -24,9 +27,39 @@ const _defaultZoom = 7.0;
 const _siteZoom = 15.5;
 const _userZoom = 13.0;
 
+/// A point plotted on the map — either a heritage site or a cultural event.
+/// Unifies the two so markers, selection, the bottom card and directions all
+/// work generically; the concrete model is kept for navigation.
+class _MapItem {
+  final String key; // 's<id>' / 'e<id>' — unique across both types
+  final double lat;
+  final double lng;
+  final String title;
+  final String subtitle; // district (site) or location name (event)
+  final String emoji;
+  final bool isEvent;
+  final HeritageSite? site;
+  final CulturalEvent? event;
+
+  const _MapItem({
+    required this.key,
+    required this.lat,
+    required this.lng,
+    required this.title,
+    required this.subtitle,
+    required this.emoji,
+    required this.isEvent,
+    this.site,
+    this.event,
+  });
+
+  LatLng get point => LatLng(lat, lng);
+}
+
 class HeritageMapScreen extends StatefulWidget {
   final HeritageSite? focusSite;
-  const HeritageMapScreen({super.key, this.focusSite});
+  final CulturalEvent? focusEvent;
+  const HeritageMapScreen({super.key, this.focusSite, this.focusEvent});
 
   @override
   State<HeritageMapScreen> createState() => _HeritageMapScreenState();
@@ -39,17 +72,17 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   AnimationController? _flyController;
 
   Position? _userPosition;
-  HeritageSite? _selectedSite;
+  _MapItem? _selected;
   bool _locating = false;
 
   late final RouteService _routeService =
       RouteService(apiClient: di.sl<ApiClient>());
   RouteResult? _route;
-  HeritageSite? _routeSite;
+  String? _routeKey;
   bool _routing = false;
 
   Timer? _debounce;
-  List<HeritageSite> _suggestions = const [];
+  List<_MapItem> _suggestions = const [];
   late final AnimationController _bounceController;
   late final Animation<double> _bounce;
 
@@ -70,18 +103,40 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
           weight: 60),
     ]).animate(_bounceController);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<HeritageProvider>().fetchSites();
+      // Capture providers before any await so we don't touch context across
+      // the async gap.
+      final heritage = context.read<HeritageProvider>();
+      final events = context.read<EventProvider>();
+      await heritage.fetchSites();
+      if (events.eventsWithLocation.isEmpty) {
+        // Best-effort: don't await — sites render immediately, event pins
+        // drop in when the fetch lands (Consumer rebuilds the marker layer).
+        unawaited(events.loadUpcomingEvents());
+      }
       if (!mounted) return;
-      final site = widget.focusSite;
-      if (site != null && _validCoords(site)) {
-        setState(() => _selectedSite = site);
+
+      final focus = _focusItem();
+      if (focus != null) {
+        setState(() => _selected = focus);
         // Let FlutterMap finish its own init before the camera flight.
         await Future.delayed(const Duration(milliseconds: 300));
-        if (mounted) _flyTo(LatLng(site.latitude, site.longitude), _siteZoom);
+        if (mounted) _flyTo(focus.point, _siteZoom, bounceOnArrival: true);
       } else {
         _tryLocate();
       }
     });
+  }
+
+  _MapItem? _focusItem() {
+    final site = widget.focusSite;
+    if (site != null && _inNepal(site.latitude, site.longitude)) {
+      return _fromSite(site);
+    }
+    final event = widget.focusEvent;
+    if (event != null && _inNepal(event.latitude, event.longitude)) {
+      return _fromEvent(event);
+    }
+    return null;
   }
 
   @override
@@ -139,7 +194,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
       );
     });
     controller.forward().whenComplete(() {
-      if (bounceOnArrival && mounted && _selectedSite != null) {
+      if (bounceOnArrival && mounted && _selected != null) {
         _bounceController.forward(from: 0);
       }
     });
@@ -174,8 +229,9 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   // ── Directions ────────────────────────────────────────────────────────────
 
   /// User GPS → backend /geo/route/ (Django proxies OSRM) → decoded polyline
-  /// drawn on the map, camera fitted to the whole route.
-  Future<void> _onDirections(HeritageSite site) async {
+  /// drawn on the map, camera fitted to the whole route. Works for both a
+  /// heritage site and an event — the destination is just a coordinate.
+  Future<void> _onDirections(_MapItem item) async {
     final l10n = AppLocalizations.of(context)!;
 
     var pos = _userPosition;
@@ -193,13 +249,13 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
 
     setState(() {
       _routing = true;
-      _routeSite = site;
-      _selectedSite = site;
+      _routeKey = item.key;
+      _selected = item;
     });
     try {
       final route = await _routeService.fetchRoute(
         start: LatLng(pos.latitude, pos.longitude),
-        dest: LatLng(site.latitude, site.longitude),
+        dest: item.point,
       );
       if (!mounted) return;
       if (route == null) {
@@ -234,64 +290,78 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   void _clearRoute() {
     setState(() {
       _route = null;
-      _routeSite = null;
+      _routeKey = null;
     });
   }
 
-  // ── Search ────────────────────────────────────────────────────────────────
+  // ── Search (heritage sites + events) ───────────────────────────────────────
 
-  /// Viewport-aware ranking, Google-Maps style. Weights:
-  /// name match 40% · visible in current viewport 25% · near user 15% ·
-  /// popularity 10% · featured/UNESCO 10%. So "Durbar" prefers Bhaktapur
-  /// Durbar Square when the camera is already over Bhaktapur.
-  List<HeritageSite> _rankSuggestions(String query) {
+  /// Viewport-aware ranking, Google-Maps style, over both sites and events.
+  /// Weights: name match 40% · visible in current viewport 25% · near user
+  /// 15% · popularity 10% · priority (featured/UNESCO, or event priority) 10%.
+  /// So "Durbar" prefers Bhaktapur Durbar Square when the camera is already
+  /// over Bhaktapur; an event named "…Jatra" surfaces alongside sites.
+  List<_MapItem> _rankSuggestions(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return const [];
+    final qRaw = query.trim();
 
-    final sites = context.read<HeritageProvider>().sites.where(_validCoords);
     final bounds = _mapController.camera.visibleBounds;
     final pos = _userPosition;
 
-    final scored = <(HeritageSite, double)>[];
-    for (final s in sites) {
-      final name = s.name.toLowerCase();
-      double match;
-      if (name == q) {
-        match = 1.0;
-      } else if (name.startsWith(q)) {
-        match = 0.8;
-      } else if (name.contains(q) || s.nameNepali.contains(query.trim())) {
-        match = 0.5;
-      } else if (s.location.toLowerCase().contains(q) ||
-          s.district.toLowerCase().contains(q)) {
-        match = 0.35;
-      } else {
-        continue;
+    // Tiered name/location match; null means "no match, skip".
+    double? matchOf(String name, String nepali, String location, String tag) {
+      final n = name.toLowerCase();
+      if (n == q) return 1.0;
+      if (n.startsWith(q)) return 0.8;
+      if (n.contains(q) || (nepali.isNotEmpty && nepali.contains(qRaw))) {
+        return 0.5;
       }
+      if (location.toLowerCase().contains(q) || tag.toLowerCase().contains(q)) {
+        return 0.35;
+      }
+      return null;
+    }
 
-      final visible =
-          bounds.contains(LatLng(s.latitude, s.longitude)) ? 1.0 : 0.0;
-
+    double score(_MapItem item, double match, double popularity, double priority) {
+      final visible = bounds.contains(item.point) ? 1.0 : 0.0;
       var proximity = 0.0;
       if (pos != null) {
         final km = GeoDistance.haversineKm(
-            pos.latitude, pos.longitude, s.latitude, s.longitude);
+            pos.latitude, pos.longitude, item.lat, item.lng);
         proximity = (1 - km / 50).clamp(0.0, 1.0);
       }
+      return 0.40 * match +
+          0.25 * visible +
+          0.15 * proximity +
+          0.10 * popularity +
+          0.10 * priority;
+    }
 
+    final scored = <(_MapItem, double)>[];
+
+    for (final s in context.read<HeritageProvider>().sites) {
+      if (!_inNepal(s.latitude, s.longitude)) continue;
+      final m = matchOf(s.name, s.nameNepali, s.location, s.district);
+      if (m == null) continue;
       final popularity =
           (s.rating / 5).clamp(0.0, 1.0) * (s.reviewsCount > 0 ? 1.0 : 0.5);
       final priority = (s.isFeatured || s.isUnesco) ? 1.0 : 0.0;
-
-      scored.add((
-        s,
-        0.40 * match +
-            0.25 * visible +
-            0.15 * proximity +
-            0.10 * popularity +
-            0.10 * priority
-      ));
+      final item = _fromSite(s);
+      scored.add((item, score(item, m, popularity, priority)));
     }
+
+    for (final e in context.read<EventProvider>().eventsWithLocation) {
+      if (!_inNepal(e.latitude, e.longitude)) continue;
+      final m = matchOf(e.title, e.titleNepali, e.locationName, e.eventType);
+      if (m == null) continue;
+      final popularity = (e.rsvpCount / 50).clamp(0.0, 1.0);
+      final priority =
+          e.priority == 'high' ? 1.0 : (e.priority == 'low' ? 0.0 : 0.5);
+      final item = _fromEvent(e);
+      scored.add((item, score(item, m, popularity, priority)));
+    }
+
     scored.sort((a, b) => b.$2.compareTo(a.$2));
     return scored.take(6).map((e) => e.$1).toList();
   }
@@ -311,16 +381,17 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     setState(() {}); // refresh clear-button visibility
   }
 
-  void _selectSuggestion(HeritageSite site) {
+  void _selectItem(_MapItem item, {bool fromSearch = false}) {
     _debounce?.cancel();
-    _searchController.text = site.name;
-    FocusScope.of(context).unfocus();
+    if (fromSearch) {
+      _searchController.text = item.title;
+      FocusScope.of(context).unfocus();
+    }
     setState(() {
       _suggestions = const [];
-      _selectedSite = site;
+      _selected = item;
     });
-    _flyTo(LatLng(site.latitude, site.longitude), _siteZoom,
-        bounceOnArrival: true);
+    _flyTo(item.point, _siteZoom, bounceOnArrival: true);
   }
 
   void _onSearch(String query) {
@@ -334,25 +405,65 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
       }
       return;
     }
-    _selectSuggestion(ranked.first);
+    _selectItem(ranked.first, fromSearch: true);
   }
 
   // ── Data helpers ──────────────────────────────────────────────────────────
 
-  bool _validCoords(HeritageSite site) {
-    if (site.latitude == 0.0 && site.longitude == 0.0) return false; // GEO-002
-    if (site.latitude < 26.0 || site.latitude > 30.5) return false; // Nepal bounds
-    if (site.longitude < 80.0 || site.longitude > 88.2) return false;
+  bool _inNepal(double lat, double lng) {
+    if (lat == 0.0 && lng == 0.0) return false; // GEO-002 placeholder
+    if (lat < 26.0 || lat > 30.5) return false; // Nepal bounds
+    if (lng < 80.0 || lng > 88.2) return false;
     return true;
   }
 
-  /// Two closest sites to the user; without a fix, the first two sites
+  _MapItem _fromSite(HeritageSite s) => _MapItem(
+        key: 's${s.id}',
+        lat: s.latitude,
+        lng: s.longitude,
+        title: s.name,
+        subtitle: s.district,
+        emoji: _siteEmoji(s.category),
+        isEvent: false,
+        site: s,
+      );
+
+  _MapItem _fromEvent(CulturalEvent e) => _MapItem(
+        key: 'e${e.id}',
+        lat: e.latitude,
+        lng: e.longitude,
+        title: e.title,
+        subtitle: e.locationName,
+        emoji: _eventEmoji(e.eventType),
+        isEvent: true,
+        event: e,
+      );
+
+  List<_MapItem> _allItems(HeritageProvider heritage, EventProvider events) {
+    final items = <_MapItem>[];
+    for (final s in heritage.sites) {
+      if (_inNepal(s.latitude, s.longitude)) items.add(_fromSite(s));
+    }
+    for (final e in events.eventsWithLocation) {
+      if (_inNepal(e.latitude, e.longitude)) items.add(_fromEvent(e));
+    }
+    // Always keep the focused item pinned even if its provider list is stale.
+    final focus = _focusItem();
+    if (focus != null && !items.any((i) => i.key == focus.key)) {
+      items.add(focus);
+    }
+    return items;
+  }
+
+  /// Two closest heritage sites to the user; without a fix, the first two
   /// (distance hidden — never show a km label that isn't from a real fix).
-  List<(HeritageSite, double?)> _nearestTwo(List<HeritageSite> sites) {
-    final valid = sites.where(_validCoords).toList();
+  List<(_MapItem, double?)> _nearestTwoSites(HeritageProvider heritage) {
+    final valid = heritage.sites
+        .where((s) => _inNepal(s.latitude, s.longitude))
+        .toList();
     final pos = _userPosition;
     if (pos == null) {
-      return valid.take(2).map((s) => (s, null as double?)).toList();
+      return valid.take(2).map((s) => (_fromSite(s), null as double?)).toList();
     }
     final ranked = valid
         .map((s) => (
@@ -362,11 +473,21 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             ))
         .toList()
       ..sort((a, b) => a.$2.compareTo(b.$2));
-    return ranked.take(2).map((e) => (e.$1, e.$2 as double?)).toList();
+    return ranked
+        .take(2)
+        .map((e) => (_fromSite(e.$1), e.$2 as double?))
+        .toList();
   }
 
-  String _categoryEmoji(HeritageSite site) {
-    final c = site.category.toLowerCase();
+  double? _distanceTo(_MapItem item) {
+    final pos = _userPosition;
+    if (pos == null) return null;
+    return GeoDistance.haversineKm(
+        pos.latitude, pos.longitude, item.lat, item.lng);
+  }
+
+  String _siteEmoji(String category) {
+    final c = category.toLowerCase();
     if (c.contains('temple')) return '🛕';
     if (c.contains('stupa')) return '⛩️';
     if (c.contains('monaster') || c.contains('gumba')) return '🏯';
@@ -377,6 +498,19 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     if (c.contains('park') || c.contains('garden')) return '🌳';
     if (c.contains('monument')) return '🗿';
     return '🏛️';
+  }
+
+  String _eventEmoji(String eventType) {
+    final t = eventType.toLowerCase();
+    if (t.contains('festival')) return '🎉';
+    if (t.contains('music') || t.contains('concert')) return '🎵';
+    if (t.contains('dance')) return '💃';
+    if (t.contains('food') || t.contains('feast')) return '🍲';
+    if (t.contains('fair') || t.contains('mela')) return '🎪';
+    if (t.contains('jatra') || t.contains('puja') || t.contains('ritual')) {
+      return '🪔';
+    }
+    return '📅';
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -500,19 +634,9 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
 
   Widget _buildMap() {
     final l10n = AppLocalizations.of(context)!;
-    return Consumer<HeritageProvider>(
-      builder: (context, heritage, _) {
-        final sites = heritage.sites.where(_validCoords).toList();
-
-        // Always pin the focused site (from "View on Map") even if the
-        // provider list is stale or doesn't include it yet.
-        final focus = widget.focusSite;
-        if (focus != null &&
-            _validCoords(focus) &&
-            !sites.any((s) => s.id == focus.id)) {
-          sites.add(focus);
-        }
-
+    return Consumer2<HeritageProvider, EventProvider>(
+      builder: (context, heritage, events, _) {
+        final items = _allItems(heritage, events);
         return FlutterMap(
           mapController: _mapController,
           options: MapOptions(
@@ -524,7 +648,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             onTap: (_, __) {
               FocusScope.of(context).unfocus();
               setState(() {
-                _selectedSite = null;
+                _selected = null;
                 _suggestions = const [];
               });
             },
@@ -550,7 +674,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             RepaintBoundary(
               child: MarkerLayer(
                 markers: [
-                  ...sites.map(_siteMarker),
+                  ...items.map(_itemMarker),
                   if (_userPosition != null) _userMarker(l10n),
                 ],
               ),
@@ -561,19 +685,20 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     );
   }
 
-  Marker _siteMarker(HeritageSite site) {
-    final isSelected = _selectedSite?.id == site.id;
+  Marker _itemMarker(_MapItem item) {
+    final isSelected = _selected?.key == item.key;
     final size = isSelected ? 46.0 : 38.0;
+    // Events use the temple-red brand fill; sites keep the heritage gold —
+    // so the two kinds are distinguishable at a glance.
+    final fill = item.isEvent
+        ? AppColors.kColorPrimary
+        : AppColors.kColorAccentLight;
     return Marker(
-      point: LatLng(site.latitude, site.longitude),
+      point: item.point,
       width: size,
       height: size,
       child: GestureDetector(
-        onTap: () {
-          setState(() => _selectedSite = site);
-          _flyTo(LatLng(site.latitude, site.longitude), _siteZoom,
-              bounceOnArrival: true);
-        },
+        onTap: () => _selectItem(item),
         child: AnimatedBuilder(
           animation: _bounce,
           builder: (context, child) => Transform.translate(
@@ -583,7 +708,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
           child: Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: AppColors.kColorAccentLight,
+              color: fill,
               shape: BoxShape.circle,
               border: Border.all(
                 color: isSelected
@@ -600,7 +725,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
               ],
             ),
             child: Text(
-              _categoryEmoji(site),
+              item.emoji,
               style: TextStyle(fontSize: isSelected ? 22 : 18, height: 1),
             ),
           ),
@@ -730,13 +855,13 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
               : GeoDistance.haversineKm(pos.latitude, pos.longitude,
                   site.latitude, site.longitude);
           return InkWell(
-            onTap: () => _selectSuggestion(site),
+            onTap: () => _selectItem(_fromSite(site), fromSearch: true),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.sp12, vertical: AppDimensions.sp10),
               child: Row(
                 children: [
-                  Text(_categoryEmoji(site),
+                  Text(_siteEmoji(site.category),
                       style: const TextStyle(fontSize: 18, height: 1)),
                   const SizedBox(width: AppDimensions.sp10),
                   Expanded(
@@ -828,39 +953,29 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     );
   }
 
-  /// Default: two closest sites. When a marker is tapped, that site takes
-  /// over the panel (same card style) until the map is tapped to deselect.
+  /// Default: two closest sites. When a marker (site or event) is tapped, that
+  /// item takes over the panel until the map is tapped to deselect.
   Widget _buildNearbyPanel() {
     final l10n = AppLocalizations.of(context)!;
     return Consumer<HeritageProvider>(
       builder: (context, heritage, _) {
-        final selected = _selectedSite;
-        final List<(HeritageSite, double?)> nearest;
-        if (selected != null && _validCoords(selected)) {
-          final pos = _userPosition;
-          nearest = [
-            (
-              selected,
-              pos == null
-                  ? null
-                  : GeoDistance.haversineKm(pos.latitude, pos.longitude,
-                      selected.latitude, selected.longitude)
-            ),
-          ];
+        final selected = _selected;
+        final List<(_MapItem, double?)> cards;
+        if (selected != null) {
+          cards = [(selected, _distanceTo(selected))];
         } else {
-          nearest = _nearestTwo(heritage.sites);
+          cards = _nearestTwoSites(heritage);
         }
-        if (nearest.isEmpty) return const SizedBox.shrink();
+        if (cards.isEmpty) return const SizedBox.shrink();
         return Container(
           color: AppColors.kColorBgPage,
           padding: const EdgeInsets.fromLTRB(AppDimensions.sp16,
               AppDimensions.sp12, AppDimensions.sp16, AppDimensions.sp12),
           child: Row(
             children: [
-              for (var i = 0; i < nearest.length; i++) ...[
+              for (var i = 0; i < cards.length; i++) ...[
                 if (i > 0) const SizedBox(width: AppDimensions.sp12),
-                Expanded(
-                    child: _nearbyCard(l10n, nearest[i].$1, nearest[i].$2)),
+                Expanded(child: _itemCard(l10n, cards[i].$1, cards[i].$2)),
               ],
             ],
           ),
@@ -869,12 +984,9 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     );
   }
 
-  Widget _nearbyCard(AppLocalizations l10n, HeritageSite site, double? km) {
+  Widget _itemCard(AppLocalizations l10n, _MapItem item, double? km) {
     return GestureDetector(
-      onTap: () {
-        setState(() => _selectedSite = site);
-        _flyTo(LatLng(site.latitude, site.longitude), _siteZoom);
-      },
+      onTap: () => _selectItem(item),
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.sp12),
         decoration: BoxDecoration(
@@ -894,12 +1006,12 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_categoryEmoji(site),
+                Text(item.emoji,
                     style: const TextStyle(fontSize: 20, height: 1.2)),
                 const SizedBox(width: AppDimensions.sp8),
                 Expanded(
                   child: Text(
-                    site.name,
+                    item.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -915,13 +1027,13 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             const SizedBox(height: AppDimensions.sp6),
             Row(
               children: [
-                const Icon(Icons.place,
+                Icon(item.isEvent ? Icons.event : Icons.place,
                     size: AppDimensions.iconSm - 2,
                     color: AppColors.kColorTextSecondary),
                 const SizedBox(width: AppDimensions.sp4),
                 Expanded(
                   child: Text(
-                    km != null ? GeoDistance.shortLabel(km) : site.district,
+                    km != null ? GeoDistance.shortLabel(km) : item.subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -937,11 +1049,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                   child: SizedBox(
                     height: 28,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        AppStrings.heritageDetailsPath,
-                        arguments: site,
-                      ),
+                      onPressed: () => _openDetails(item),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.kColorDeep,
                         foregroundColor: AppColors.kColorTextOnPrimary,
@@ -963,9 +1071,9 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                   child: SizedBox(
                     height: 28,
                     child: OutlinedButton(
-                      onPressed: _routing && _routeSite?.id == site.id
+                      onPressed: _routing && _routeKey == item.key
                           ? null
-                          : () => _onDirections(site),
+                          : () => _onDirections(item),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.kColorPrimary,
                         side: const BorderSide(
@@ -977,7 +1085,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                               BorderRadius.circular(AppDimensions.kRadiusSm),
                         ),
                       ),
-                      child: _routing && _routeSite?.id == site.id
+                      child: _routing && _routeKey == item.key
                           ? const SizedBox(
                               width: 14,
                               height: 14,
@@ -997,5 +1105,17 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
         ),
       ),
     );
+  }
+
+  void _openDetails(_MapItem item) {
+    if (item.isEvent && item.event != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => EventDetailScreen(event: item.event!)),
+      );
+    } else if (item.site != null) {
+      Navigator.pushNamed(context, AppStrings.heritageDetailsPath,
+          arguments: item.site);
+    }
   }
 }

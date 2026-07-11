@@ -31,6 +31,7 @@ import 'presentation/screens/heritage/heritage_site_screen.dart';
 import 'presentation/screens/heritage/district_detail_screen.dart';
 import 'presentation/screens/districts/district_list_screen.dart';
 import 'data/models/heritage_site.dart';
+import 'data/models/cultural_event.dart';
 import 'data/models/district_model.dart';
 import 'presentation/screens/legal/policy_screen.dart';
 
@@ -100,6 +101,7 @@ class SampadaApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments;
           return HeritageMapScreen(
             focusSite: args is HeritageSite ? args : null,
+            focusEvent: args is CulturalEvent ? args : null,
           );
         },
         AppStrings.guidePath: (context) => const GuideScreen(),

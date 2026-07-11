@@ -140,6 +140,19 @@ class EventProvider with ChangeNotifier {
     return list.take(7).toList();
   }
 
+  /// All known events carrying real coordinates, deduped by id — backs the
+  /// heritage map's event markers. Merges the upcoming-events pool and the
+  /// calendar-month set so a map opened from either surface still has pins.
+  List<CulturalEvent> get eventsWithLocation {
+    final seen = <String>{};
+    final out = <CulturalEvent>[];
+    for (final e in [..._upcomingEvents, ..._events]) {
+      if (!GeoDistance.hasCoords(e.latitude, e.longitude)) continue;
+      if (seen.add(e.id)) out.add(e);
+    }
+    return out;
+  }
+
   static const double _distanceCeilingKm = 50.0;
   static const int _popularityCeiling = 50;
   static const double _personalizationBoost = 0.05;

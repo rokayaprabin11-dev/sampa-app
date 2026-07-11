@@ -9,6 +9,8 @@ import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/presentation/widgets/heritage_widgets.dart';
+import 'package:sampada/presentation/widgets/events/event_list_card.dart';
+import 'package:sampada/presentation/screens/events/event_detail_screen.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/providers/event_provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
@@ -394,25 +396,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 } else {
-                  content = Column(
+                  content = Padding(
                     key: const ValueKey('events-content'),
-                    children: nearbyEvents.take(2).map((event) {
-                      final km = eventProvider.distanceKmOf(event);
-                      final seats = event.seatsRemaining;
-                      final seatsLabel = (seats != null && !event.isFull && seats <= 5)
-                          ? '$seats left'
-                          : null;
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 12),
-                        child: EventCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: nearbyEvents.take(2).map((event) {
+                        final km = eventProvider.distanceKmOf(event);
+                        return EventListCard(
                           title: event.title,
-                          date: '${_getMonthName(event.startDate.month)} ${event.startDate.day}',
-                          distance: km == null ? null : GeoDistance.label(context, km),
-                          tags: eventProvider.tagsFor(event),
-                          seatsLeftLabel: seatsLabel,
-                        ),
-                      );
-                    }).toList(),
+                          date: '${event.startDate.day} ${_getMonthName(event.startDate.month)} ${event.startDate.year}',
+                          location: event.locationName,
+                          distance: km == null ? null : GeoDistance.shortLabel(km),
+                          tag: event.eventType,
+                          imageUrl: event.imageUrl,
+                          shortDescription: event.shortDescription,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => EventDetailScreen(event: event)),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   );
                 }
 
