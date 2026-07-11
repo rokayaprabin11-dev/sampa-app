@@ -392,12 +392,16 @@ class EventCard extends StatelessWidget {
   /// Localized "X km away" label; null hides the distance chip (no GPS fix
   /// yet, or the event has no coordinates).
   final String? distance;
+  /// Short explain-tags e.g. "🔴 Live now", "⭐ Editor's Pick" — why this
+  /// event was recommended. Rendered as small pill badges.
+  final List<String> tags;
 
   const EventCard({
     super.key,
     required this.title,
     required this.date,
     this.distance,
+    this.tags = const [],
   });
 
   @override
@@ -446,6 +450,24 @@ class EventCard extends StatelessWidget {
                     ],
                   ],
                 ),
+                if (tags.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: tags.map((tag) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7EED3),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+                      ),
+                      child: Text(
+                        tag,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF7B1E00), fontWeight: FontWeight.w500),
+                      ),
+                    )).toList(),
+                  ),
+                ],
               ],
             ),
           ),

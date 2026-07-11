@@ -6,6 +6,8 @@ abstract class EventRemoteDataSource {
   Future<List<CulturalEventModel>> getEvents({int? monthBs, int? districtId});
   Future<List<CulturalEventModel>> getNearbyEvents({required double lat, required double lng, double radiusKm = 10});
   Future<List<Map<String, dynamic>>> getCalendarEvents(int monthBs);
+  Future<List<CulturalEventModel>> getUpcomingEvents();
+  Future<Map<String, int>> getMyRsvpAffinity();
 }
 
 class EventRemoteDataSourceImpl implements EventRemoteDataSource {
@@ -58,6 +60,28 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     final data = await apiClient.get('${ApiEndpoints.eventsCalendar}$monthBs/');
     final List list = data is List ? data : [];
     return list.cast<Map<String, dynamic>>();
+  }
+
+  @override
+  Future<List<CulturalEventModel>> getUpcomingEvents() async {
+    final data = await apiClient.get(ApiEndpoints.eventsUpcoming);
+    final List list = (data is Map) ? (data['results'] ?? []) : data;
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map((json) => CulturalEventModel.fromJson(json))
+        .toList();
+  }
+
+  @override
+  Future<Map<String, int>> getMyRsvpAffinity() async {
+    try {
+      final data = await apiClient.get(ApiEndpoints.eventsMyRsvpTypes);
+      if (data is! Map) return {};
+      return data.map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
+    } catch (_) {
+      // Anonymous users (401) or transient errors — affinity is a nice-to-have boost.
+      return {};
+    }
   }
 }
 

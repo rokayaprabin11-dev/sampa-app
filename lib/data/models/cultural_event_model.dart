@@ -19,6 +19,8 @@ class CulturalEventModel extends CulturalEvent {
     required super.longitude,
     required super.locationName,
     super.isActive = true,
+    super.priority = 'normal',
+    super.rsvpCount = 0,
   });
 
   /// Maps the backend `EventSerializer` shape (title / event_type / date_ad /
@@ -44,6 +46,8 @@ class CulturalEventModel extends CulturalEvent {
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
       locationName: (json['district_name'] ?? '') as String,
       isActive: (json['is_published'] ?? true) as bool,
+      priority: (json['priority'] ?? 'normal') as String,
+      rsvpCount: (json['rsvp_count'] as num?)?.toInt() ?? 0,
     );
   }
 

@@ -51,6 +51,16 @@ class EventRepositoryImpl implements EventRepository {
     final remoteEvents = await remoteDataSource.getEvents();
     await localDataSource.cacheEvents(remoteEvents);
   }
+
+  @override
+  Future<List<CulturalEvent>> getUpcomingEvents() async {
+    return await remoteDataSource.getUpcomingEvents();
+  }
+
+  @override
+  Future<Map<String, int>> getRsvpAffinity() async {
+    return await remoteDataSource.getMyRsvpAffinity();
+  }
 }
 
 

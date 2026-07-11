@@ -22,6 +22,7 @@ class HeritageSite extends Equatable {
   final bool isFeatured;
   final List<SiteImageModel> gallery;
   final DateTime? createdAt;
+  final String? reason;
 
   const HeritageSite({
     required this.id,
@@ -44,6 +45,7 @@ class HeritageSite extends Equatable {
     this.isFeatured = false,
     this.gallery = const [],
     this.createdAt,
+    this.reason,
   });
 
   @override
@@ -68,6 +70,7 @@ class HeritageSite extends Equatable {
         isFeatured,
         gallery,
         createdAt,
+        reason,
       ];
 }
 

@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Fetch sites and events when the home screen is first loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HeritageProvider>().fetchSites();
-      context.read<EventProvider>().loadEvents();
+      context.read<EventProvider>().loadUpcomingEvents();
     });
   }
 
@@ -390,6 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           title: event.title,
                           date: '${_getMonthName(event.startDate.month)} ${event.startDate.day}',
                           distance: km == null ? null : GeoDistance.label(context, km),
+                          tags: eventProvider.tagsFor(event),
                         ),
                       );
                     }).toList(),

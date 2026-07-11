@@ -11,13 +11,14 @@ abstract class HeritageRemoteDataSource {
     String? category,
     String? district,
     double? lat,
-    double? lng, 
+    double? lng,
     double? radius,
     int? page,
     int? pageSize,
     String? bbox,
     String? sortBy,
   });
+  Future<List<HeritageSiteModel>> getFeaturedSites({double? lat, double? lng});
   Future<List<HeritageSiteModel>> searchHeritageSites(String query);
   Future<List<DistrictModel>> getDistricts();
   Future<HeritageSiteModel> createHeritageSite(Map<String, dynamic> siteData);

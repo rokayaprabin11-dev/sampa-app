@@ -18,6 +18,8 @@ class CulturalEvent extends Equatable {
   final double longitude;
   final String locationName;
   final bool isActive;
+  final String priority;
+  final int rsvpCount;
 
   const CulturalEvent({
     required this.id,
@@ -37,6 +39,8 @@ class CulturalEvent extends Equatable {
     required this.longitude,
     required this.locationName,
     this.isActive = true,
+    this.priority = 'normal',
+    this.rsvpCount = 0,
   });
 
   @override
@@ -58,6 +62,8 @@ class CulturalEvent extends Equatable {
         longitude,
         locationName,
         isActive,
+        priority,
+        rsvpCount,
       ];
 }
 

@@ -23,6 +23,7 @@ class HeritageSiteModel extends HeritageSite {
     super.isFeatured,
     super.gallery,
     super.createdAt,
+    super.reason,
     this.provinceName,
   });
 
@@ -66,6 +67,7 @@ class HeritageSiteModel extends HeritageSite {
       gallery: (json['gallery'] as List?)?.map((i) => SiteImageModel.fromJson(i)).toList() ?? [],
       provinceName: json['province_name'],
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      reason: json['reason'] as String?,
     );
   }
 

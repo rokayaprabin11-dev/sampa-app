@@ -46,6 +46,7 @@ class ApiEndpoints {
   static const String eventsNearby = '/events/nearby/';
   static const String eventsCategories = '/events/categories/';
   static const String eventsCalendar = '/events/calendar/';
+  static const String eventsMyRsvpTypes = '/events/my-rsvp-types/';
   static String eventDetail(int id) => '/events/$id/';
   static String eventRsvp(int id) => '/events/$id/rsvp/';
 
