@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:nepali_utils/nepali_utils.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/data/models/cultural_event.dart';
-import 'package:sampada/providers/event_provider.dart' show parseHexColor;
+import 'package:sampada/providers/event_provider.dart';
 
 /// Full details for a single cultural event — cover/gallery, category, date
 /// (BS + AD), location and descriptions. Reached from the calendar-day popover
@@ -21,6 +22,19 @@ class EventDetailScreen extends StatefulWidget {
 class _EventDetailScreenState extends State<EventDetailScreen> {
   int _carousel = 0;
   final _pageController = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final id = int.tryParse(widget.event.id);
+      if (id == null) return;
+      final provider = context.read<EventProvider>();
+      provider.recordEventVisit(id);
+      provider.loadBookmarkedEventIds();
+    });
+  }
 
   static const _bsMonths = [
     'बैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'असोज',
@@ -76,6 +90,21 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
+            actions: [
+              Consumer<EventProvider>(
+                builder: (context, provider, _) {
+                  final id = int.tryParse(e.id);
+                  final bookmarked = id != null && provider.isEventBookmarked(id);
+                  return IconButton(
+                    icon: Icon(
+                      bookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      color: Colors.white,
+                    ),
+                    onPressed: id == null ? null : () => provider.toggleEventBookmark(id),
+                  );
+                },
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(background: _hero(context, isDark, images)),
           ),
           SliverToBoxAdapter(

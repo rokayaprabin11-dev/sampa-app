@@ -4,10 +4,15 @@ import 'package:sampada/data/models/cultural_event_model.dart';
 
 abstract class EventRemoteDataSource {
   Future<List<CulturalEventModel>> getEvents({int? monthBs, int? districtId});
-  Future<List<CulturalEventModel>> getNearbyEvents({required double lat, required double lng, double radiusKm = 10});
+  Future<List<CulturalEventModel>> getNearbyEvents({required double lat, required double lng, double radiusKm = 10, int? limit});
   Future<List<Map<String, dynamic>>> getCalendarEvents(int monthBs);
   Future<List<CulturalEventModel>> getUpcomingEvents();
   Future<Map<String, int>> getMyRsvpAffinity();
+  Future<Map<String, int>> getMyBookmarkAffinity();
+  Future<Map<String, int>> getMyVisitAffinity();
+  Future<List<int>> getBookmarkedEventIds();
+  Future<void> toggleBookmark(int eventId, {required bool currentlyBookmarked});
+  Future<void> recordVisit(int eventId);
 }
 
 class EventRemoteDataSourceImpl implements EventRemoteDataSource {
@@ -38,17 +43,19 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     required double lat,
     required double lng,
     double radiusKm = 10,
+    int? limit,
   }) async {
     final data = await apiClient.get(
       ApiEndpoints.eventsNearby,
       queryParameters: {
         'lat': lat,
-        'lon': lng,
+        'lng': lng,
         'radius_km': radiusKm,
+        if (limit != null) 'limit': limit,
       },
     );
 
-    final List list = data is List ? data : (data['results'] ?? []);
+    final List list = (data is Map) ? (data['results'] ?? []) : data;
     return list
         .whereType<Map<String, dynamic>>()
         .map((json) => CulturalEventModel.fromJson(json))
@@ -82,6 +89,57 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       // Anonymous users (401) or transient errors — affinity is a nice-to-have boost.
       return {};
     }
+  }
+
+  @override
+  Future<Map<String, int>> getMyBookmarkAffinity() async {
+    try {
+      final data = await apiClient.get(ApiEndpoints.eventsMyBookmarkTypes);
+      if (data is! Map) return {};
+      return data.map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  @override
+  Future<Map<String, int>> getMyVisitAffinity() async {
+    try {
+      final data = await apiClient.get(ApiEndpoints.eventsMyVisitTypes);
+      if (data is! Map) return {};
+      return data.map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  @override
+  Future<List<int>> getBookmarkedEventIds() async {
+    try {
+      final data = await apiClient.get(ApiEndpoints.eventBookmarks);
+      final List list = (data is Map) ? (data['results'] ?? []) : data;
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map((json) => (json['event']?['id'] as num?)?.toInt())
+          .whereType<int>()
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  @override
+  Future<void> toggleBookmark(int eventId, {required bool currentlyBookmarked}) async {
+    if (currentlyBookmarked) {
+      await apiClient.delete(ApiEndpoints.eventBookmarkDelete(eventId));
+    } else {
+      await apiClient.post(ApiEndpoints.eventBookmarkToggle, data: {'event_id': eventId});
+    }
+  }
+
+  @override
+  Future<void> recordVisit(int eventId) async {
+    await apiClient.post(ApiEndpoints.eventRecordVisit(eventId));
   }
 }
 

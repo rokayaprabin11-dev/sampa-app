@@ -426,6 +426,91 @@ class DistrictCard extends StatelessWidget {
   }
 }
 
+/// Vertical district card for the full "Browse by District" list — distinct
+/// from the compact horizontal [DistrictCard] used in the home preview row.
+class DistrictGridCard extends StatelessWidget {
+  final String name;
+  final String nameNp;
+  final int sitesCount;
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBgColor;
+  final VoidCallback? onTap;
+
+  const DistrictGridCard({
+    super.key,
+    required this.name,
+    required this.nameNp,
+    required this.sitesCount,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBgColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+          border: Border.all(color: AppColors.kColorBorderMid, width: 1.2),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+              ),
+              child: Icon(icon, size: 26, color: iconColor),
+            ),
+            const SizedBox(height: 11),
+            Text(
+              name,
+              style: const TextStyle(
+                fontFamily: 'serif',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.kColorTextHeading,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (nameNp.isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Text(
+                nameNp,
+                style: const TextStyle(fontSize: 12, color: AppColors.kColorTextMuted),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 13, color: AppColors.kColorAccentSafe),
+                const SizedBox(width: 4),
+                Text(
+                  '$sitesCount ${sitesCount == 1 ? "site" : "sites"}',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.kColorAccentSafe),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class EventCard extends StatelessWidget {
   final String title;
   final String date;
@@ -435,6 +520,10 @@ class EventCard extends StatelessWidget {
   /// Short explain-tags e.g. "🔴 Live now", "⭐ Editor's Pick" — why this
   /// event was recommended. Rendered as small pill badges.
   final List<String> tags;
+  /// Low-seats warning e.g. "3 left"; null hides the chip (unlimited
+  /// capacity, or plenty of seats remaining — full events are already
+  /// excluded server-side so this shouldn't normally need to say "Full").
+  final String? seatsLeftLabel;
 
   const EventCard({
     super.key,
@@ -442,6 +531,7 @@ class EventCard extends StatelessWidget {
     required this.date,
     this.distance,
     this.tags = const [],
+    this.seatsLeftLabel,
   });
 
   @override
@@ -487,6 +577,12 @@ class EventCard extends StatelessWidget {
                       const Icon(Icons.location_on, size: 14, color: Color(0xFF8C7162)),
                       const SizedBox(width: 4),
                       Text(distance!, style: const TextStyle(fontSize: 12, color: Color(0xFF8C7162))),
+                    ],
+                    if (seatsLeftLabel != null) ...[
+                      const SizedBox(width: 16),
+                      const Icon(Icons.event_seat, size: 14, color: Color(0xFFD4520A)),
+                      const SizedBox(width: 4),
+                      Text(seatsLeftLabel!, style: const TextStyle(fontSize: 12, color: Color(0xFFD4520A), fontWeight: FontWeight.w600)),
                     ],
                   ],
                 ),
@@ -657,6 +753,55 @@ class HeritageGridCard extends StatelessWidget {
       default:
         return Icons.museum;
     }
+  }
+}
+
+/// Icon + color mapping for a district's name — shared by the home screen's
+/// preview grid and the full "Browse by District" list so both render the
+/// same icon/color per district without duplicating the switch.
+class DistrictVisualInfo {
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+  const DistrictVisualInfo(this.icon, this.color, this.bgColor);
+}
+
+DistrictVisualInfo districtVisualInfo(String name) {
+  switch (name.toLowerCase()) {
+    case 'kathmandu':
+      return const DistrictVisualInfo(Icons.museum, Color(0xFF5C4033), Color(0xFFF3EBE5));
+    case 'bhaktapur':
+      return const DistrictVisualInfo(Icons.castle, Color(0xFF6D4C41), Color(0xFFF5EDEA));
+    case 'lalitpur':
+      return const DistrictVisualInfo(Icons.temple_hindu, Color(0xFFB84B00), Color(0xFFFFF0E6));
+    case 'kaski':
+    case 'pokhara':
+      return const DistrictVisualInfo(Icons.landscape, Color(0xFF2E7D32), Color(0xFFE8F5E9));
+    case 'mustang':
+      return const DistrictVisualInfo(Icons.terrain, Color(0xFF795548), Color(0xFFEFEBE9));
+    case 'dolakha':
+      return const DistrictVisualInfo(Icons.temple_buddhist, Color(0xFFD84315), Color(0xFFFBE9E7));
+    case 'chitwan':
+      return const DistrictVisualInfo(Icons.forest, Color(0xFF388E3C), Color(0xFFE8F5E9));
+    case 'solukhumbu':
+      return const DistrictVisualInfo(Icons.ac_unit, Color(0xFF0277BD), Color(0xFFE1F5FE));
+    case 'manang':
+    case 'myagdi':
+      return const DistrictVisualInfo(Icons.filter_hdr, Color(0xFF546E7A), Color(0xFFECEFF1));
+    case 'dang':
+    case 'banke':
+      return const DistrictVisualInfo(Icons.grass, Color(0xFF558B2F), Color(0xFFF1F8E9));
+    case 'rupandehi':
+    case 'kapilvastu':
+      return const DistrictVisualInfo(Icons.account_balance, Color(0xFF6A1B9A), Color(0xFFF3E5F5));
+    case 'nawalpur':
+    case 'palpa':
+      return const DistrictVisualInfo(Icons.park, Color(0xFF1B5E20), Color(0xFFE8F5E9));
+    case 'kanchanpur':
+    case 'kailali':
+      return const DistrictVisualInfo(Icons.water, Color(0xFF0288D1), Color(0xFFE1F5FE));
+    default:
+      return const DistrictVisualInfo(Icons.location_city, Color(0xFF8C7162), Color(0xFFF5EFEC));
   }
 }
 

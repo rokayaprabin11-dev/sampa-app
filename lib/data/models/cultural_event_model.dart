@@ -21,6 +21,9 @@ class CulturalEventModel extends CulturalEvent {
     super.isActive = true,
     super.priority = 'normal',
     super.rsvpCount = 0,
+    super.capacity,
+    super.seatsRemaining,
+    super.isFull = false,
   });
 
   /// Maps the backend `EventSerializer` shape (title / event_type / date_ad /
@@ -48,6 +51,9 @@ class CulturalEventModel extends CulturalEvent {
       isActive: (json['is_published'] ?? true) as bool,
       priority: (json['priority'] ?? 'normal') as String,
       rsvpCount: (json['rsvp_count'] as num?)?.toInt() ?? 0,
+      capacity: (json['capacity'] as num?)?.toInt(),
+      seatsRemaining: (json['seats_remaining'] as num?)?.toInt(),
+      isFull: (json['is_full'] ?? false) as bool,
     );
   }
 

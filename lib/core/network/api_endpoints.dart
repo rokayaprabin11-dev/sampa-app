@@ -47,8 +47,14 @@ class ApiEndpoints {
   static const String eventsCategories = '/events/categories/';
   static const String eventsCalendar = '/events/calendar/';
   static const String eventsMyRsvpTypes = '/events/my-rsvp-types/';
+  static const String eventsMyBookmarkTypes = '/events/my-bookmark-types/';
+  static const String eventsMyVisitTypes = '/events/my-visit-types/';
+  static const String eventBookmarks = '/events/bookmarks/';
+  static const String eventBookmarkToggle = '/events/bookmarks/toggle/';
+  static String eventBookmarkDelete(int id) => '/events/bookmarks/$id/';
   static String eventDetail(int id) => '/events/$id/';
   static String eventRsvp(int id) => '/events/$id/rsvp/';
+  static String eventRecordVisit(int id) => '/events/$id/visit/';
 
   // --- Notifications ---
   static const String notifications = '/notifications/';

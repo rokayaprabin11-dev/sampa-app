@@ -1,6 +1,7 @@
 class DistrictModel {
   final String id;
   final String name;
+  final String nameNp;
   final String slug;
   final String province;
   final String descriptionEn;
@@ -12,6 +13,7 @@ class DistrictModel {
   DistrictModel({
     required this.id,
     required this.name,
+    this.nameNp = '',
     required this.slug,
     required this.province,
     required this.descriptionEn,
@@ -25,6 +27,7 @@ class DistrictModel {
     return DistrictModel(
       id: json['id'].toString(),
       name: json['name_en'] ?? json['name'] ?? '',
+      nameNp: json['name_np'] ?? '',
       slug: json['slug'] ?? '',
       province: json['province'] ?? json['province_np'] ?? '',
       descriptionEn: json['description_en'] ?? '',

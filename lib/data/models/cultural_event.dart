@@ -20,6 +20,9 @@ class CulturalEvent extends Equatable {
   final bool isActive;
   final String priority;
   final int rsvpCount;
+  final int? capacity;
+  final int? seatsRemaining;
+  final bool isFull;
 
   const CulturalEvent({
     required this.id,
@@ -41,6 +44,9 @@ class CulturalEvent extends Equatable {
     this.isActive = true,
     this.priority = 'normal',
     this.rsvpCount = 0,
+    this.capacity,
+    this.seatsRemaining,
+    this.isFull = false,
   });
 
   @override
@@ -64,6 +70,9 @@ class CulturalEvent extends Equatable {
         isActive,
         priority,
         rsvpCount,
+        capacity,
+        seatsRemaining,
+        isFull,
       ];
 }
 

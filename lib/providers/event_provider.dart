@@ -6,6 +6,25 @@ import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/data/models/cultural_event.dart';
 import 'package:sampada/data/repositories/event_repository.dart';
 
+/// Shared day-bucket classification used by both `tagsFor` and
+/// `_freshnessScore` so their notion of "starts today"/"this weekend" can't
+/// drift apart.
+enum _DayBucket { live, today, tomorrow, thisWeekend, later }
+
+/// Context-aware score weights for `nearbyEvents` ranking. See `_weightsFor`.
+class _Weights {
+  final double distance;
+  final double priority;
+  final double popularity;
+  final double freshness;
+  const _Weights({
+    required this.distance,
+    required this.priority,
+    required this.popularity,
+    required this.freshness,
+  });
+}
+
 class CalendarDay {
   final int bsDay;
   final int adDay;
@@ -56,6 +75,14 @@ class EventProvider with ChangeNotifier {
   double _userLat = 27.7172;
   double _userLng = 85.3240;
   bool _hasRealFix = false;
+  // Speed (m/s) from the last GPS fix — used to detect a "traveling" user for
+  // dynamic ranking weights. Null when no fix has landed yet.
+  double? _lastSpeedMps;
+
+  // Event ids the current user has bookmarked (loaded best-effort; empty for
+  // anonymous users). Backs the bookmark icon on EventDetailScreen.
+  Set<int> _bookmarkedEventIds = {};
+  bool isEventBookmarked(int eventId) => _bookmarkedEventIds.contains(eventId);
 
   /// True once an accuracy-gated GPS fix replaced the Kathmandu fallback.
   /// Distance *labels* are only trustworthy then; ranking works either way.
@@ -72,6 +99,7 @@ class EventProvider with ChangeNotifier {
   Future<void> _refreshUserLocation() async {
     final pos = await LocationService().getAccurateFix();
     if (pos == null) return;
+    _lastSpeedMps = pos.speed;
     if (_hasRealFix && pos.latitude == _userLat && pos.longitude == _userLng) {
       return;
     }
@@ -115,6 +143,29 @@ class EventProvider with ChangeNotifier {
   static const double _distanceCeilingKm = 50.0;
   static const int _popularityCeiling = 50;
   static const double _personalizationBoost = 0.05;
+  // Above this speed the user is treated as "traveling" for ranking-weight
+  // purposes (~9 km/h — brisk walk/cycling, not just GPS jitter while still).
+  static const double _travelingSpeedMps = 2.5;
+
+  /// Shared day-bucket classification so `tagsFor` and `_freshnessScore`
+  /// can't drift apart on what counts as "starts today"/"this weekend".
+  _DayBucket _dayBucketOf(CulturalEvent e, DateTime now) {
+    final isActive = e.startDate.isBefore(now) && e.endDate.isAfter(now);
+    if (isActive) return _DayBucket.live;
+
+    final startDay = DateTime(e.startDate.year, e.startDate.month, e.startDate.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final daysAway = startDay.difference(today).inDays;
+    if (daysAway == 0) return _DayBucket.today;
+    if (daysAway == 1) return _DayBucket.tomorrow;
+    if (daysAway >= 0 && daysAway <= 3 &&
+        (startDay.weekday == DateTime.friday ||
+            startDay.weekday == DateTime.saturday ||
+            startDay.weekday == DateTime.sunday)) {
+      return _DayBucket.thisWeekend;
+    }
+    return _DayBucket.later;
+  }
 
   double _priorityScore(CulturalEvent e) {
     switch (e.priority) {
@@ -128,33 +179,65 @@ class EventProvider with ChangeNotifier {
   }
 
   double _freshnessScore(CulturalEvent e, DateTime now) {
-    final isActive = e.startDate.isBefore(now) && e.endDate.isAfter(now);
-    if (isActive) return 1.0;
-    final daysUntilStart = e.startDate.difference(now).inHours / 24.0;
-    return (1 - daysUntilStart / 30).clamp(0.0, 1.0);
+    switch (_dayBucketOf(e, now)) {
+      case _DayBucket.live:
+        return 1.0;
+      case _DayBucket.today:
+        return 0.95;
+      case _DayBucket.tomorrow:
+        return 0.85;
+      case _DayBucket.thisWeekend:
+        return 0.75;
+      case _DayBucket.later:
+        final daysUntilStart = e.startDate.difference(now).inHours / 24.0;
+        return (1 - daysUntilStart / 30).clamp(0.0, 1.0);
+    }
   }
 
   double _popularityScore(CulturalEvent e) =>
       (e.rsvpCount / _popularityCeiling).clamp(0.0, 1.0);
 
-  double _scoreOf(CulturalEvent e, DateTime now) {
+  /// Context-aware score weights — replaces the old static two-branch split.
+  /// No GPS fix → distance contributes 0% (same effective behavior as
+  /// before, just expressed as one code path). A fast-moving user shifts
+  /// weight toward distance; an imminent high-priority event in the pool
+  /// (e.g. a major festival happening today/tomorrow) shifts weight toward
+  /// priority.
+  _Weights _weightsFor({
+    required bool hasFix,
+    required bool isTraveling,
+    required bool hasImminentHighPriority,
+  }) {
+    if (!hasFix) {
+      return const _Weights(distance: 0, priority: 0.40, popularity: 0.25, freshness: 0.35);
+    }
+    if (isTraveling) {
+      return const _Weights(distance: 0.55, priority: 0.20, popularity: 0.15, freshness: 0.10);
+    }
+    if (hasImminentHighPriority) {
+      return const _Weights(distance: 0.30, priority: 0.35, popularity: 0.20, freshness: 0.15);
+    }
+    return const _Weights(distance: 0.40, priority: 0.25, popularity: 0.20, freshness: 0.15);
+  }
+
+  double _scoreOf(CulturalEvent e, DateTime now, _Weights weights) {
     final priority = _priorityScore(e);
     final freshness = _freshnessScore(e, now);
     final popularity = _popularityScore(e);
 
-    double score;
-    if (_hasRealFix) {
+    double distanceScore = 0.0;
+    if (weights.distance > 0) {
       final distanceKm =
           GeoDistance.kmTo(_userLat, _userLng, e.latitude, e.longitude);
-      final distanceScore = distanceKm == null
+      distanceScore = distanceKm == null
           ? 0.0
           : (1 - (distanceKm.clamp(0.0, _distanceCeilingKm)) / _distanceCeilingKm);
-      score = 0.40 * distanceScore + 0.25 * priority + 0.20 * popularity + 0.15 * freshness;
-    } else {
-      // No trustworthy GPS fix — rank by priority/freshness/popularity only.
-      // Never falls back to the Kathmandu placeholder coordinates for ranking.
-      score = 0.40 * priority + 0.35 * freshness + 0.25 * popularity;
     }
+
+    double score = weights.distance * distanceScore +
+        weights.priority * priority +
+        weights.popularity * popularity +
+        weights.freshness * freshness;
 
     if ((_affinityCounts[e.eventType] ?? 0) > 0) {
       score += _personalizationBoost;
@@ -181,8 +264,19 @@ class EventProvider with ChangeNotifier {
 
     if (eligible.isEmpty) return [];
 
+    final isTraveling = (_lastSpeedMps ?? 0) > _travelingSpeedMps;
+    final hasImminentHighPriority = eligible.any((e) =>
+        e.priority == 'high' &&
+        const {_DayBucket.live, _DayBucket.today, _DayBucket.tomorrow}
+            .contains(_dayBucketOf(e, now)));
+    final weights = _weightsFor(
+      hasFix: _hasRealFix,
+      isTraveling: isTraveling,
+      hasImminentHighPriority: hasImminentHighPriority,
+    );
+
     final ranked = eligible.toList()
-      ..sort((a, b) => _scoreOf(b, now).compareTo(_scoreOf(a, now)));
+      ..sort((a, b) => _scoreOf(b, now, weights).compareTo(_scoreOf(a, now, weights)));
 
     // Diversity pass: prefer the next-best-scoring event whose eventType
     // differs from what's already picked, falling back to strict score
@@ -206,18 +300,19 @@ class EventProvider with ChangeNotifier {
     final now = DateTime.now();
     final tags = <String>[];
 
-    final isActive = e.startDate.isBefore(now) && e.endDate.isAfter(now);
-    if (isActive) {
-      tags.add('🔴 Live now');
-    } else {
-      final startDay = DateTime(e.startDate.year, e.startDate.month, e.startDate.day);
-      final today = DateTime(now.year, now.month, now.day);
-      final daysAway = startDay.difference(today).inDays;
-      if (daysAway == 0) {
+    switch (_dayBucketOf(e, now)) {
+      case _DayBucket.live:
+        tags.add('🔴 Live now');
+        break;
+      case _DayBucket.today:
         tags.add('🎉 Starts today');
-      } else if (daysAway == 1) {
+        break;
+      case _DayBucket.tomorrow:
         tags.add('🎉 Starts tomorrow');
-      }
+        break;
+      case _DayBucket.thisWeekend:
+      case _DayBucket.later:
+        break;
     }
 
     if (e.priority == 'high') tags.add("⭐ Editor's Pick");
@@ -342,26 +437,102 @@ class EventProvider with ChangeNotifier {
     }
   }
 
-  /// Loads events for the home screen's "Nearby Events" section from the
-  /// backend's date-ranged /events/upcoming/ endpoint (separate from the
-  /// BS-month-scoped `_events`/`loadEvents()` used by the calendar screen,
-  /// so the 30-day nearbyEvents window is never short of data near a month
-  /// boundary). Also best-effort loads the user's RSVP-affinity counts.
+  static const List<double> _adaptiveRadiiKm = [10, 25, 50, 100];
+
+  /// Loads candidates for the home screen's "Nearby Events" section. Gets a
+  /// best-effort GPS fix first: with a real fix, escalates through
+  /// `/events/nearby/` at increasing radii (10→25→50→100km) until at least 2
+  /// candidates turn up; without a fix — or if even 100km turns up nothing
+  /// (e.g. events with no coordinates set) — falls back to the nationwide
+  /// `/events/upcoming/` list, same as before. Also best-effort loads blended
+  /// RSVP/bookmark/view affinity and the user's bookmarked event ids.
   Future<void> loadUpcomingEvents() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
-    unawaited(_refreshUserLocation());
-
     try {
-      _upcomingEvents = await _repository.getUpcomingEvents();
-      _affinityCounts = await _repository.getRsvpAffinity();
+      final pos = await LocationService().getAccurateFix();
+      if (pos != null) {
+        _lastSpeedMps = pos.speed;
+        _userLat = pos.latitude;
+        _userLng = pos.longitude;
+        _hasRealFix = true;
+        _upcomingEvents = await _fetchWithAdaptiveRadius(pos.latitude, pos.longitude);
+        if (_upcomingEvents.isEmpty) {
+          _upcomingEvents = await _repository.getUpcomingEvents();
+        }
+      } else {
+        _upcomingEvents = await _repository.getUpcomingEvents();
+      }
+      _affinityCounts = await _blendedAffinity();
+      unawaited(loadBookmarkedEventIds());
     } catch (e) {
       _error = 'Failed to load upcoming events: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<List<CulturalEvent>> _fetchWithAdaptiveRadius(double lat, double lng) async {
+    List<CulturalEvent> results = [];
+    for (final radius in _adaptiveRadiiKm) {
+      results = await _repository.getNearbyEvents(lat: lat, lng: lng, radiusKm: radius);
+      if (results.length >= 2) return results;
+    }
+    return results;
+  }
+
+  /// RSVP (full weight) + bookmark (×0.7) + view (×0.3), blended into one
+  /// event_type→count map for the personalization boost in `_scoreOf`.
+  Future<Map<String, int>> _blendedAffinity() async {
+    final rsvp = await _repository.getRsvpAffinity();
+    final bookmark = await _repository.getBookmarkAffinity();
+    final view = await _repository.getVisitAffinity();
+    final merged = <String, double>{};
+    rsvp.forEach((k, v) => merged[k] = (merged[k] ?? 0) + v);
+    bookmark.forEach((k, v) => merged[k] = (merged[k] ?? 0) + v * 0.7);
+    view.forEach((k, v) => merged[k] = (merged[k] ?? 0) + v * 0.3);
+    return merged.map((k, v) => MapEntry(k, v.round()));
+  }
+
+  Future<void> loadBookmarkedEventIds() async {
+    try {
+      final ids = await _repository.getBookmarkedEventIds();
+      _bookmarkedEventIds = ids.toSet();
+      notifyListeners();
+    } catch (_) {
+      // Anonymous user or transient error — bookmark state just stays empty.
+    }
+  }
+
+  Future<void> toggleEventBookmark(int eventId) async {
+    final wasBookmarked = isEventBookmarked(eventId);
+    if (wasBookmarked) {
+      _bookmarkedEventIds.remove(eventId);
+    } else {
+      _bookmarkedEventIds.add(eventId);
+    }
+    notifyListeners();
+    try {
+      await _repository.toggleBookmark(eventId, currentlyBookmarked: wasBookmarked);
+    } catch (e) {
+      if (wasBookmarked) {
+        _bookmarkedEventIds.add(eventId);
+      } else {
+        _bookmarkedEventIds.remove(eventId);
+      }
+      notifyListeners();
+      debugPrint('Error toggling event bookmark: $e');
+    }
+  }
+
+  Future<void> recordEventVisit(int eventId) async {
+    try {
+      await _repository.recordVisit(eventId);
+    } catch (e) {
+      debugPrint('Error recording event visit: $e');
     }
   }
 

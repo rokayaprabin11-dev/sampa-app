@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Consumer<HeritageProvider>(
                     builder: (_, p, __) => p.districts.length > 8
                         ? TextButton(
-                            onPressed: () => Navigator.pushNamed(context, AppStrings.searchPath),
+                            onPressed: () => Navigator.pushNamed(context, AppStrings.districtListPath),
                             child: Row(
                               children: [
                                 Text(l10n.seeAll, style: const TextStyle(color: Color(0xFFD4520A))),
@@ -322,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       itemBuilder: (context, index) {
                         final d = visible[index];
-                        final info = _districtInfo(d.name);
+                        final info = districtVisualInfo(d.name);
                         return GestureDetector(
                           onTap: () => Navigator.pushNamed(
                             context,
@@ -398,6 +398,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: const ValueKey('events-content'),
                     children: nearbyEvents.take(2).map((event) {
                       final km = eventProvider.distanceKmOf(event);
+                      final seats = event.seatsRemaining;
+                      final seatsLabel = (seats != null && !event.isFull && seats <= 5)
+                          ? '$seats left'
+                          : null;
                       return Padding(
                         padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 12),
                         child: EventCard(
@@ -405,6 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           date: '${_getMonthName(event.startDate.month)} ${event.startDate.day}',
                           distance: km == null ? null : GeoDistance.label(context, km),
                           tags: eventProvider.tagsFor(event),
+                          seatsLeftLabel: seatsLabel,
                         ),
                       );
                     }).toList(),
@@ -434,44 +439,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return months[month - 1];
   }
 
-  _DistrictInfo _districtInfo(String name) {
-    switch (name.toLowerCase()) {
-      case 'kathmandu':
-        return _DistrictInfo(Icons.museum, const Color(0xFF5C4033), const Color(0xFFF3EBE5));
-      case 'bhaktapur':
-        return _DistrictInfo(Icons.castle, const Color(0xFF6D4C41), const Color(0xFFF5EDEA));
-      case 'lalitpur':
-        return _DistrictInfo(Icons.temple_hindu, const Color(0xFFB84B00), const Color(0xFFFFF0E6));
-      case 'kaski':
-      case 'pokhara':
-        return _DistrictInfo(Icons.landscape, const Color(0xFF2E7D32), const Color(0xFFE8F5E9));
-      case 'mustang':
-        return _DistrictInfo(Icons.terrain, const Color(0xFF795548), const Color(0xFFEFEBE9));
-      case 'dolakha':
-        return _DistrictInfo(Icons.temple_buddhist, const Color(0xFFD84315), const Color(0xFFFBE9E7));
-      case 'chitwan':
-        return _DistrictInfo(Icons.forest, const Color(0xFF388E3C), const Color(0xFFE8F5E9));
-      case 'solukhumbu':
-        return _DistrictInfo(Icons.ac_unit, const Color(0xFF0277BD), const Color(0xFFE1F5FE));
-      case 'manang':
-      case 'myagdi':
-        return _DistrictInfo(Icons.filter_hdr, const Color(0xFF546E7A), const Color(0xFFECEFF1));
-      case 'dang':
-      case 'banke':
-        return _DistrictInfo(Icons.grass, const Color(0xFF558B2F), const Color(0xFFF1F8E9));
-      case 'rupandehi':
-      case 'kapilvastu':
-        return _DistrictInfo(Icons.account_balance, const Color(0xFF6A1B9A), const Color(0xFFF3E5F5));
-      case 'nawalpur':
-      case 'palpa':
-        return _DistrictInfo(Icons.park, const Color(0xFF1B5E20), const Color(0xFFE8F5E9));
-      case 'kanchanpur':
-      case 'kailali':
-        return _DistrictInfo(Icons.water, const Color(0xFF0288D1), const Color(0xFFE1F5FE));
-      default:
-        return _DistrictInfo(Icons.location_city, const Color(0xFF8C7162), const Color(0xFFF5EFEC));
-    }
-  }
 }
 
 class DynamicFeaturedCarousel extends StatefulWidget {
@@ -618,14 +585,6 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
   }
 }
 
-// ─── file-level helper ───────────────────────────────────────────────────────
-
-class _DistrictInfo {
-  final IconData icon;
-  final Color color;
-  final Color bgColor;
-  const _DistrictInfo(this.icon, this.color, this.bgColor);
-}
 
 
 

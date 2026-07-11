@@ -30,6 +30,7 @@ class AppStrings {
   static const String disclaimerPath = '/disclaimer';
   static const String copyrightPolicyPath = '/copyright_policy';
   static const String districtDetailPath = '/district_detail';
+  static const String districtListPath = '/districts';
 
   // Localization Keys (Internal)
   static const String titleKey = 'title';

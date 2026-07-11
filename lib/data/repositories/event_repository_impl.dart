@@ -33,11 +33,13 @@ class EventRepositoryImpl implements EventRepository {
     required double lat,
     required double lng,
     double radiusKm = 10,
+    int? limit,
   }) async {
     return await remoteDataSource.getNearbyEvents(
       lat: lat,
       lng: lng,
       radiusKm: radiusKm,
+      limit: limit,
     );
   }
 
@@ -60,6 +62,31 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Map<String, int>> getRsvpAffinity() async {
     return await remoteDataSource.getMyRsvpAffinity();
+  }
+
+  @override
+  Future<Map<String, int>> getBookmarkAffinity() async {
+    return await remoteDataSource.getMyBookmarkAffinity();
+  }
+
+  @override
+  Future<Map<String, int>> getVisitAffinity() async {
+    return await remoteDataSource.getMyVisitAffinity();
+  }
+
+  @override
+  Future<List<int>> getBookmarkedEventIds() async {
+    return await remoteDataSource.getBookmarkedEventIds();
+  }
+
+  @override
+  Future<void> toggleBookmark(int eventId, {required bool currentlyBookmarked}) async {
+    await remoteDataSource.toggleBookmark(eventId, currentlyBookmarked: currentlyBookmarked);
+  }
+
+  @override
+  Future<void> recordVisit(int eventId) async {
+    await remoteDataSource.recordVisit(eventId);
   }
 }
 
