@@ -587,6 +587,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapDetailsButton => 'Details';
 
   @override
+  String get mapDirectionsButton => 'Directions';
+
+  @override
+  String mapRouteEta(String distance, String minutes) {
+    return '$distance · $minutes min';
+  }
+
+  @override
+  String get mapRouteError => 'Couldn\'t get directions. Try again.';
+
+  @override
+  String get mapRouteNeedLocation => 'Turn on location to get directions.';
+
+  @override
   String get clearHistory => 'Clear History';
 
   @override

@@ -592,6 +592,21 @@ class AppLocalizationsNe extends AppLocalizations {
   String get mapDetailsButton => 'विवरण';
 
   @override
+  String get mapDirectionsButton => 'मार्ग';
+
+  @override
+  String mapRouteEta(String distance, String minutes) {
+    return '$distance · $minutes मिनेट';
+  }
+
+  @override
+  String get mapRouteError =>
+      'मार्ग प्राप्त गर्न सकिएन। फेरि प्रयास गर्नुहोस्।';
+
+  @override
+  String get mapRouteNeedLocation => 'मार्ग हेर्न स्थान सेवा खोल्नुहोस्।';
+
+  @override
   String get clearHistory => 'इतिहास मेटाउनुहोस्';
 
   @override

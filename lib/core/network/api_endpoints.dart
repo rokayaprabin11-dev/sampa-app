@@ -35,6 +35,7 @@ class ApiEndpoints {
   static const String heritageAutocomplete = '/heritage/autocomplete/';
   static const String heritageCategories = '/heritage/categories/';
   static const String districts = '/geo/districts/';
+  static const String geoRoute = '/geo/route/';
   static const String uploadSignature = '/heritage/upload-signature/';
   static String siteDetail(String slug) => '/heritage/sites/$slug/';
   static String siteBookmark(String slug) => '/heritage/sites/$slug/bookmark/';

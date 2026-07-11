@@ -1226,6 +1226,30 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get mapDetailsButton;
 
+  /// No description provided for @mapDirectionsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get mapDirectionsButton;
+
+  /// No description provided for @mapRouteEta.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} · {minutes} min'**
+  String mapRouteEta(String distance, String minutes);
+
+  /// No description provided for @mapRouteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get directions. Try again.'**
+  String get mapRouteError;
+
+  /// No description provided for @mapRouteNeedLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location to get directions.'**
+  String get mapRouteNeedLocation;
+
   /// No description provided for @clearHistory.
   ///
   /// In en, this message translates to:

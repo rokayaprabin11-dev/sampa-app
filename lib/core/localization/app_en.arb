@@ -217,6 +217,16 @@
   "mapSubtitle": "Kathmandu Valley",
   "mapYouLabel": "You",
   "mapDetailsButton": "Details",
+  "mapDirectionsButton": "Directions",
+  "mapRouteEta": "{distance} · {minutes} min",
+  "@mapRouteEta": {
+    "placeholders": {
+      "distance": {"type": "String"},
+      "minutes": {"type": "String"}
+    }
+  },
+  "mapRouteError": "Couldn't get directions. Try again.",
+  "mapRouteNeedLocation": "Turn on location to get directions.",
   "clearHistory": "Clear History",
   "clearHistoryConfirm": "Are you sure you want to delete all visit history?",
   "searchHeritageHint": "Search heritage sites...",

@@ -8,8 +8,11 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/services/location_service.dart';
+import 'package:sampada/core/services/route_service.dart';
 import 'package:sampada/core/utils/geo_distance.dart';
+import 'package:sampada/injection.dart' as di;
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
@@ -37,6 +40,12 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   Position? _userPosition;
   HeritageSite? _selectedSite;
   bool _locating = false;
+
+  late final RouteService _routeService =
+      RouteService(apiClient: di.sl<ApiClient>());
+  RouteResult? _route;
+  HeritageSite? _routeSite;
+  bool _routing = false;
 
   @override
   void initState() {
@@ -136,6 +145,73 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     }
   }
 
+  // ── Directions ────────────────────────────────────────────────────────────
+
+  /// User GPS → backend /geo/route/ (Django proxies OSRM) → decoded polyline
+  /// drawn on the map, camera fitted to the whole route.
+  Future<void> _onDirections(HeritageSite site) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    var pos = _userPosition;
+    if (pos == null) {
+      await _tryLocate();
+      pos = _userPosition;
+    }
+    if (pos == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.mapRouteNeedLocation)),
+      );
+      return;
+    }
+
+    setState(() {
+      _routing = true;
+      _routeSite = site;
+      _selectedSite = site;
+    });
+    try {
+      final route = await _routeService.fetchRoute(
+        start: LatLng(pos.latitude, pos.longitude),
+        dest: LatLng(site.latitude, site.longitude),
+      );
+      if (!mounted) return;
+      if (route == null) {
+        setState(() => _routing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.mapRouteError)),
+        );
+        return;
+      }
+      setState(() {
+        _route = route;
+        _routing = false;
+      });
+      _fitRoute(route.points);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _routing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.mapRouteError)),
+      );
+    }
+  }
+
+  void _fitRoute(List<LatLng> points) {
+    final fitted = CameraFit.bounds(
+      bounds: LatLngBounds.fromPoints(points),
+      padding: const EdgeInsets.fromLTRB(48, 48, 48, 64),
+    ).fit(_mapController.camera);
+    _flyTo(fitted.center, fitted.zoom);
+  }
+
+  void _clearRoute() {
+    setState(() {
+      _route = null;
+      _routeSite = null;
+    });
+  }
+
   // ── Search ────────────────────────────────────────────────────────────────
 
   void _onSearch(String query) {
@@ -229,6 +305,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
               children: [
                 _buildMap(),
                 Positioned(top: 12, right: 12, child: _buildMapControls()),
+                if (_route != null)
+                  Positioned(top: 12, left: 12, child: _buildRouteBanner()),
               ],
             ),
           ),
@@ -347,6 +425,18 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
               userAgentPackageName: 'com.sampada.app',
               maxZoom: 19,
             ),
+            if (_route != null)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: _route!.points,
+                    strokeWidth: 5,
+                    color: AppColors.statusInfo,
+                    borderStrokeWidth: 2,
+                    borderColor: Colors.white,
+                  ),
+                ],
+              ),
             RepaintBoundary(
               child: MarkerLayer(
                 markers: [
@@ -494,11 +584,73 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     );
   }
 
+  Widget _buildRouteBanner() {
+    final l10n = AppLocalizations.of(context)!;
+    final route = _route!;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.sp12, vertical: AppDimensions.sp8),
+      decoration: BoxDecoration(
+        color: AppColors.kColorSurface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+        boxShadow: const [
+          BoxShadow(
+              color: AppColors.kShadowColor,
+              blurRadius: 6,
+              offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.directions_car,
+              size: AppDimensions.iconSm, color: AppColors.statusInfo),
+          const SizedBox(width: AppDimensions.sp6),
+          Text(
+            l10n.mapRouteEta(
+              GeoDistance.shortLabel(route.distanceKm),
+              '${route.durationMin}',
+            ),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.kColorTextHeading,
+            ),
+          ),
+          const SizedBox(width: AppDimensions.sp6),
+          InkWell(
+            onTap: _clearRoute,
+            child: const Icon(Icons.close,
+                size: AppDimensions.iconSm,
+                color: AppColors.kColorTextSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Default: two closest sites. When a marker is tapped, that site takes
+  /// over the panel (same card style) until the map is tapped to deselect.
   Widget _buildNearbyPanel() {
     final l10n = AppLocalizations.of(context)!;
     return Consumer<HeritageProvider>(
       builder: (context, heritage, _) {
-        final nearest = _nearestTwo(heritage.sites);
+        final selected = _selectedSite;
+        final List<(HeritageSite, double?)> nearest;
+        if (selected != null && _validCoords(selected)) {
+          final pos = _userPosition;
+          nearest = [
+            (
+              selected,
+              pos == null
+                  ? null
+                  : GeoDistance.haversineKm(pos.latitude, pos.longitude,
+                      selected.latitude, selected.longitude)
+            ),
+          ];
+        } else {
+          nearest = _nearestTwo(heritage.sites);
+        }
         if (nearest.isEmpty) return const SizedBox.shrink();
         return Container(
           color: AppColors.kColorBgPage,
@@ -580,28 +732,67 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
               ],
             ),
             const SizedBox(height: AppDimensions.sp8),
-            SizedBox(
-              height: 28,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  AppStrings.heritageDetailsPath,
-                  arguments: site,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.kColorDeep,
-                  foregroundColor: AppColors.kColorTextOnPrimary,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.sp12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.kRadiusSm),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 28,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppStrings.heritageDetailsPath,
+                        arguments: site,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.kColorDeep,
+                        foregroundColor: AppColors.kColorTextOnPrimary,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppDimensions.sp8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.kRadiusSm),
+                        ),
+                      ),
+                      child: Text(l10n.mapDetailsButton,
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w600)),
+                    ),
                   ),
                 ),
-                child: Text(l10n.mapDetailsButton,
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w600)),
-              ),
+                const SizedBox(width: AppDimensions.sp8),
+                Expanded(
+                  child: SizedBox(
+                    height: 28,
+                    child: OutlinedButton(
+                      onPressed: _routing && _routeSite?.id == site.id
+                          ? null
+                          : () => _onDirections(site),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.kColorPrimary,
+                        side: const BorderSide(
+                            color: AppColors.kColorPrimary, width: 1.2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppDimensions.sp8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.kRadiusSm),
+                        ),
+                      ),
+                      child: _routing && _routeSite?.id == site.id
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.kColorPrimary),
+                            )
+                          : Text(l10n.mapDirectionsButton,
+                              style: const TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
