@@ -849,19 +849,19 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
         separatorBuilder: (_, __) => const Divider(
             height: 1, color: AppColors.kColorBorderFaint),
         itemBuilder: (context, i) {
-          final site = _suggestions[i];
+          final item = _suggestions[i];
           final km = pos == null
               ? null
-              : GeoDistance.haversineKm(pos.latitude, pos.longitude,
-                  site.latitude, site.longitude);
+              : GeoDistance.haversineKm(
+                  pos.latitude, pos.longitude, item.lat, item.lng);
           return InkWell(
-            onTap: () => _selectItem(_fromSite(site), fromSearch: true),
+            onTap: () => _selectItem(item, fromSearch: true),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.sp12, vertical: AppDimensions.sp10),
               child: Row(
                 children: [
-                  Text(_siteEmoji(site.category),
+                  Text(item.emoji,
                       style: const TextStyle(fontSize: 18, height: 1)),
                   const SizedBox(width: AppDimensions.sp10),
                   Expanded(
@@ -869,7 +869,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          site.name,
+                          item.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -879,13 +879,25 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          site.district,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.kColorTextSecondary),
+                        Row(
+                          children: [
+                            if (item.isEvent) ...[
+                              const Icon(Icons.event,
+                                  size: 11,
+                                  color: AppColors.kColorPrimary),
+                              const SizedBox(width: 3),
+                            ],
+                            Expanded(
+                              child: Text(
+                                item.subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.kColorTextSecondary),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
