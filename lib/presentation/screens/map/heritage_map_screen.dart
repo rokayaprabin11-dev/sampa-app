@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -47,9 +48,27 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   HeritageSite? _routeSite;
   bool _routing = false;
 
+  Timer? _debounce;
+  List<HeritageSite> _suggestions = const [];
+  late final AnimationController _bounceController;
+  late final Animation<double> _bounce;
+
   @override
   void initState() {
     super.initState();
+    _bounceController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
+    // One up-and-down hop for the selected marker when the camera arrives.
+    _bounce = TweenSequence<double>([
+      TweenSequenceItem(
+          tween: Tween(begin: 0.0, end: 1.0)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: 40),
+      TweenSequenceItem(
+          tween: Tween(begin: 1.0, end: 0.0)
+              .chain(CurveTween(curve: Curves.bounceOut)),
+          weight: 60),
+    ]).animate(_bounceController);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<HeritageProvider>().fetchSites();
       if (!mounted) return;
@@ -67,6 +86,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _bounceController.dispose();
     _flyController?.dispose();
     _searchController.dispose();
     _mapController.dispose();
@@ -78,7 +99,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   /// Google-Maps-style camera flight: position and zoom tween together over
   /// many frames instead of jumping. Long hops (>50 km) zoom out to a mid
   /// level first, then dive back in, so the ride reads as one smooth arc.
-  void _flyTo(LatLng dest, double destZoom, {Duration? duration}) {
+  void _flyTo(LatLng dest, double destZoom,
+      {Duration? duration, bool bounceOnArrival = false}) {
     final camera = _mapController.camera;
     final start = camera.center;
     final startZoom = camera.zoom;
@@ -116,7 +138,11 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
         zoom.value,
       );
     });
-    controller.forward();
+    controller.forward().whenComplete(() {
+      if (bounceOnArrival && mounted && _selectedSite != null) {
+        _bounceController.forward(from: 0);
+      }
+    });
   }
 
   void _zoomBy(double delta) {
@@ -214,39 +240,101 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
 
   // ── Search ────────────────────────────────────────────────────────────────
 
-  void _onSearch(String query) {
+  /// Viewport-aware ranking, Google-Maps style. Weights:
+  /// name match 40% · visible in current viewport 25% · near user 15% ·
+  /// popularity 10% · featured/UNESCO 10%. So "Durbar" prefers Bhaktapur
+  /// Durbar Square when the camera is already over Bhaktapur.
+  List<HeritageSite> _rankSuggestions(String query) {
     final q = query.trim().toLowerCase();
-    if (q.isEmpty) return;
-    final sites = context
-        .read<HeritageProvider>()
-        .sites
-        .where(_validCoords)
-        .toList();
+    if (q.isEmpty) return const [];
 
-    HeritageSite? match;
+    final sites = context.read<HeritageProvider>().sites.where(_validCoords);
+    final bounds = _mapController.camera.visibleBounds;
+    final pos = _userPosition;
+
+    final scored = <(HeritageSite, double)>[];
     for (final s in sites) {
-      if (s.name.toLowerCase().startsWith(q)) {
-        match = s;
-        break;
+      final name = s.name.toLowerCase();
+      double match;
+      if (name == q) {
+        match = 1.0;
+      } else if (name.startsWith(q)) {
+        match = 0.8;
+      } else if (name.contains(q) || s.nameNepali.contains(query.trim())) {
+        match = 0.5;
+      } else if (s.location.toLowerCase().contains(q) ||
+          s.district.toLowerCase().contains(q)) {
+        match = 0.35;
+      } else {
+        continue;
       }
-    }
-    match ??= sites.cast<HeritageSite?>().firstWhere(
-          (s) =>
-              s!.name.toLowerCase().contains(q) ||
-              s.nameNepali.contains(query.trim()) ||
-              s.location.toLowerCase().contains(q),
-          orElse: () => null,
-        );
 
-    FocusScope.of(context).unfocus();
-    if (match == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.labelNotFound)),
-      );
+      final visible =
+          bounds.contains(LatLng(s.latitude, s.longitude)) ? 1.0 : 0.0;
+
+      var proximity = 0.0;
+      if (pos != null) {
+        final km = GeoDistance.haversineKm(
+            pos.latitude, pos.longitude, s.latitude, s.longitude);
+        proximity = (1 - km / 50).clamp(0.0, 1.0);
+      }
+
+      final popularity =
+          (s.rating / 5).clamp(0.0, 1.0) * (s.reviewsCount > 0 ? 1.0 : 0.5);
+      final priority = (s.isFeatured || s.isUnesco) ? 1.0 : 0.0;
+
+      scored.add((
+        s,
+        0.40 * match +
+            0.25 * visible +
+            0.15 * proximity +
+            0.10 * popularity +
+            0.10 * priority
+      ));
+    }
+    scored.sort((a, b) => b.$2.compareTo(a.$2));
+    return scored.take(6).map((e) => e.$1).toList();
+  }
+
+  /// Live search: 250 ms debounce, dropdown only — the camera never moves
+  /// while typing.
+  void _onSearchChanged(String text) {
+    _debounce?.cancel();
+    if (text.trim().isEmpty) {
+      setState(() => _suggestions = const []);
       return;
     }
-    setState(() => _selectedSite = match);
-    _flyTo(LatLng(match.latitude, match.longitude), _siteZoom);
+    _debounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      setState(() => _suggestions = _rankSuggestions(text));
+    });
+    setState(() {}); // refresh clear-button visibility
+  }
+
+  void _selectSuggestion(HeritageSite site) {
+    _debounce?.cancel();
+    _searchController.text = site.name;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _suggestions = const [];
+      _selectedSite = site;
+    });
+    _flyTo(LatLng(site.latitude, site.longitude), _siteZoom,
+        bounceOnArrival: true);
+  }
+
+  void _onSearch(String query) {
+    final ranked = _rankSuggestions(query);
+    if (ranked.isEmpty) {
+      FocusScope.of(context).unfocus();
+      if (query.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.labelNotFound)),
+        );
+      }
+      return;
+    }
+    _selectSuggestion(ranked.first);
   }
 
   // ── Data helpers ──────────────────────────────────────────────────────────
@@ -307,6 +395,9 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                 Positioned(top: 12, right: 12, child: _buildMapControls()),
                 if (_route != null)
                   Positioned(top: 12, left: 12, child: _buildRouteBanner()),
+                if (_suggestions.isNotEmpty)
+                  Positioned(
+                      top: 8, left: 12, right: 12, child: _buildSuggestions()),
               ],
             ),
           ),
@@ -376,6 +467,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
       child: TextField(
         controller: _searchController,
         textInputAction: TextInputAction.search,
+        onChanged: _onSearchChanged,
         onSubmitted: _onSearch,
         style: const TextStyle(
             color: AppColors.kColorTextBody, fontSize: 14),
@@ -387,6 +479,18 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
               color: AppColors.kColorTextMuted, fontSize: 14),
           prefixIcon: const Icon(Icons.search,
               color: AppColors.kColorTextMuted, size: AppDimensions.iconMd),
+          suffixIcon: _searchController.text.isEmpty
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.close,
+                      color: AppColors.kColorTextMuted,
+                      size: AppDimensions.iconMd),
+                  onPressed: () {
+                    _debounce?.cancel();
+                    _searchController.clear();
+                    setState(() => _suggestions = const []);
+                  },
+                ),
           contentPadding:
               const EdgeInsets.symmetric(vertical: 12, horizontal: AppDimensions.sp16),
         ),
@@ -417,7 +521,13 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             minZoom: 5.0,
             maxZoom: 18.0,
             backgroundColor: AppColors.kColorMapSurface,
-            onTap: (_, __) => setState(() => _selectedSite = null),
+            onTap: (_, __) {
+              FocusScope.of(context).unfocus();
+              setState(() {
+                _selectedSite = null;
+                _suggestions = const [];
+              });
+            },
           ),
           children: [
             TileLayer(
@@ -461,30 +571,38 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
       child: GestureDetector(
         onTap: () {
           setState(() => _selectedSite = site);
-          _flyTo(LatLng(site.latitude, site.longitude), _siteZoom);
+          _flyTo(LatLng(site.latitude, site.longitude), _siteZoom,
+              bounceOnArrival: true);
         },
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.kColorAccentLight,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.kColorPrimary
-                  : AppColors.kColorTextOnPrimary,
-              width: isSelected ? 3 : 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: isSelected ? 8 : 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+        child: AnimatedBuilder(
+          animation: _bounce,
+          builder: (context, child) => Transform.translate(
+            offset: Offset(0, isSelected ? -10 * _bounce.value : 0),
+            child: child,
           ),
-          child: Text(
-            _categoryEmoji(site),
-            style: TextStyle(fontSize: isSelected ? 22 : 18, height: 1),
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.kColorAccentLight,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected
+                    ? AppColors.kColorPrimary
+                    : AppColors.kColorTextOnPrimary,
+                width: isSelected ? 3 : 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: isSelected ? 8 : 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              _categoryEmoji(site),
+              style: TextStyle(fontSize: isSelected ? 22 : 18, height: 1),
+            ),
           ),
         ),
       ),
@@ -580,6 +698,87 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             tooltip: 'My Location',
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestions() {
+    final pos = _userPosition;
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 320),
+      decoration: BoxDecoration(
+        color: AppColors.kColorSurface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+        border: Border.all(color: AppColors.kColorBorderSubtle),
+        boxShadow: const [
+          BoxShadow(
+              color: AppColors.kShadowColor,
+              blurRadius: 10,
+              offset: Offset(0, 4)),
+        ],
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(vertical: AppDimensions.sp4),
+        itemCount: _suggestions.length,
+        separatorBuilder: (_, __) => const Divider(
+            height: 1, color: AppColors.kColorBorderFaint),
+        itemBuilder: (context, i) {
+          final site = _suggestions[i];
+          final km = pos == null
+              ? null
+              : GeoDistance.haversineKm(pos.latitude, pos.longitude,
+                  site.latitude, site.longitude);
+          return InkWell(
+            onTap: () => _selectSuggestion(site),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.sp12, vertical: AppDimensions.sp10),
+              child: Row(
+                children: [
+                  Text(_categoryEmoji(site),
+                      style: const TextStyle(fontSize: 18, height: 1)),
+                  const SizedBox(width: AppDimensions.sp10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          site.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.kColorTextHeading,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          site.district,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.kColorTextSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (km != null) ...[
+                    const SizedBox(width: AppDimensions.sp8),
+                    Text(
+                      GeoDistance.shortLabel(km),
+                      style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.kColorTextSecondary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
