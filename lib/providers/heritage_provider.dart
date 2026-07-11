@@ -15,6 +15,12 @@ class HeritageProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Server-ranked featured-sites pool (scored, diversified, rotated, and —
+  // when signed in — personalized by the backend). Category chip filtering
+  // happens client-side over this pool; never re-sort it.
+  List<HeritageSite> _featuredPool = [];
+  bool _isFeaturedLoading = false;
+
   // Search state
   String _currentQuery = '';
   String _currentCategory = 'All';
@@ -37,6 +43,7 @@ class HeritageProvider with ChangeNotifier {
   List<HeritageSite> get sites => _sites;
   List<DistrictModel> get districts => _districts;
   bool get isLoading => _isLoading;
+  bool get isFeaturedLoading => _isFeaturedLoading;
   String? get error => _error;
   String get currentQuery => _currentQuery;
   String get currentCategory => _currentCategory;
@@ -133,18 +140,31 @@ class HeritageProvider with ChangeNotifier {
     super.dispose();
   }
 
+  /// Fetches the server-ranked featured pool (score + diversity + rotation +
+  /// personalization all applied backend-side). Call once with no coords for
+  /// a fast first paint, then again once a location fix resolves.
+  Future<void> fetchFeaturedSites({double? lat, double? lng}) async {
+    _isFeaturedLoading = _featuredPool.isEmpty;
+    if (_isFeaturedLoading) notifyListeners();
+    try {
+      _featuredPool = await repository.getFeaturedSites(lat: lat, lng: lng);
+    } catch (e) {
+      debugPrint('fetchFeaturedSites failed: $e');
+    } finally {
+      _isFeaturedLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Filters the already-ranked featured pool by category. Deliberately does
+  /// NOT re-sort — the server has already applied score + diversity +
+  /// rotation ordering, so filtering must preserve it.
   List<HeritageSite> getFeaturedSites({String? category}) {
-    if (_sites.isEmpty) return [];
+    if (_featuredPool.isEmpty) return [];
 
     final slug = _slugify(category ?? '');
-    final filteredList = (slug.isEmpty || slug == 'all')
-        ? _sites
-        : _sites.where((s) => _slugify(s.category) == slug).toList();
-
-    final sortedList = List<HeritageSite>.from(filteredList)
-      ..sort((a, b) => (b.isFeatured ? 1 : 0).compareTo(a.isFeatured ? 1 : 0));
-
-    return sortedList.take(6).toList();
+    if (slug.isEmpty || slug == 'all') return _featuredPool;
+    return _featuredPool.where((s) => _slugify(s.category) == slug).toList();
   }
 
   // Normalize plural UI labels + locale strings → backend singular slug

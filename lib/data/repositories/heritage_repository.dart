@@ -12,6 +12,7 @@ abstract class HeritageRepository {
     String? bbox,
     String? sortBy,
   });
+  Future<List<HeritageSite>> getFeaturedSites({double? lat, double? lng});
   Future<List<HeritageSite>> searchHeritageSites(String query);
   Future<List<DistrictModel>> getDistricts();
   Future<HeritageSite> createHeritageSite(HeritageSite site);

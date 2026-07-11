@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
@@ -29,7 +30,20 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HeritageProvider>().fetchSites();
       context.read<EventProvider>().loadUpcomingEvents();
+      _loadFeaturedSites();
     });
+  }
+
+  /// Two-phase featured-sites fetch: an immediate no-coords call so the
+  /// carousel paints fast, then a background location fix that re-fetches
+  /// with lat/lng once (if ever) it resolves — never blocks the first paint.
+  Future<void> _loadFeaturedSites() async {
+    final provider = context.read<HeritageProvider>();
+    await provider.fetchFeaturedSites();
+    if (!mounted) return;
+    final pos = await LocationService().getAccurateFix();
+    if (pos == null || !mounted) return;
+    await provider.fetchFeaturedSites(lat: pos.latitude, lng: pos.longitude);
   }
 
   @override
@@ -529,7 +543,7 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
         final featured = provider.getFeaturedSites(category: widget.selectedCategory);
 
         final Widget content;
-        if (provider.isLoading && featured.isEmpty) {
+        if (provider.isFeaturedLoading && featured.isEmpty) {
           content = SizedBox(
             key: const ValueKey('featured-skeleton'),
             height: 200,
@@ -563,6 +577,7 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
                   location: site.district,
                   icon: _getIconForCategory(site.category),
                   imageUrl: site.imageUrl,
+                  reasonLabel: site.reason,
                   onTap: () {
                     Navigator.pushNamed(
                       context,

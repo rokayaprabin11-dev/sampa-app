@@ -112,6 +112,27 @@ class HeritageRemoteDataSourceImpl implements HeritageRemoteDataSource {
   }
 
   @override
+  Future<List<HeritageSiteModel>> getFeaturedSites({double? lat, double? lng}) async {
+    final Map<String, dynamic> queryParams = {};
+    if (lat != null && lng != null) {
+      queryParams['lat'] = lat;
+      queryParams['lng'] = lng;
+    }
+
+    final data = await apiClient.get(
+      ApiEndpoints.heritageFeatured,
+      queryParameters: queryParams,
+    );
+
+    // Handle both paginated and non-paginated responses
+    final List list = (data is Map) ? (data['results'] ?? []) : data;
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map((json) => HeritageSiteModel.fromJson(json))
+        .toList();
+  }
+
+  @override
   Future<HeritageSiteModel> createHeritageSite(Map<String, dynamic> siteData) async {
     final data = await apiClient.post(
       ApiEndpoints.heritageSitesCreate,

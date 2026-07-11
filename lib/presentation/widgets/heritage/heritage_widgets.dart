@@ -83,6 +83,7 @@ class FeaturedSiteCard extends StatelessWidget {
   final String location;
   final IconData icon;
   final String? imageUrl;
+  final String? reasonLabel;
   final VoidCallback onTap;
 
   const FeaturedSiteCard({
@@ -91,12 +92,22 @@ class FeaturedSiteCard extends StatelessWidget {
     required this.location,
     required this.icon,
     this.imageUrl,
+    this.reasonLabel,
     required this.onTap,
   });
+
+  static const Map<String, (IconData, String)> _reasonMeta = {
+    'editors_choice': (Icons.star, "Editor's Choice"),
+    'near_you': (Icons.near_me, 'Near You'),
+    'trending': (Icons.local_fire_department, 'Trending'),
+    'new': (Icons.fiber_new, 'New'),
+    'for_you': (Icons.favorite, 'For You'),
+  };
 
   @override
   Widget build(BuildContext context) {
     final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
+    final meta = reasonLabel != null ? _reasonMeta[reasonLabel] : null;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -142,6 +153,35 @@ class FeaturedSiteCard extends StatelessWidget {
                 ),
               ),
             ),
+
+            // explainability badge (Editor's Choice / Near You / Trending / New / For You)
+            if (meta != null)
+              Positioned(
+                left: 16,
+                top: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(meta.$1, color: const Color(0xFF7B1E00), size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        meta.$2,
+                        style: const TextStyle(
+                          color: Color(0xFF7B1E00),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             // title + location
             Positioned(

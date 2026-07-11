@@ -50,6 +50,20 @@ class HeritageRepositoryImpl implements HeritageRepository {
   }
 
   @override
+  Future<List<HeritageSite>> getFeaturedSites({double? lat, double? lng}) async {
+    try {
+      return await remoteDataSource.getFeaturedSites(lat: lat, lng: lng);
+    } catch (e) {
+      // Offline: fall back to previously cached featured sites (no ranking,
+      // diversity, rotation or reason — just the last known featured set).
+      final cached = await localDataSource.getLastHeritageSites(limit: 50);
+      final featured = cached.where((s) => s.isFeatured).toList();
+      if (featured.isNotEmpty) return featured;
+      rethrow;
+    }
+  }
+
+  @override
   Future<HeritageSite> createHeritageSite(HeritageSite site) async {
     final siteModel = HeritageSiteModel(
       id: site.id,
