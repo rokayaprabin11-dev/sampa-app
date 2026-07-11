@@ -578,6 +578,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get heritageMapTitle => 'Heritage Map';
 
   @override
+  String get mapSubtitle => 'Kathmandu Valley';
+
+  @override
+  String get mapYouLabel => 'You';
+
+  @override
+  String get mapDetailsButton => 'Details';
+
+  @override
   String get clearHistory => 'Clear History';
 
   @override

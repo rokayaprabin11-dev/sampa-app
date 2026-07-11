@@ -22,7 +22,7 @@ import 'presentation/screens/guides/become_guide_screen.dart';
 import 'presentation/screens/guides/guide_profile_screen.dart';
 import 'presentation/screens/downloads/downloads_screen.dart';
 import 'presentation/screens/events/events_screen.dart';
-import 'presentation/screens/map/map_placeholder_screen.dart';
+import 'presentation/screens/map/heritage_map_screen.dart';
 import 'presentation/screens/guides/guide_screen.dart';
 import 'presentation/screens/heritage/heritage_search_screen.dart';
 import 'presentation/screens/bookmarks/saved_sites_screen.dart';
@@ -98,7 +98,7 @@ class SampadaApp extends StatelessWidget {
         AppStrings.eventsPath: (context) => const EventsScreen(),
         AppStrings.mapPath: (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
-          return MapPlaceholderScreen(
+          return HeritageMapScreen(
             focusSite: args is HeritageSite ? args : null,
           );
         },

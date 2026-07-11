@@ -125,7 +125,6 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     final provider = context.watch<ProfileProvider>();
     final images   = _carouselImages;
     final gallery  = _galleryItems;
-    debugPrint('DBG build: images=${images.length} gallery=${gallery.length}');
     final cs       = Theme.of(context).colorScheme;
     final isDark   = cs.brightness == Brightness.dark;
 

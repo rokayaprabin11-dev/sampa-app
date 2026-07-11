@@ -1208,6 +1208,24 @@ abstract class AppLocalizations {
   /// **'Heritage Map'**
   String get heritageMapTitle;
 
+  /// No description provided for @mapSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Kathmandu Valley'**
+  String get mapSubtitle;
+
+  /// No description provided for @mapYouLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get mapYouLabel;
+
+  /// No description provided for @mapDetailsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get mapDetailsButton;
+
   /// No description provided for @clearHistory.
   ///
   /// In en, this message translates to:

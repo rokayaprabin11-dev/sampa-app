@@ -583,6 +583,15 @@ class AppLocalizationsNe extends AppLocalizations {
   String get heritageMapTitle => 'सम्पदा नक्सा';
 
   @override
+  String get mapSubtitle => 'काठमाडौं उपत्यका';
+
+  @override
+  String get mapYouLabel => 'तपाईं';
+
+  @override
+  String get mapDetailsButton => 'विवरण';
+
+  @override
   String get clearHistory => 'इतिहास मेटाउनुहोस्';
 
   @override
