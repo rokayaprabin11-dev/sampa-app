@@ -152,88 +152,32 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     return null;
   }
 
+  /// Rejects junk before it reaches the guide profile. Returns an error message,
+  /// or null when [value] is an acceptable new language.
+  String? _validateNewLanguage(String value) {
+    if (value.isEmpty) return 'Enter a language.';
+    if (value.length > 30) return 'Keep it under 30 characters.';
+    // Unicode-aware, so नेवारी and Français pass but "123" doesn't.
+    if (!RegExp(r"^[\p{L}][\p{L} '\-]*$", unicode: true).hasMatch(value)) {
+      return 'Letters only.';
+    }
+    final duplicate = _existingLanguageMatch(value);
+    if (duplicate != null) return '$duplicate is already listed.';
+    return null;
+  }
+
   /// Prompts for a language not in the preset list, then adds it as a selected
   /// chip. Submitted verbatim in the `languages` list (the backend stores it as
-  /// free-form JSON), so it is trimmed and length-capped here.
+  /// free-form JSON), so it is trimmed and length-capped first.
   Future<void> _addCustomLanguage() async {
-    final controller = TextEditingController();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
-
     final entered = await showDialog<String>(
       context: context,
-      builder: (dialogContext) {
-        String? errorText;
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            void submit() {
-              final value = controller.text.trim();
-              if (value.isEmpty) {
-                setDialogState(() => errorText = 'Enter a language.');
-                return;
-              }
-              if (value.length > 30) {
-                setDialogState(() => errorText = 'Keep it under 30 characters.');
-                return;
-              }
-              if (!RegExp(r"^[\p{L}][\p{L} '\-]*$", unicode: true).hasMatch(value)) {
-                setDialogState(() => errorText = 'Letters only.');
-                return;
-              }
-              final duplicate = _existingLanguageMatch(value);
-              if (duplicate != null) {
-                setDialogState(() => errorText = '$duplicate is already listed.');
-                return;
-              }
-              Navigator.pop(dialogContext, value);
-            }
-
-            return AlertDialog(
-              backgroundColor: isDark ? AppColors.darkBgCard : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-              ),
-              title: Text(
-                'Add a language',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(dialogContext).colorScheme.onSurface,
-                ),
-              ),
-              content: TextField(
-                controller: controller,
-                autofocus: true,
-                maxLength: 30,
-                textCapitalization: TextCapitalization.words,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => submit(),
-                style: TextStyle(
-                  color: Theme.of(dialogContext).colorScheme.onSurface,
-                  fontSize: 14,
-                ),
-                decoration: _inputDecor(isDark, 'e.g. Newari, French').copyWith(
-                  errorText: errorText,
-                  counterText: '',
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text('Cancel', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey[700])),
-                ),
-                TextButton(
-                  onPressed: submit,
-                  child: Text('Add', style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (_) => _AddLanguageDialog(
+        isDark: Theme.of(context).brightness == Brightness.dark,
+        validate: _validateNewLanguage,
+      ),
     );
 
-    controller.dispose();
     if (entered == null || !mounted) return;
     setState(() {
       _customLanguages.add(entered);
@@ -1110,18 +1054,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     return Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : Colors.grey));
   }
 
-  InputDecoration _inputDecor(bool isDark, String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 14),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      filled: isDark,
-      fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
-      border:        OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
-    );
-  }
+  InputDecoration _inputDecor(bool isDark, String hint) => _guideInputDecor(isDark, hint);
 
   Widget _field(BuildContext context, bool isDark, String label, String hint, TextEditingController ctrl, {int maxLines = 1, TextInputType type = TextInputType.text}) {
     return Column(
@@ -1349,6 +1282,100 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+InputDecoration _guideInputDecor(bool isDark, String hint) {
+  return InputDecoration(
+    hintText: hint,
+    hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 14),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    filled: isDark,
+    fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
+    border:        OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
+  );
+}
+
+/// "Add a language" prompt. A widget rather than an inline StatefulBuilder so it
+/// owns its TextEditingController: the dialog's exit animation keeps rebuilding
+/// the TextField after the route is popped, so the controller must not be
+/// disposed until the framework tears this State down.
+class _AddLanguageDialog extends StatefulWidget {
+  final bool isDark;
+
+  /// Returns an error message, or null when the value is acceptable.
+  final String? Function(String) validate;
+
+  const _AddLanguageDialog({required this.isDark, required this.validate});
+
+  @override
+  State<_AddLanguageDialog> createState() => _AddLanguageDialogState();
+}
+
+class _AddLanguageDialogState extends State<_AddLanguageDialog> {
+  final _controller = TextEditingController();
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text.trim();
+    final error = widget.validate(value);
+    if (error != null) {
+      setState(() => _errorText = error);
+      return;
+    }
+    Navigator.pop(context, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+
+    return AlertDialog(
+      backgroundColor: isDark ? AppColors.darkBgCard : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+      ),
+      title: Text(
+        'Add a language',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLength: 30,
+        textCapitalization: TextCapitalization.words,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => _submit(),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+        decoration: _guideInputDecor(isDark, 'e.g. Newari, French').copyWith(
+          errorText: _errorText,
+          counterText: '',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey[700])),
+        ),
+        TextButton(
+          onPressed: _submit,
+          child: Text('Add', style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
+        ),
+      ],
     );
   }
 }
