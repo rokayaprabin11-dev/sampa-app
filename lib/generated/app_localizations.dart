@@ -1274,6 +1274,198 @@ abstract class AppLocalizations {
   /// **'Turn on location to get directions.'**
   String get mapRouteNeedLocation;
 
+  /// No description provided for @payDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment due'**
+  String get payDueTitle;
+
+  /// No description provided for @confirmTourTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your tour'**
+  String get confirmTourTitle;
+
+  /// No description provided for @payDueBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tour with {guide} on {date}'**
+  String payDueBody(String guide, String date);
+
+  /// No description provided for @confirmTourBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{guide} marked your tour on {date} as completed.'**
+  String confirmTourBody(String guide, String date);
+
+  /// No description provided for @btnPayNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get btnPayNow;
+
+  /// No description provided for @tourConfirmedSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tour confirmed. Please settle the payment.'**
+  String get tourConfirmedSettle;
+
+  /// No description provided for @paySheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle payment'**
+  String get paySheetTitle;
+
+  /// No description provided for @paySheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {guide} directly, then record it here.'**
+  String paySheetBody(String guide);
+
+  /// No description provided for @payTxnIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID (optional)'**
+  String get payTxnIdLabel;
+
+  /// No description provided for @btnRecordPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get btnRecordPayment;
+
+  /// No description provided for @payRecordFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not record payment: {error}'**
+  String payRecordFailed(String error);
+
+  /// No description provided for @payRecordedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment recorded'**
+  String get payRecordedTitle;
+
+  /// No description provided for @receiptLabelNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get receiptLabelNo;
+
+  /// No description provided for @receiptLabelGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide'**
+  String get receiptLabelGuide;
+
+  /// No description provided for @receiptLabelDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get receiptLabelDate;
+
+  /// No description provided for @receiptLabelMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get receiptLabelMethod;
+
+  /// No description provided for @receiptLabelAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get receiptLabelAmount;
+
+  /// No description provided for @btnDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get btnDone;
+
+  /// No description provided for @reviewAlreadyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve already reviewed this guide.'**
+  String get reviewAlreadyDone;
+
+  /// No description provided for @reviewAfterTour.
+  ///
+  /// In en, this message translates to:
+  /// **'You can review a guide after completing a tour with them.'**
+  String get reviewAfterTour;
+
+  /// No description provided for @reviewThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for your review!'**
+  String get reviewThanks;
+
+  /// No description provided for @reviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit review: {error}'**
+  String reviewFailed(String error);
+
+  /// No description provided for @tourMarkedAwaitTourist.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as completed — waiting for the tourist to confirm.'**
+  String get tourMarkedAwaitTourist;
+
+  /// No description provided for @sectionConfirmedTours.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRMED TOURS'**
+  String get sectionConfirmedTours;
+
+  /// No description provided for @labelAwaitingTourist.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting tourist'**
+  String get labelAwaitingTourist;
+
+  /// No description provided for @btnMarkCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark completed'**
+  String get btnMarkCompleted;
+
+  /// No description provided for @bookingAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking accepted.'**
+  String get bookingAccepted;
+
+  /// No description provided for @bookingDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking declined.'**
+  String get bookingDeclined;
+
+  /// No description provided for @hirePendingBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Request pending — you can hire this guide again once they respond.'**
+  String get hirePendingBanner;
+
+  /// No description provided for @settingAvailableForBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Available for bookings'**
+  String get settingAvailableForBookings;
+
+  /// No description provided for @settingBookingNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking notifications'**
+  String get settingBookingNotifications;
+
+  /// No description provided for @settingAutoAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-accept booking requests'**
+  String get settingAutoAccept;
+
   /// No description provided for @clearHistory.
   ///
   /// In en, this message translates to:

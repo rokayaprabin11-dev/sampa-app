@@ -619,6 +619,117 @@ class AppLocalizationsNe extends AppLocalizations {
   String get mapRouteNeedLocation => 'मार्ग हेर्न स्थान सेवा खोल्नुहोस्।';
 
   @override
+  String get payDueTitle => 'भुक्तानी बाँकी';
+
+  @override
+  String get confirmTourTitle => 'आफ्नो भ्रमण पुष्टि गर्नुहोस्';
+
+  @override
+  String payDueBody(String guide, String date) {
+    return '$date मा $guide सँगको भ्रमण';
+  }
+
+  @override
+  String confirmTourBody(String guide, String date) {
+    return '$guide ले $date को भ्रमण सम्पन्न भनी चिन्ह लगाउनुभयो।';
+  }
+
+  @override
+  String get btnPayNow => 'भुक्तानी गर्नुहोस्';
+
+  @override
+  String get tourConfirmedSettle =>
+      'भ्रमण पुष्टि भयो। कृपया भुक्तानी गर्नुहोस्।';
+
+  @override
+  String get paySheetTitle => 'भुक्तानी मिलाउनुहोस्';
+
+  @override
+  String paySheetBody(String guide) {
+    return '$guide लाई सिधै भुक्तानी गरी यहाँ रेकर्ड गर्नुहोस्।';
+  }
+
+  @override
+  String get payTxnIdLabel => 'कारोबार आईडी (वैकल्पिक)';
+
+  @override
+  String get btnRecordPayment => 'भुक्तानी रेकर्ड गर्नुहोस्';
+
+  @override
+  String payRecordFailed(String error) {
+    return 'भुक्तानी रेकर्ड गर्न सकिएन: $error';
+  }
+
+  @override
+  String get payRecordedTitle => 'भुक्तानी रेकर्ड भयो';
+
+  @override
+  String get receiptLabelNo => 'रसिद';
+
+  @override
+  String get receiptLabelGuide => 'गाइड';
+
+  @override
+  String get receiptLabelDate => 'मिति';
+
+  @override
+  String get receiptLabelMethod => 'माध्यम';
+
+  @override
+  String get receiptLabelAmount => 'रकम';
+
+  @override
+  String get btnDone => 'भयो';
+
+  @override
+  String get reviewAlreadyDone =>
+      'तपाईंले यो गाइडलाई पहिल्यै समीक्षा गरिसक्नुभएको छ।';
+
+  @override
+  String get reviewAfterTour =>
+      'भ्रमण सम्पन्न गरेपछि मात्र गाइडको समीक्षा गर्न सकिन्छ।';
+
+  @override
+  String get reviewThanks => 'तपाईंको समीक्षाको लागि धन्यवाद!';
+
+  @override
+  String reviewFailed(String error) {
+    return 'समीक्षा पेश गर्न सकिएन: $error';
+  }
+
+  @override
+  String get tourMarkedAwaitTourist =>
+      'सम्पन्न चिन्ह लगाइयो — पर्यटकको पुष्टि पर्खँदै।';
+
+  @override
+  String get sectionConfirmedTours => 'पुष्टि भएका भ्रमणहरू';
+
+  @override
+  String get labelAwaitingTourist => 'पर्यटक पर्खँदै';
+
+  @override
+  String get btnMarkCompleted => 'सम्पन्न चिन्ह लगाउनुहोस्';
+
+  @override
+  String get bookingAccepted => 'बुकिङ स्वीकार गरियो।';
+
+  @override
+  String get bookingDeclined => 'बुकिङ अस्वीकार गरियो।';
+
+  @override
+  String get hirePendingBanner =>
+      'अनुरोध विचाराधीन — जवाफ आएपछि मात्र यो गाइड फेरि बुक गर्न सकिन्छ।';
+
+  @override
+  String get settingAvailableForBookings => 'बुकिङका लागि उपलब्ध';
+
+  @override
+  String get settingBookingNotifications => 'बुकिङ सूचनाहरू';
+
+  @override
+  String get settingAutoAccept => 'बुकिङ अनुरोध स्वतः स्वीकार गर्नुहोस्';
+
+  @override
   String get clearHistory => 'इतिहास मेटाउनुहोस्';
 
   @override

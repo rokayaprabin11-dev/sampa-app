@@ -259,6 +259,36 @@ class GuideProvider with ChangeNotifier {
     }
   }
 
+  /// Completion handshake. The guide asserts the tour happened; the tourist
+  /// counter-signs, which flips the booking to `completed` and makes the
+  /// payment due. Returns null on success, else an error message.
+  Future<String?> completeTour(int bookingId, {required bool asGuide}) async {
+    try {
+      await _apiClient.post(ApiEndpoints.bookingComplete(bookingId));
+      await (asGuide ? fetchIncomingBookings() : fetchMyBookings());
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  /// Records how the tourist settled a completed tour (no money moves through
+  /// the app). Returns (error, updatedBooking) — the booking carries the
+  /// receipt number for the confirmation dialog.
+  Future<(String?, Map<String, dynamic>?)> recordPayment(
+      int bookingId, String method, String reference) async {
+    try {
+      final data = await _apiClient.post(
+        ApiEndpoints.bookingPayment(bookingId),
+        data: {'method': method, 'reference': reference},
+      );
+      await fetchMyBookings();
+      return (null, (data as Map).cast<String, dynamic>());
+    } catch (e) {
+      return (e.toString(), null);
+    }
+  }
+
   /// Submit a review (1–5 + optional text) for a completed booking. Returns
   /// null on success, or an error message to show the user.
   Future<String?> reviewBooking(int bookingId, int rating, String text) async {

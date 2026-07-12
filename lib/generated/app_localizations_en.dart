@@ -613,6 +613,116 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapRouteNeedLocation => 'Turn on location to get directions.';
 
   @override
+  String get payDueTitle => 'Payment due';
+
+  @override
+  String get confirmTourTitle => 'Confirm your tour';
+
+  @override
+  String payDueBody(String guide, String date) {
+    return 'Tour with $guide on $date';
+  }
+
+  @override
+  String confirmTourBody(String guide, String date) {
+    return '$guide marked your tour on $date as completed.';
+  }
+
+  @override
+  String get btnPayNow => 'Pay now';
+
+  @override
+  String get tourConfirmedSettle =>
+      'Tour confirmed. Please settle the payment.';
+
+  @override
+  String get paySheetTitle => 'Settle payment';
+
+  @override
+  String paySheetBody(String guide) {
+    return 'Pay $guide directly, then record it here.';
+  }
+
+  @override
+  String get payTxnIdLabel => 'Transaction ID (optional)';
+
+  @override
+  String get btnRecordPayment => 'Record payment';
+
+  @override
+  String payRecordFailed(String error) {
+    return 'Could not record payment: $error';
+  }
+
+  @override
+  String get payRecordedTitle => 'Payment recorded';
+
+  @override
+  String get receiptLabelNo => 'Receipt';
+
+  @override
+  String get receiptLabelGuide => 'Guide';
+
+  @override
+  String get receiptLabelDate => 'Date';
+
+  @override
+  String get receiptLabelMethod => 'Method';
+
+  @override
+  String get receiptLabelAmount => 'Amount';
+
+  @override
+  String get btnDone => 'Done';
+
+  @override
+  String get reviewAlreadyDone => 'You\'ve already reviewed this guide.';
+
+  @override
+  String get reviewAfterTour =>
+      'You can review a guide after completing a tour with them.';
+
+  @override
+  String get reviewThanks => 'Thanks for your review!';
+
+  @override
+  String reviewFailed(String error) {
+    return 'Could not submit review: $error';
+  }
+
+  @override
+  String get tourMarkedAwaitTourist =>
+      'Marked as completed — waiting for the tourist to confirm.';
+
+  @override
+  String get sectionConfirmedTours => 'CONFIRMED TOURS';
+
+  @override
+  String get labelAwaitingTourist => 'Awaiting tourist';
+
+  @override
+  String get btnMarkCompleted => 'Mark completed';
+
+  @override
+  String get bookingAccepted => 'Booking accepted.';
+
+  @override
+  String get bookingDeclined => 'Booking declined.';
+
+  @override
+  String get hirePendingBanner =>
+      'Request pending — you can hire this guide again once they respond.';
+
+  @override
+  String get settingAvailableForBookings => 'Available for bookings';
+
+  @override
+  String get settingBookingNotifications => 'Booking notifications';
+
+  @override
+  String get settingAutoAccept => 'Auto-accept booking requests';
+
+  @override
   String get clearHistory => 'Clear History';
 
   @override

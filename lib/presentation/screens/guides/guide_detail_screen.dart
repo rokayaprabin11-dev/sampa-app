@@ -270,14 +270,14 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                         border: Border.all(color: const Color(0xFFEAD9A8)),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.hourglass_top, color: Color(0xFF9A6200), size: 20),
-                          SizedBox(width: 12),
+                          const Icon(Icons.hourglass_top, color: Color(0xFF9A6200), size: 20),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Request pending — you can hire this guide again once they respond.',
-                              style: TextStyle(color: Color(0xFF9A6200), fontSize: 13.5, fontWeight: FontWeight.w500),
+                              AppLocalizations.of(context)!.hirePendingBanner,
+                              style: const TextStyle(color: Color(0xFF9A6200), fontSize: 13.5, fontWeight: FontWeight.w500),
                             ),
                           ),
                         ],

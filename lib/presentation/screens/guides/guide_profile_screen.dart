@@ -76,6 +76,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     _buildStatusBar(context, isDark, p),
                     const SizedBox(height: 20),
                     _buildBookingRequests(context, isDark, gp),
+                    _buildOngoingTours(context, isDark, gp),
                     _buildListingCard(context, isDark, p),
                     const SizedBox(height: 16),
                     _buildStatsCard(context, isDark, p),
@@ -97,11 +98,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   // ─── Booking requests (accept / reject) ───────────────────────
 
   Future<void> _respond(int bookingId, String action) async {
+    final l10n = AppLocalizations.of(context)!;
+    final okMsg = action == 'accept' ? l10n.bookingAccepted : l10n.bookingDeclined;
     final err = await context.read<GuideProvider>().respondToBooking(bookingId, action);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(err ?? (action == 'accept' ? 'Booking accepted.' : 'Booking declined.')),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err ?? okMsg)));
   }
 
   Widget _buildBookingRequests(BuildContext context, bool isDark, GuideProvider gp) {
@@ -210,6 +211,111 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Ongoing tours (mark completed) ───────────────────────────
+
+  Future<void> _markCompleted(int bookingId) async {
+    final okMsg = AppLocalizations.of(context)!.tourMarkedAwaitTourist;
+    final err = await context
+        .read<GuideProvider>()
+        .completeTour(bookingId, asGuide: true);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err ?? okMsg)));
+  }
+
+  Widget _buildOngoingTours(BuildContext context, bool isDark, GuideProvider gp) {
+    final confirmed =
+        gp.incomingBookings.where((b) => b['status'] == 'confirmed').toList();
+    if (confirmed.isEmpty) return const SizedBox.shrink();
+    final accent = _accent(isDark);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(AppLocalizations.of(context)!.sectionConfirmedTours,
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.8,
+                color: accent)),
+        const SizedBox(height: 12),
+        ...confirmed.map((b) => _ongoingCard(context, isDark, b)),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _ongoingCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
+    final id = b['id'] as int;
+    final name = (b['tourist_name'] ?? 'Tourist').toString();
+    final date = (b['date'] ?? '').toString();
+    String t(dynamic v) => (v ?? '').toString().length >= 5 ? (v).toString().substring(0, 5) : (v ?? '').toString();
+    final when = '$date · ${t(b['start_time'])}–${t(b['end_time'])}';
+    final awaitingTourist = b['guide_marked_complete_at'] != null;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface)),
+                const SizedBox(height: 2),
+                Text(when,
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : const Color(0xFF8C7162))),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          awaitingTourist
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.hourglass_top,
+                        size: 14, color: Color(0xFF9A6200)),
+                    const SizedBox(width: 4),
+                    Text(AppLocalizations.of(context)!.labelAwaitingTourist,
+                        style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9A6200))),
+                  ],
+                )
+              : ElevatedButton(
+                  onPressed: () => _markCompleted(id),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusMd)),
+                  ),
+                  child: Text(AppLocalizations.of(context)!.btnMarkCompleted,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
         ],
       ),
     );
@@ -459,15 +565,18 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        _settingTile(context, isDark, Icons.circle, const Color(0xFF3DA35D), 'Available for bookings',
+        _settingTile(context, isDark, Icons.circle, const Color(0xFF3DA35D),
+            AppLocalizations.of(context)!.settingAvailableForBookings,
             _availableForBookings, (v) => _persistSetting(
                 'available_for_bookings', v, () => _availableForBookings = v)),
         const SizedBox(height: 10),
-        _settingTile(context, isDark, Icons.notifications_none, AppColors.kColorAccent, 'Booking notifications',
+        _settingTile(context, isDark, Icons.notifications_none, AppColors.kColorAccent,
+            AppLocalizations.of(context)!.settingBookingNotifications,
             _bookingNotifications, (v) => _persistSetting(
                 'booking_notifications', v, () => _bookingNotifications = v)),
         const SizedBox(height: 10),
-        _settingTile(context, isDark, Icons.flash_on, AppColors.kColorAccent, 'Auto-accept booking requests',
+        _settingTile(context, isDark, Icons.flash_on, AppColors.kColorAccent,
+            AppLocalizations.of(context)!.settingAutoAccept,
             _autoAccept, (v) => _persistSetting(
                 'auto_accept_bookings', v, () => _autoAccept = v)),
       ],

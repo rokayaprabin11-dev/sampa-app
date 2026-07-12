@@ -102,6 +102,8 @@ class ApiEndpoints {
   static const String guideIncomingBookings = '/guides/bookings/incoming/';
   static String bookingDetail(int id) => '/guides/bookings/$id/';
   static String bookingRespond(int id) => '/guides/bookings/$id/respond/';
+  static String bookingComplete(int id) => '/guides/bookings/$id/complete/';
+  static String bookingPayment(int id) => '/guides/bookings/$id/payment/';
   static String bookingReview(int id) => '/guides/bookings/$id/review/';
 
   // --- Offline Downloads ---

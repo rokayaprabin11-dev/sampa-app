@@ -273,12 +273,11 @@ class _GuideScreenState extends State<GuideScreen> {
       }
     }
 
+    final l10n = AppLocalizations.of(context)!;
     if (booking == null) {
       // Distinguish "already reviewed" from "no completed tour" for clarity.
       final hasCompleted = gp.myBookings.any((b) => b['guide'] == gid && b['status'] == 'completed');
-      _snack(hasCompleted
-          ? "You've already reviewed this guide."
-          : 'You can review a guide after completing a tour with them.');
+      _snack(hasCompleted ? l10n.reviewAlreadyDone : l10n.reviewAfterTour);
       return;
     }
 
@@ -288,10 +287,10 @@ class _GuideScreenState extends State<GuideScreen> {
     final err = await gp.reviewBooking(booking['id'] as int, result.$1, result.$2);
     if (!mounted) return;
     if (err == null) {
-      _snack('Thanks for your review!');
+      _snack(l10n.reviewThanks);
       gp.fetchGuides(); // refresh the guide's rating
     } else {
-      _snack('Could not submit review: $err');
+      _snack(l10n.reviewFailed(err));
     }
   }
 
@@ -357,6 +356,330 @@ class _GuideScreenState extends State<GuideScreen> {
 
   // ─── Build ────────────────────────────────────────────────────
 
+  // ─── Post-tour actions: confirm completion, settle payment ────
+
+  /// Bookings that need the tourist to act: the guide marked the tour done
+  /// (counter-sign), or the tour is completed with payment still due.
+  List<Map<String, dynamic>> _actionNeeded(GuideProvider gp) {
+    return gp.myBookings.where((b) {
+      final awaitingConfirm = b['status'] == 'confirmed' &&
+          b['guide_marked_complete_at'] != null &&
+          b['tourist_confirmed_complete_at'] == null;
+      final paymentDue =
+          b['status'] == 'completed' && b['payment_status'] == 'due';
+      return awaitingConfirm || paymentDue;
+    }).toList();
+  }
+
+  List<Widget> _actionNeededSlivers(
+      BuildContext context, bool isDark, GuideProvider gp) {
+    final items = _actionNeeded(gp);
+    if (items.isEmpty) return const [];
+    return [
+      SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (_, i) => _actionCard(context, isDark, items[i]),
+          childCount: items.length,
+        ),
+      ),
+      const SliverToBoxAdapter(child: SizedBox(height: 8)),
+    ];
+  }
+
+  Widget _actionCard(
+      BuildContext context, bool isDark, Map<String, dynamic> b) {
+    final l10n = AppLocalizations.of(context)!;
+    final paymentDue = b['payment_status'] == 'due' && b['status'] == 'completed';
+    final guideName = (b['guide_name'] ?? 'your guide').toString();
+    final price = b['total_price'];
+    final title = paymentDue ? l10n.payDueTitle : l10n.confirmTourTitle;
+    final body = paymentDue
+        ? '${l10n.payDueBody(guideName, '${b['date']}')}'
+            '${price != null ? ' — NPR $price' : ''}'
+        : l10n.confirmTourBody(guideName, '${b['date']}');
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.kColorPendingBg,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        border: Border.all(color: AppColors.kColorPendingBorder),
+      ),
+      child: Row(
+        children: [
+          Icon(paymentDue ? Icons.payments_outlined : Icons.task_alt,
+              color: AppColors.kColorPendingText, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.kColorPendingText)),
+                const SizedBox(height: 2),
+                Text(body,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.kColorPendingText)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () => paymentDue
+                ? _openPaymentSheet(b)
+                : _confirmCompletion(b),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: paymentDue
+                  ? AppColors.kColorPrimary
+                  : const Color(0xFF2E7D32),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            ),
+            child: Text(paymentDue ? l10n.btnPayNow : l10n.btnConfirm,
+                style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmCompletion(Map<String, dynamic> b) async {
+    final confirmedMsg = AppLocalizations.of(context)!.tourConfirmedSettle;
+    final err = await context
+        .read<GuideProvider>()
+        .completeTour(b['id'] as int, asGuide: false);
+    if (!mounted) return;
+    _snack(err ?? confirmedMsg);
+  }
+
+  static const _paymentMethods = [
+    ('esewa', 'eSewa', Icons.account_balance_wallet_outlined),
+    ('khalti', 'Khalti', Icons.account_balance_wallet_outlined),
+    ('fonepay', 'Fonepay', Icons.qr_code_2),
+    ('cash', 'Cash', Icons.payments_outlined),
+  ];
+
+  Future<void> _openPaymentSheet(Map<String, dynamic> b) async {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final refController = TextEditingController();
+    String method = 'esewa';
+    bool submitting = false;
+    final price = b['total_price'];
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppDimensions.kRadiusXxl)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.paySheetTitle,
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(ctx).colorScheme.onSurface)),
+              const SizedBox(height: 4),
+              Text(
+                '${l10n.paySheetBody('${b['guide_name'] ?? 'your guide'}')}'
+                '${price != null ? ' — NPR $price' : ''}',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              ..._paymentMethods.map((m) {
+                final selected = method == m.$1;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InkWell(
+                    onTap: () => setLocal(() => method = m.$1),
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusLg),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.kColorPrimary.withValues(alpha: 0.08)
+                            : Colors.transparent,
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusLg),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.kColorPrimary
+                              : (isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.kColorBorderSubtle),
+                          width: selected ? 1.6 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(m.$3,
+                              size: 20,
+                              color: selected
+                                  ? AppColors.kColorPrimary
+                                  : Theme.of(ctx).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(m.$2,
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: selected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color:
+                                        Theme.of(ctx).colorScheme.onSurface)),
+                          ),
+                          if (selected)
+                            const Icon(Icons.check_circle,
+                                size: 18, color: AppColors.kColorPrimary),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              if (method != 'cash') ...[
+                const SizedBox(height: 4),
+                TextField(
+                  controller: refController,
+                  decoration: InputDecoration(
+                    labelText: l10n.payTxnIdLabel,
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: submitting
+                      ? null
+                      : () async {
+                          setLocal(() => submitting = true);
+                          final (err, paid) = await context
+                              .read<GuideProvider>()
+                              .recordPayment(b['id'] as int, method,
+                                  refController.text.trim());
+                          if (!ctx.mounted) return;
+                          Navigator.pop(ctx);
+                          if (err != null) {
+                            _snack(l10n.payRecordFailed(err));
+                          } else if (paid != null && mounted) {
+                            _showReceipt(paid);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.kColorPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                  ),
+                  child: submitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : Text(l10n.btnRecordPayment,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showReceipt(Map<String, dynamic> b) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).colorScheme.surface,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+        title: Row(
+          children: [
+            Icon(Icons.receipt_long,
+                color: isDark ? AppColors.goldMain : AppColors.kColorPrimary),
+            const SizedBox(width: 10),
+            Text(l10n.payRecordedTitle,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(ctx).colorScheme.onSurface)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _receiptRow(ctx, l10n.receiptLabelNo, '${b['receipt_no'] ?? '—'}'),
+            _receiptRow(ctx, l10n.receiptLabelGuide, '${b['guide_name'] ?? '—'}'),
+            _receiptRow(ctx, l10n.receiptLabelDate, '${b['date'] ?? '—'}'),
+            _receiptRow(ctx, l10n.receiptLabelMethod, '${b['payment_method'] ?? '—'}'),
+            if (b['total_price'] != null)
+              _receiptRow(ctx, l10n.receiptLabelAmount, 'NPR ${b['total_price']}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.btnDone),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _receiptRow(BuildContext ctx, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 70,
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(ctx).brightness == Brightness.dark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary)),
+          ),
+          Expanded(
+            child: Text(value,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(ctx).colorScheme.onSurface)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -406,6 +729,10 @@ class _GuideScreenState extends State<GuideScreen> {
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+              // Tours needing the tourist's attention: counter-sign the
+              // guide's "tour completed", or settle a due payment.
+              ..._actionNeededSlivers(context, isDark, guideProvider),
 
               // Error
               if (guideProvider.error != null)
