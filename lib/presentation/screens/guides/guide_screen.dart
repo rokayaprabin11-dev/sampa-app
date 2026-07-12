@@ -82,6 +82,37 @@ class _GuideScreenState extends State<GuideScreen> {
   double _ratingOf(Map<String, dynamic> g) => double.tryParse('${g['rating_avg'] ?? ''}') ?? 0.0;
   int _reviewsOf(Map<String, dynamic> g) => (g['review_count'] as int?) ?? 0;
 
+  /// The server computes this at request time (never from its response cache):
+  /// online == a fresh heartbeat AND the guide is accepting bookings, so a green
+  /// dot always means "bookable right now", not merely "app is open".
+  bool _isOnline(Map<String, dynamic> g) {
+    final presence = g['presence'] as Map<String, dynamic>?;
+    return presence?['status'] == 'online';
+  }
+
+  DateTime? _lastSeenOf(Map<String, dynamic> g) {
+    final presence = g['presence'] as Map<String, dynamic>?;
+    final raw = presence?['last_seen'] as String?;
+    if (raw == null) return null;
+    return DateTime.tryParse(raw)?.toLocal();
+  }
+
+  /// "Online" when live, else "Last seen 12 min ago". Null when the guide has
+  /// never been seen — better to show nothing than "last seen never".
+  String? _presenceLabel(BuildContext context, Map<String, dynamic> g) {
+    final l10n = AppLocalizations.of(context)!;
+    if (_isOnline(g)) return l10n.presenceOnline;
+
+    final seen = _lastSeenOf(g);
+    if (seen == null) return null;
+
+    final ago = DateTime.now().difference(seen);
+    if (ago.inMinutes < 1) return l10n.presenceLastSeenJustNow;
+    if (ago.inMinutes < 60) return l10n.presenceLastSeenMinutes(ago.inMinutes);
+    if (ago.inHours < 24) return l10n.presenceLastSeenHours(ago.inHours);
+    return l10n.presenceLastSeenDays(ago.inDays);
+  }
+
   bool _isTopGuide(Map<String, dynamic> g) => _ratingOf(g) >= 4.5 && _reviewsOf(g) >= 10;
 
   double? _distanceKm(Map<String, dynamic> g) {
@@ -571,13 +602,18 @@ class _GuideScreenState extends State<GuideScreen> {
                 )
               : Text(initials, style: TextStyle(color: AppColors.kColorBgWarm, fontSize: radius * 0.6, fontWeight: FontWeight.bold)),
         ),
-        Positioned(
-          bottom: 0, right: 2,
-          child: Container(
-            width: 13, height: 13,
-            decoration: BoxDecoration(color: const Color(0xFF2ECC71), shape: BoxShape.circle, border: Border.all(color: isDark ? AppColors.darkBgCard : Colors.white, width: 2)),
+        // Green dot only for a guide who is genuinely reachable *and* accepting
+        // bookings (the server decides — see guides/presence.py). Offline guides
+        // get no dot at all: their "Last seen …" line carries the status, and a
+        // permanent grey dot would just be visual noise on every card.
+        if (_isOnline(guide))
+          Positioned(
+            bottom: 0, right: 2,
+            child: Container(
+              width: 13, height: 13,
+              decoration: BoxDecoration(color: const Color(0xFF2ECC71), shape: BoxShape.circle, border: Border.all(color: isDark ? AppColors.darkBgCard : Colors.white, width: 2)),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -685,7 +721,7 @@ class _GuideScreenState extends State<GuideScreen> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text(AppLocalizations.of(context)!.availableToday, style: TextStyle(fontSize: 10, color: sub), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      _presenceText(context, isDark, guide, sub),
                     ],
                   ),
                 ),
@@ -818,6 +854,13 @@ class _GuideScreenState extends State<GuideScreen> {
                 Text(rating.toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(width: 3),
                 Text('($reviews)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextSecondary)),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: _presenceText(
+                    context, isDark, guide,
+                    isDark ? AppColors.darkTextTertiary : AppColors.kColorTextSecondary,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -897,6 +940,39 @@ class _GuideScreenState extends State<GuideScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// "🟢 Online" or "Last seen 12 min ago". Renders nothing for a guide who has
+  /// never sent a heartbeat (rather than inventing a status for them).
+  Widget _presenceText(BuildContext context, bool isDark, Map<String, dynamic> guide, Color sub) {
+    final label = _presenceLabel(context, guide);
+    if (label == null) return const SizedBox.shrink();
+
+    final online = _isOnline(guide);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (online) ...[
+          Container(
+            width: 7, height: 7,
+            decoration: const BoxDecoration(color: Color(0xFF2ECC71), shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 4),
+        ],
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: online ? FontWeight.bold : FontWeight.normal,
+              color: online ? const Color(0xFF1E8449) : sub,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

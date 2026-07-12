@@ -40,6 +40,14 @@ class GuideProvider with ChangeNotifier {
   Timer? _liveLocationTimer;
   static const Duration _livePingInterval = Duration(minutes: 5);
 
+  // Presence heartbeat. Separate from the location ping (which is throttled to
+  // 5 min because a GPS fix is expensive and a tourist-visible position doesn't
+  // need to be fresher). Presence is a cheap Redis SETEX, and the dot has to go
+  // grey within ~2 min of the guide closing the app, so it runs on its own
+  // faster cadence. Must stay ≤ the server's presence.ONLINE_TTL (150s).
+  Timer? _heartbeatTimer;
+  static const Duration _heartbeatInterval = Duration(seconds: 60);
+
   void _syncLiveTracking() {
     final p = _myProfile;
     final shouldTrack = p != null &&
@@ -49,10 +57,28 @@ class GuideProvider with ChangeNotifier {
       _pushLiveLocation(); // immediate first ping
       _liveLocationTimer =
           Timer.periodic(_livePingInterval, (_) => _pushLiveLocation());
+      _sendHeartbeat(); // go green immediately, don't wait a full interval
+      _heartbeatTimer =
+          Timer.periodic(_heartbeatInterval, (_) => _sendHeartbeat());
     } else if (!shouldTrack) {
       _liveLocationTimer?.cancel();
       _liveLocationTimer = null;
+      _heartbeatTimer?.cancel();
+      _heartbeatTimer = null;
+      // No explicit "go offline" call: the server key carries a TTL, so it
+      // lapses on its own within ~2.5 heartbeats. And a guide who turned
+      // bookings off is never shown green anyway — the server gates the dot on
+      // available_for_bookings.
     }
+  }
+
+  /// Foreground-only by design: the OS suspends timers when the app is
+  /// backgrounded, so the guide simply stops pinging and lapses to "last seen".
+  /// That is honest — a backgrounded app can't accept a booking either.
+  Future<void> _sendHeartbeat() async {
+    try {
+      await _apiClient.post(ApiEndpoints.guideHeartbeat);
+    } catch (_) {/* best-effort; the next tick retries, TTL covers one miss */}
   }
 
   Future<void> _pushLiveLocation() async {
@@ -74,6 +100,7 @@ class GuideProvider with ChangeNotifier {
   @override
   void dispose() {
     _liveLocationTimer?.cancel();
+    _heartbeatTimer?.cancel();
     super.dispose();
   }
 

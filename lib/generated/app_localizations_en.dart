@@ -835,6 +835,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get availableToday => 'Available today 9 AM – 6 PM';
 
   @override
+  String get presenceOnline => 'Online';
+
+  @override
+  String get presenceLastSeenJustNow => 'Last seen just now';
+
+  @override
+  String presenceLastSeenMinutes(int minutes) {
+    return 'Last seen $minutes min ago';
+  }
+
+  @override
+  String presenceLastSeenHours(int hours) {
+    return 'Last seen $hours h ago';
+  }
+
+  @override
+  String presenceLastSeenDays(int days) {
+    return 'Last seen $days d ago';
+  }
+
+  @override
   String get notAcceptingBookings => 'Not accepting bookings';
 
   @override

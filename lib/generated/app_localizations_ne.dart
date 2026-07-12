@@ -844,6 +844,27 @@ class AppLocalizationsNe extends AppLocalizations {
   String get availableToday => 'आज उपलब्ध बिहान ९ – साँझ ६';
 
   @override
+  String get presenceOnline => 'अनलाइन';
+
+  @override
+  String get presenceLastSeenJustNow => 'भर्खरै अनलाइन थिए';
+
+  @override
+  String presenceLastSeenMinutes(int minutes) {
+    return '$minutes मिनेट अघि अनलाइन';
+  }
+
+  @override
+  String presenceLastSeenHours(int hours) {
+    return '$hours घण्टा अघि अनलाइन';
+  }
+
+  @override
+  String presenceLastSeenDays(int days) {
+    return '$days दिन अघि अनलाइन';
+  }
+
+  @override
   String get notAcceptingBookings => 'बुकिङ स्वीकार गरिँदैन';
 
   @override

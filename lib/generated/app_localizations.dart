@@ -1682,6 +1682,36 @@ abstract class AppLocalizations {
   /// **'Available today 9 AM – 6 PM'**
   String get availableToday;
 
+  /// No description provided for @presenceOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get presenceOnline;
+
+  /// No description provided for @presenceLastSeenJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen just now'**
+  String get presenceLastSeenJustNow;
+
+  /// No description provided for @presenceLastSeenMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen {minutes} min ago'**
+  String presenceLastSeenMinutes(int minutes);
+
+  /// No description provided for @presenceLastSeenHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen {hours} h ago'**
+  String presenceLastSeenHours(int hours);
+
+  /// No description provided for @presenceLastSeenDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen {days} d ago'**
+  String presenceLastSeenDays(int days);
+
   /// No description provided for @notAcceptingBookings.
   ///
   /// In en, this message translates to:
