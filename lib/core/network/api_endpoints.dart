@@ -90,6 +90,8 @@ class ApiEndpoints {
   static const String guideMe = '/guides/me/';
   static const String guideLocationUpdate = '/guides/me/location/';
   static const String guideHeartbeat = '/guides/me/heartbeat/';
+  static String bookingChat(int bookingId) => '/guides/bookings/$bookingId/chat/';
+  static String bookingChatNotify(int bookingId) => '/guides/bookings/$bookingId/chat/notify/';
   static const String guideApply = '/guides/apply/';
   static const String guideBookings = '/guides/bookings/';
   static String guideDetail(int id) => '/guides/$id/';

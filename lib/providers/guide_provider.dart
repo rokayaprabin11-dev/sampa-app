@@ -116,6 +116,26 @@ class GuideProvider with ChangeNotifier {
   bool hasPendingWith(int guideId) =>
       _myBookings.any((b) => b['guide'] == guideId && b['status'] == 'pending');
 
+  /// The booking that authorizes a chat with this guide, or null if there is
+  /// none. Chat unlocks only once the guide has accepted (`confirmed`) and stays
+  /// reachable through `completed` so the two can settle up afterwards — the
+  /// backend enforces the same rule and has the final say (it also closes the
+  /// thread some days after the tour).
+  ///
+  /// Most recent first: if a tourist has toured with the same guide twice, the
+  /// Message button should open the current conversation, not last year's.
+  int? chatBookingIdWith(int guideId) {
+    final eligible = _myBookings
+        .where((b) =>
+            b['guide'] == guideId &&
+            (b['status'] == 'confirmed' || b['status'] == 'completed'))
+        .toList()
+      ..sort((a, b) => '${b['date']}'.compareTo('${a['date']}'));
+    if (eligible.isEmpty) return null;
+    final id = eligible.first['id'];
+    return id is int ? id : null;
+  }
+
   // Accept both a plain list and a paginated {results: [...]} response.
   List _asList(dynamic data) => data is Map ? (data['results'] as List? ?? []) : (data as List);
 

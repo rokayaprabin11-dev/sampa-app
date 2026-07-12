@@ -11,6 +11,7 @@ import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/providers/auth_provider.dart';
+import 'package:sampada/presentation/screens/guides/chat_screen.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
 
 class GuideScreen extends StatefulWidget {
@@ -236,9 +237,24 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
-  void _comingSoon(String what) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$what is coming soon.')),
-      );
+  /// The booking that authorizes a chat with this guide, or null if there is
+  /// none — the guide must have accepted a request first.
+  int? _chatBookingIdWith(Map<String, dynamic> guide) {
+    final id = guide['id'];
+    if (id is! int) return null;
+    return context.read<GuideProvider>().chatBookingIdWith(id);
+  }
+
+  void _openChat(Map<String, dynamic> guide, int bookingId) {
+    final user = guide['user'] as Map<String, dynamic>? ?? {};
+    final name = (user['full_name'] ?? user['username'] ?? 'Guide').toString();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(bookingId: bookingId, otherPartyName: name),
+      ),
+    );
+  }
 
   void _snack(String msg) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
@@ -744,15 +760,26 @@ class _GuideScreenState extends State<GuideScreen> {
             else if (_hasPending(guide))
               _pendingBanner(context, isDark)
             else
-              Row(
-                children: [
-                  Expanded(child: _outlineBtn(context, isDark, 'Message', () => _comingSoon('Messaging'))),
-                  const SizedBox(width: 6),
-                  Expanded(child: _outlineBtn(context, isDark, 'Review', () => _reviewGuide(guide))),
-                  const SizedBox(width: 6),
-                  Expanded(flex: 2, child: _filledBtn(context, isDark, 'Hire Now', () => _openDetail(guide))),
-                ],
-              ),
+              Builder(builder: (context) {
+                // Chat exists only for a booking this guide accepted. Without one
+                // there is nothing to open, so the button is hidden rather than
+                // offering a conversation the backend would refuse.
+                final chatBookingId = _chatBookingIdWith(guide);
+                return Row(
+                  children: [
+                    if (chatBookingId != null) ...[
+                      Expanded(
+                        child: _outlineBtn(context, isDark, 'Message',
+                            () => _openChat(guide, chatBookingId)),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Expanded(child: _outlineBtn(context, isDark, 'Review', () => _reviewGuide(guide))),
+                    const SizedBox(width: 6),
+                    Expanded(flex: 2, child: _filledBtn(context, isDark, 'Hire Now', () => _openDetail(guide))),
+                  ],
+                );
+              }),
           ],
         ),
         ),
