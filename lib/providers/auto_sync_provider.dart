@@ -1,16 +1,26 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:sampada/core/constants/prefs_keys.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum AutoSyncMode { wifiOnly, dataAndWifi, off }
 
+/// Reports the device's active connections. Injectable so `shouldSync()` can be
+/// unit-tested without a platform channel.
+typedef ConnectivityCheck = Future<List<ConnectivityResult>> Function();
+
 class AutoSyncProvider with ChangeNotifier {
-  static const _prefKey = 'auto_sync_mode';
+  static const _prefKey = PrefsKeys.autoSyncMode;
+
+  final ConnectivityCheck _checkConnectivity;
 
   AutoSyncMode _syncMode = AutoSyncMode.wifiOnly;
   AutoSyncMode get syncMode => _syncMode;
 
-  AutoSyncProvider() {
+  AutoSyncProvider({ConnectivityCheck? checkConnectivity})
+      : _checkConnectivity =
+            checkConnectivity ?? (() => Connectivity().checkConnectivity()) {
     _load();
   }
 
@@ -41,10 +51,12 @@ class AutoSyncProvider with ChangeNotifier {
     }
   }
 
-  /// Returns true if a remote sync should be attempted right now.
+  /// Whether an *automatic* refresh may hit the network right now. User-initiated
+  /// actions (search, filter, pull-to-refresh) bypass this by design — see
+  /// `HeritageProvider.fetchSites`.
   Future<bool> shouldSync() async {
     if (_syncMode == AutoSyncMode.off) return false;
-    final result = await Connectivity().checkConnectivity();
+    final result = await _checkConnectivity();
     final hasWifi = result.contains(ConnectivityResult.wifi);
     final hasMobile = result.contains(ConnectivityResult.mobile);
     if (_syncMode == AutoSyncMode.wifiOnly) return hasWifi;
@@ -52,10 +64,11 @@ class AutoSyncProvider with ChangeNotifier {
   }
 
   String getSyncModeLabel(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (_syncMode) {
-      case AutoSyncMode.wifiOnly:   return 'WiFi Only';
-      case AutoSyncMode.dataAndWifi: return 'Data & WiFi';
-      case AutoSyncMode.off:        return 'Off';
+      case AutoSyncMode.wifiOnly:    return l10n.settingsWifiOnly;
+      case AutoSyncMode.dataAndWifi: return l10n.settingsOn;
+      case AutoSyncMode.off:         return l10n.settingsOff;
     }
   }
 }

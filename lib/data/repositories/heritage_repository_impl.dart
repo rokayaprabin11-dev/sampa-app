@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/data/repositories/heritage_repository.dart';
 import 'package:sampada/data/datasources/local/heritage_local_datasource.dart';
@@ -20,18 +21,18 @@ class HeritageRepositoryImpl implements HeritageRepository {
   }
 
   @override
-  Future<List<HeritageSite>> getHeritageSites({
+  Future<HeritageSitesResult> getHeritageSites({
     String? query,
     String? category,
     String? district,
     double? lat,
-    double? lng, 
+    double? lng,
     double? radius,
     String? bbox,
     String? sortBy,
   }) async {
     try {
-      return await remoteDataSource.getHeritageSites(
+      final sites = await remoteDataSource.getHeritageSites(
         query: query,
         category: category,
         district: district,
@@ -41,12 +42,24 @@ class HeritageRepositoryImpl implements HeritageRepository {
         bbox: bbox,
         sortBy: sortBy,
       );
+      debugPrint('HeritageRepository: ${sites.length} sites from REMOTE');
+      return HeritageSitesResult.remote(sites);
     } catch (e) {
       // Offline: return previously viewed sites
       final cached = await localDataSource.getLastHeritageSites(limit: 50);
-      if (cached.isNotEmpty) return cached;
+      debugPrint('HeritageRepository: remote failed ($e) — '
+          'falling back to CACHE (${cached.length} sites)');
+      if (cached.isNotEmpty) return HeritageSitesResult.cache(cached);
       rethrow;
     }
+  }
+
+  @override
+  Future<HeritageSitesResult> getCachedHeritageSites({int limit = 50}) async {
+    final cached = await localDataSource.getLastHeritageSites(limit: limit);
+    debugPrint('HeritageRepository: ${cached.length} sites from CACHE '
+        '(cache-only request — no network call)');
+    return HeritageSitesResult.cache(cached);
   }
 
   @override

@@ -253,6 +253,13 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             ),
           ),
           const SizedBox(height: 14),
+          // Tells the user the catalogue below is cached, not live — either
+          // auto-sync blocked the refresh or the request failed.
+          Consumer<HeritageProvider>(
+            builder: (context, provider, _) => provider.isShowingCachedData
+                ? const _OfflineDataBadge()
+                : const SizedBox.shrink(),
+          ),
           // Category chips — derived from the sites actually loaded
           Consumer<HeritageProvider>(
             builder: (context, provider, _) => SingleChildScrollView(
@@ -532,6 +539,41 @@ class _Category {
   final String label;
   final String? apiValue;
   const _Category({required this.label, required this.apiValue});
+}
+
+/// "Offline data" chip — shown while the visible catalogue came from SQLite.
+class _OfflineDataBadge extends StatelessWidget {
+  const _OfflineDataBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off, size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              AppLocalizations.of(context)!.offlineData,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _CategoryPill extends StatelessWidget {

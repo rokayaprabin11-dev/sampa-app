@@ -316,6 +316,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionDownloads => 'Offline Packs';
 
   @override
+  String get offlineData => 'Offline data';
+
+  @override
   String get sectionCurrentEvents => 'Current Cultural Events';
 
   @override

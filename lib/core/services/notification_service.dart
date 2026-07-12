@@ -7,12 +7,14 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
 import '../database/database_helper.dart';
 import '../../data/datasources/local/notification_local_datasource.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/constants/prefs_keys.dart';
 
 // Top-level background handler — separate isolate, no DB/ApiClient access
 @pragma('vm:entry-point')
@@ -117,7 +119,9 @@ class NotificationService {
         final token = await _fcm.getToken();
         if (token != null) {
           await registerDevice(token);
-          await subscribeToTopics();
+          // Honour the user's push switch on every launch: a device that opted
+          // out must not silently re-subscribe to the broadcast topics.
+          await setPushEnabled(await isPushEnabled());
           return;
         }
       } catch (e) {
@@ -128,6 +132,36 @@ class NotificationService {
     }
     debugPrint('NotificationService: FCM token unavailable after retries — '
         'onTokenRefresh will register the device if FCM recovers.');
+  }
+
+  // ── Push master switch ────────────────────────────────────────────────────
+
+  /// The persisted "Push Notifications" setting. Defaults to on for a fresh
+  /// install, matching the settings screen.
+  Future<bool> isPushEnabled() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(PrefsKeys.pushNotificationsEnabled) ?? true;
+    } catch (e) {
+      debugPrint('NotificationService: could not read push pref, assuming on: $e');
+      return true;
+    }
+  }
+
+  /// Applies the push switch to FCM: on → subscribe to the broadcast topics,
+  /// off → unsubscribe, which is what actually stops server-sent pushes (the
+  /// backend broadcasts to the `all_users` / `lang_*` topics).
+  Future<void> setPushEnabled(bool enabled, {String? language}) async {
+    try {
+      if (enabled) {
+        await subscribeToTopics(language: language);
+      } else {
+        await unsubscribeFromTopics(language: language);
+        debugPrint('NotificationService: push disabled — unsubscribed from topics');
+      }
+    } catch (e) {
+      debugPrint('NotificationService: applying push pref failed: $e');
+    }
   }
 
   // ── FCM Topic subscriptions ───────────────────────────────────────────────
@@ -288,7 +322,9 @@ class NotificationService {
     if (_apiClient == null) return;
     final token = await _fcm.getToken();
     if (token != null) await registerDevice(token);
-    await subscribeToTopics(language: preferredLanguage);
+    // Still subject to the push switch — logging in must not re-subscribe a
+    // user who turned push off.
+    await setPushEnabled(await isPushEnabled(), language: preferredLanguage);
   }
 
   /// Called on logout — unlinks the device on the backend so it reverts to a

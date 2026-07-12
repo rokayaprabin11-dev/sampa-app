@@ -34,6 +34,7 @@ import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/text_size_provider.dart';
 import 'providers/auto_sync_provider.dart';
+import 'providers/notification_prefs_provider.dart';
 import 'providers/notification_provider.dart';
 
 import 'injection.dart' as di;
@@ -108,6 +109,11 @@ void main() async {
   );
   await ApiClient.initCache(dio);
 
+  // Client half of the nearby-notification system: registers native geofences
+  // for the nearest heritage sites and posts validated fixes on entry. Held so
+  // the "Nearby Site Alerts" switch can start/stop the same instance.
+  NearbyService? nearbyService;
+
   if (!kIsWeb) {
     try {
       final notificationService = NotificationService();
@@ -120,15 +126,9 @@ void main() async {
       debugPrint('--- Notification Service FAILED: $e ---');
     }
 
-    // Client half of the nearby-notification system: registers native geofences
-    // for the nearest heritage sites and posts validated fixes on entry.
-    try {
-      unawaited(NearbyService(apiClient: apiClient).start());
-    } catch (e) {
-      debugPrint('--- Nearby Service FAILED: $e ---');
-    }
+    nearbyService = NearbyService(apiClient: apiClient);
   }
-  
+
   final heritageLocalDataSource = HeritageLocalDataSourceImpl(dbHelper: dbHelper);
   unawaited(heritageLocalDataSource.evictStaleCache());
   final heritageRemoteDataSource = HeritageRemoteDataSourceImpl(apiClient: apiClient);
@@ -155,6 +155,12 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AutoSyncProvider()),
+        ChangeNotifierProvider(
+          create: (_) => NotificationPrefsProvider(
+            notificationService: NotificationService(),
+            nearbyService: nearbyService,
+          )..applyOnStartup(),
+        ),
         ChangeNotifierProxyProvider<AutoSyncProvider, HeritageProvider>(
           create: (_) => HeritageProvider(repository: heritageRepository),
           update: (_, autoSync, previous) {

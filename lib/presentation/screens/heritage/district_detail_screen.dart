@@ -34,8 +34,8 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
         ? widget.district.slug
         : widget.district.name.toLowerCase();
     try {
-      final results = await repo.getHeritageSites(district: slug);
-      if (mounted) setState(() { _sites = results; _loading = false; });
+      final result = await repo.getHeritageSites(district: slug);
+      if (mounted) setState(() { _sites = result.sites; _loading = false; });
     } catch (_) {
       if (mounted) setState(() { _loading = false; });
     }

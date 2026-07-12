@@ -710,6 +710,12 @@ abstract class AppLocalizations {
   /// **'Offline Packs'**
   String get sectionDownloads;
 
+  /// No description provided for @offlineData.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline data'**
+  String get offlineData;
+
   /// No description provided for @sectionCurrentEvents.
   ///
   /// In en, this message translates to:

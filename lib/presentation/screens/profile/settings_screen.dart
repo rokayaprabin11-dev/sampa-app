@@ -10,6 +10,7 @@ import 'package:sampada/core/providers/locale_provider.dart';
 import 'package:sampada/core/providers/theme_provider.dart';
 import 'package:sampada/core/providers/text_size_provider.dart';
 import 'package:sampada/core/providers/auto_sync_provider.dart';
+import 'package:sampada/providers/notification_prefs_provider.dart';
 import 'package:sampada/providers/profile_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -20,9 +21,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _pushNotifications = true;
-  bool _nearbySiteAlerts = false;
-
   @override
   void initState() {
     super.initState();
@@ -40,6 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeProvider = context.watch<ThemeProvider>();
     final textSizeProvider = context.watch<TextSizeProvider>();
     final autoSyncProvider = context.watch<AutoSyncProvider>();
+    final notificationPrefs = context.watch<NotificationPrefsProvider>();
     final profileProvider = context.watch<ProfileProvider>();
     final isNepali = localeProvider.locale.languageCode == 'ne';
 
@@ -150,14 +149,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SettingsSwitchTile(
                     title: 'Push Notifications',
                     icon: Icons.notifications_none,
-                    value: _pushNotifications,
-                    onChanged: (val) => setState(() => _pushNotifications = val),
+                    value: notificationPrefs.pushEnabled,
+                    // Persisted, then applied to the FCM topic subscriptions —
+                    // the language topic follows the current UI language.
+                    onChanged: (val) => notificationPrefs.setPushEnabled(
+                      val,
+                      language: localeProvider.locale.languageCode,
+                    ),
                   ),
                   SettingsSwitchTile(
                     title: 'Nearby Site Alerts',
                     icon: Icons.location_on_outlined,
-                    value: _nearbySiteAlerts,
-                    onChanged: (val) => setState(() => _nearbySiteAlerts = val),
+                    value: notificationPrefs.nearbyAlertsEnabled,
+                    // Persisted, then starts/stops the native heritage geofences.
+                    onChanged: (val) => notificationPrefs.setNearbyAlertsEnabled(val),
                   ),
 
                   const SizedBox(height: 16),

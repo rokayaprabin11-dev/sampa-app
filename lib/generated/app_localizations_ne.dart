@@ -319,6 +319,9 @@ class AppLocalizationsNe extends AppLocalizations {
   String get sectionDownloads => 'अफलाइन प्याकहरू';
 
   @override
+  String get offlineData => 'अफलाइन डेटा';
+
+  @override
   String get sectionCurrentEvents => 'हालका सांस्कृतिक कार्यक्रमहरू';
 
   @override

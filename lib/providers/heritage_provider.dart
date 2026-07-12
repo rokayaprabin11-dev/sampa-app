@@ -15,6 +15,11 @@ class HeritageProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // True when `_sites` came out of SQLite rather than the API — either because
+  // auto-sync vetoed the network, or because the request failed and the
+  // repository fell back. Drives the "Offline data" indicator.
+  bool _isShowingCachedData = false;
+
   // Server-ranked featured-sites pool (scored, diversified, rotated, and —
   // when signed in — personalized by the backend). Category chip filtering
   // happens client-side over this pool; never re-sort it.
@@ -45,6 +50,9 @@ class HeritageProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isFeaturedLoading => _isFeaturedLoading;
   String? get error => _error;
+
+  /// True while the visible site list is cached (offline) data.
+  bool get isShowingCachedData => _isShowingCachedData;
   String get currentQuery => _currentQuery;
   String get currentCategory => _currentCategory;
 
@@ -232,28 +240,41 @@ class HeritageProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    // Respect auto-sync setting (only skip for background refresh, not user-initiated search)
-    final canSync = forceRemote || query != null || category != null
+    // Auto-sync gates *automatic* refreshes only. A user-initiated action — a
+    // search, a category filter, or an explicit pull-to-refresh (forceRemote) —
+    // always goes to the network: the user asked for fresh data by acting.
+    final isUserInitiated = forceRemote || query != null || category != null;
+    final canSync = isUserInitiated
         ? true
         : await (autoSyncProvider?.shouldSync() ?? Future.value(true));
 
     if (!canSync) {
-      // Serve from local cache only
-      final cached = await repository.getHeritageSites();
-      _sites = cached;
+      // Auto-sync vetoed the network. Read straight from SQLite — this must not
+      // issue an HTTP request, which is why it goes through the cache-only API
+      // rather than the remote-first getHeritageSites().
+      final result = await repository.getCachedHeritageSites();
+      _sites = result.sites;
+      _isShowingCachedData = true;
+      debugPrint('fetchSites: auto-sync off/unmet — served ${_sites.length} '
+          'sites from CACHE, no network call');
       _isLoading = false;
       notifyListeners();
       return;
     }
 
     try {
-      _sites = await repository.getHeritageSites(
+      final result = await repository.getHeritageSites(
         query: query,
         category: category,
         district: district,
         sortBy: sortBy,
       );
-      debugPrint('fetchSites OK: ${_sites.length} sites');
+      _sites = result.sites;
+      // The repository silently falls back to cache when the request fails, so
+      // trust its reported source rather than assuming this was a live fetch.
+      _isShowingCachedData = result.isFromCache;
+      debugPrint('fetchSites OK: ${_sites.length} sites from '
+          '${result.isFromCache ? 'CACHE (remote failed)' : 'REMOTE'}');
       // Districts are now part of site tags, but if a master list is needed,
       // we can extract them from the site list or keep the API call.
       if (_districts.isEmpty) {

@@ -28,6 +28,13 @@ class NearbyService {
   bool _started = false;
   DateTime? _lastRefresh;
 
+  // Regions currently registered with the OS, so `stop()` can hand them all
+  // back — cancelling the Dart subscription alone would leave the native
+  // geofences armed and burning battery.
+  final Set<String> _registered = {};
+
+  bool get isRunning => _started;
+
   // iOS caps native regions at 20; register only the nearest.
   static const int _maxRegions = 20;
   static const double _regionRadiusKm = 10;
@@ -40,11 +47,21 @@ class NearbyService {
     await refreshRegions();
   }
 
-  Future<void> dispose() async {
+  /// Tears down the client half entirely: no listener, no native regions. This
+  /// is what the "Nearby Site Alerts" switch turns off.
+  Future<void> stop() async {
     await _sub?.cancel();
     _sub = null;
+    for (final id in _registered) {
+      await _geo.removeGeofence(id);
+    }
+    debugPrint('NearbyService: stopped, ${_registered.length} regions removed');
+    _registered.clear();
+    _lastRefresh = null;
     _started = false;
   }
+
+  Future<void> dispose() => stop();
 
   Future<bool> _ensurePermission() async {
     try {
@@ -98,6 +115,7 @@ class NearbyService {
         if (lat == null || lng == null || slug == null) continue;
         await _geo.addGeofence(
           id: slug, latitude: lat, longitude: lng, radiusMetres: radius);
+        _registered.add(slug);
       }
     } catch (e) {
       debugPrint('NearbyService.refreshRegions failed: $e');
