@@ -51,11 +51,16 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     super.dispose();
   }
 
+  /// Cover first, then the gallery — deduped. A non-empty gallery used to
+  /// replace the cover outright, dropping it from the carousel.
   List<String> get _images {
     final e = widget.event;
-    if (e.gallery.isNotEmpty) return e.gallery;
-    if (e.imageUrl.isNotEmpty) return [e.imageUrl];
-    return const [];
+    final out = <String>[];
+    if (e.imageUrl.isNotEmpty) out.add(e.imageUrl);
+    for (final url in e.gallery) {
+      if (url.isNotEmpty && !out.contains(url)) out.add(url);
+    }
+    return out;
   }
 
   String _ad(DateTime d) => '${d.day} ${_adMonths[d.month - 1]} ${d.year}';
@@ -106,7 +111,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 },
               ),
             ],
-            flexibleSpace: FlexibleSpaceBar(background: _hero(context, isDark, images)),
+            // Hero handed to flexibleSpace directly, NOT via FlexibleSpaceBar:
+            // its parallax wrapper swallows the PageView's horizontal drags, so
+            // the gallery carousel couldn't be swiped. A plain Stack (like the
+            // heritage hero) gets the gestures.
+            flexibleSpace: _hero(context, isDark, images),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -249,13 +258,16 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             ),
           ),
         ),
-        // Bottom scrim for the app-bar controls legibility.
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.center,
-              colors: [Colors.black54, Colors.transparent],
+        // Bottom scrim for the app-bar controls legibility. IgnorePointer so
+        // it never intercepts the carousel's swipe gestures.
+        const IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.center,
+                colors: [Colors.black54, Colors.transparent],
+              ),
             ),
           ),
         ),

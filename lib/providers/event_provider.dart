@@ -61,6 +61,16 @@ class EventProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Events beginning in the next 7 days, fetched with an explicit AD date
+  // window so the "Current Cultural Events" list is anchored to today rather
+  // than to whichever BS month the calendar is currently parked on.
+  static const int _startingSoonWindowDays = 7;
+  List<CulturalEvent> _startingSoonEvents = [];
+  bool _isLoadingStartingSoon = false;
+  String? _startingSoonError;
+  bool get isLoadingStartingSoon => _isLoadingStartingSoon;
+  String? get startingSoonError => _startingSoonError;
+
   // Separate from `_events` (which is BS-month-scoped for the calendar view).
   // Populated by loadUpcomingEvents() from the backend's date-ranged
   // /events/upcoming/ endpoint so the home screen's nearby-events section
@@ -127,17 +137,48 @@ class EventProvider with ChangeNotifier {
   int get selectedMonthIndex => _selectedMonthIndex;
   String get selectedMonthName => _bsMonths[_selectedMonthIndex];
 
-  /// Up to 7 current/upcoming events, earliest first. Events whose end date has
-  /// already passed are hidden. Used by the "Current Cultural Events" list.
+  /// Events that *begin* within the next 7 days (today inclusive), earliest
+  /// first. Backs the "Current Cultural Events" list. Fetched separately from
+  /// `_events` so it stays anchored to today no matter which BS month the
+  /// calendar above it is showing.
   List<CulturalEvent> get currentEvents {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final list = _events.where((e) {
-      final end = DateTime(e.endDate.year, e.endDate.month, e.endDate.day);
-      return !end.isBefore(today); // keep events that haven't ended yet
+    final today = _today();
+    final until = today.add(const Duration(days: _startingSoonWindowDays));
+    return _startingSoonEvents.where((e) {
+      final start = _dateOnly(e.startDate);
+      return !start.isBefore(today) && !start.isAfter(until);
     }).toList()
       ..sort((a, b) => a.startDate.compareTo(b.startDate));
-    return list.take(7).toList();
+  }
+
+  /// Events whose start date falls inside the selected BS month, earliest
+  /// first. Backs the "Events in This Month" list. `_events` also carries a
+  /// 30-day lead-in (for calendar dots on festivals that began last month), so
+  /// the range check here is what keeps this list to the month proper.
+  List<CulturalEvent> get monthEvents {
+    final (start: monthStart, end: monthEnd) = _selectedMonthAdRange;
+    return _events.where((e) {
+      final start = _dateOnly(e.startDate);
+      return !start.isBefore(monthStart) && !start.isAfter(monthEnd);
+    }).toList()
+      ..sort((a, b) => a.startDate.compareTo(b.startDate));
+  }
+
+  static DateTime _today() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  static String _apiDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// AD [start, end] dates of the currently selected BS month.
+  ({DateTime start, DateTime end}) get _selectedMonthAdRange {
+    final firstDay = NepaliDateTime(_currentBSDate.year, _selectedMonthIndex + 1, 1);
+    final lastDay = firstDay.add(Duration(days: firstDay.totalDays - 1));
+    return (start: _dateOnly(firstDay.toDateTime()), end: _dateOnly(lastDay.toDateTime()));
   }
 
   /// All known events carrying real coordinates, deduped by id — backs the
@@ -428,7 +469,9 @@ class EventProvider with ChangeNotifier {
     return months[month - 1];
   }
 
-  Future<void> loadEvents({int? monthBs, int? districtId}) async {
+  /// Loads the events of the selected BS month into `_events` — the source for
+  /// both the calendar grid and the "Events in This Month" list.
+  Future<void> loadEvents({int? districtId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -437,15 +480,40 @@ class EventProvider with ChangeNotifier {
     // notifyListeners() when a real fix lands. Never blocks event loading.
     unawaited(_refreshUserLocation());
 
+    final (start: monthStart, end: monthEnd) = _selectedMonthAdRange;
     try {
       _events = await _repository.getEvents(
-        monthBs: monthBs ?? _selectedMonthIndex + 1,
+        // Lead-in: a multi-day festival that began late last month still has to
+        // light up its cells in this month's grid, so ask for it too. The
+        // `monthEvents` getter trims the lead-in back off for the list.
+        dateFrom: _apiDate(monthStart.subtract(const Duration(days: 30))),
+        dateTo: _apiDate(monthEnd),
         districtId: districtId,
       );
     } catch (e) {
       _error = 'Failed to load events: $e';
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Loads events beginning between today and 7 days out, for `currentEvents`.
+  Future<void> loadStartingSoonEvents() async {
+    _isLoadingStartingSoon = true;
+    _startingSoonError = null;
+    notifyListeners();
+
+    final today = _today();
+    try {
+      _startingSoonEvents = await _repository.getEvents(
+        dateFrom: _apiDate(today),
+        dateTo: _apiDate(today.add(const Duration(days: _startingSoonWindowDays))),
+      );
+    } catch (e) {
+      _startingSoonError = 'Failed to load events: $e';
+    } finally {
+      _isLoadingStartingSoon = false;
       notifyListeners();
     }
   }
@@ -571,19 +639,26 @@ class EventProvider with ChangeNotifier {
   void setSelectedMonthIndex(int index) {
     _selectedMonthIndex = index;
     _currentBSDate = NepaliDateTime(_currentBSDate.year, index + 1, 1);
-    loadEvents(monthBs: index + 1);
+    loadEvents();
   }
 
-  void nextMonth() {
-    _currentBSDate = NepaliDateTime(_currentBSDate.year, _currentBSDate.month + 1, 1);
-    _selectedMonthIndex = _currentBSDate.month - 1;
-    loadEvents(monthBs: _selectedMonthIndex + 1);
-  }
+  void nextMonth() => _goToMonth(_currentBSDate.year, _currentBSDate.month + 1);
 
-  void previousMonth() {
-    _currentBSDate = NepaliDateTime(_currentBSDate.year, _currentBSDate.month - 1, 1);
-    _selectedMonthIndex = _currentBSDate.month - 1;
-    loadEvents(monthBs: _selectedMonthIndex + 1);
+  void previousMonth() => _goToMonth(_currentBSDate.year, _currentBSDate.month - 1);
+
+  /// NepaliDateTime does not normalize out-of-range months: month 13 or 0 blows
+  /// up later in totalDays/weekday, so roll the year over here instead.
+  void _goToMonth(int year, int month) {
+    if (month > 12) {
+      year += 1;
+      month = 1;
+    } else if (month < 1) {
+      year -= 1;
+      month = 12;
+    }
+    _currentBSDate = NepaliDateTime(year, month, 1);
+    _selectedMonthIndex = month - 1;
+    loadEvents();
   }
 
   void resetToToday() {

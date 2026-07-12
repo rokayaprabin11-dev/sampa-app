@@ -13,13 +13,14 @@ class EventRepositoryImpl implements EventRepository {
   });
 
   @override
-  Future<List<CulturalEvent>> getEvents({int? monthBs, int? districtId}) async {
+  Future<List<CulturalEvent>> getEvents({String? dateFrom, String? dateTo, int? districtId}) async {
     try {
       final remoteEvents = await remoteDataSource.getEvents(
-        monthBs: monthBs,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
         districtId: districtId,
       );
-      if (monthBs == null && districtId == null) {
+      if (dateFrom == null && dateTo == null && districtId == null) {
         await localDataSource.cacheEvents(remoteEvents);
       }
       return remoteEvents;

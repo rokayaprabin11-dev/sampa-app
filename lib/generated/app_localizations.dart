@@ -716,6 +716,24 @@ abstract class AppLocalizations {
   /// **'Current Cultural Events'**
   String get sectionCurrentEvents;
 
+  /// No description provided for @sectionEventsThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Events in This Month'**
+  String get sectionEventsThisMonth;
+
+  /// No description provided for @emptyEventsStartingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'No events starting in the next 7 days'**
+  String get emptyEventsStartingSoon;
+
+  /// No description provided for @emptyEventsThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'No events starting in this month'**
+  String get emptyEventsThisMonth;
+
   /// No description provided for @sectionNearbyFestivals.
   ///
   /// In en, this message translates to:

@@ -322,6 +322,15 @@ class AppLocalizationsNe extends AppLocalizations {
   String get sectionCurrentEvents => 'हालका सांस्कृतिक कार्यक्रमहरू';
 
   @override
+  String get sectionEventsThisMonth => 'यस महिनाका कार्यक्रमहरू';
+
+  @override
+  String get emptyEventsStartingSoon => 'आगामी ७ दिनभित्र कुनै कार्यक्रम छैन';
+
+  @override
+  String get emptyEventsThisMonth => 'यस महिना सुरु हुने कुनै कार्यक्रम छैन';
+
+  @override
   String get sectionNearbyFestivals => 'नजिकका र आगामी चाडपर्वहरू';
 
   @override

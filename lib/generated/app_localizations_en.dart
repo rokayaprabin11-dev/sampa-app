@@ -319,6 +319,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionCurrentEvents => 'Current Cultural Events';
 
   @override
+  String get sectionEventsThisMonth => 'Events in This Month';
+
+  @override
+  String get emptyEventsStartingSoon => 'No events starting in the next 7 days';
+
+  @override
+  String get emptyEventsThisMonth => 'No events starting in this month';
+
+  @override
   String get sectionNearbyFestivals => 'Nearby & Upcoming Festivals';
 
   @override

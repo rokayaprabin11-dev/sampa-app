@@ -30,7 +30,8 @@ class _EventsScreenState extends State<EventsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<EventProvider>();
-      provider.resetToToday();
+      provider.resetToToday(); // calendar + "Events in This Month"
+      provider.loadStartingSoonEvents(); // "Current Cultural Events"
     });
   }
 
@@ -68,70 +69,119 @@ class _EventsScreenState extends State<EventsScreen> {
             const SizedBox(height: 24),
             const _CalendarWidget(),
             const SizedBox(height: 32),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                l10n.sectionCurrentEvents,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.light ? AppColors.textHeadline : AppColors.goldMain,
-                ),
-              ),
+            _EventSection(
+              title: l10n.sectionCurrentEvents,
+              events: eventProvider.currentEvents,
+              isLoading: eventProvider.isLoadingStartingSoon,
+              error: eventProvider.startingSoonError,
+              emptyText: l10n.emptyEventsStartingSoon,
+              formatDate: _formatEventDate,
             ),
-            const SizedBox(height: 16),
-            if (eventProvider.isLoading)
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: 4,
-                itemBuilder: (context, index) => const EventCardSkeleton(),
-              )
-            else if (eventProvider.error != null)
-              Center(child: Text(eventProvider.error!))
-            else if (eventProvider.currentEvents.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Center(
-                  child: Text(
-                    'No upcoming events',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).brightness == Brightness.light ? AppColors.textSecondary : AppColors.darkTextSecondary,
-                    ),
-                  ),
-                ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: eventProvider.currentEvents.length,
-                itemBuilder: (context, index) {
-                  final event = eventProvider.currentEvents[index];
-                  final km = eventProvider.distanceKmOf(event);
-                  return EventListCard(
-                    title: event.title,
-                    date: _formatEventDate(event.startDate),
-                    location: event.locationName,
-                    distance: km == null ? null : GeoDistance.shortLabel(km),
-                    tag: event.eventType,
-                    imageUrl: event.imageUrl,
-                    shortDescription: event.shortDescription,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)),
-                    ),
-                  );
-                },
-              ),
+            const SizedBox(height: 32),
+            _EventSection(
+              title: l10n.sectionEventsThisMonth,
+              events: eventProvider.monthEvents,
+              isLoading: eventProvider.isLoading,
+              error: eventProvider.error,
+              emptyText: l10n.emptyEventsThisMonth,
+              formatDate: _formatEventDate,
+            ),
             const SizedBox(height: 40),
           ],
         ),
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 3),
+    );
+  }
+}
+
+/// A titled event list with its own loading/error/empty states, so the
+/// "next 7 days" and "this BS month" sections can load independently.
+class _EventSection extends StatelessWidget {
+  final String title;
+  final List<CulturalEvent> events;
+  final bool isLoading;
+  final String? error;
+  final String emptyText;
+  final String Function(DateTime) formatDate;
+
+  const _EventSection({
+    required this.title,
+    required this.events,
+    required this.isLoading,
+    required this.error,
+    required this.emptyText,
+    required this.formatDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final eventProvider = context.watch<EventProvider>();
+    final isLight = Theme.of(context).brightness == Brightness.light;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isLight ? AppColors.textHeadline : AppColors.goldMain,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (isLoading)
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            itemCount: 4,
+            itemBuilder: (context, index) => const EventCardSkeleton(),
+          )
+        else if (error != null)
+          Center(child: Text(error!))
+        else if (events.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Center(
+              child: Text(
+                emptyText,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isLight ? AppColors.textSecondary : AppColors.darkTextSecondary,
+                ),
+              ),
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              final event = events[index];
+              final km = eventProvider.distanceKmOf(event);
+              return EventListCard(
+                title: event.title,
+                date: formatDate(event.startDate),
+                location: event.locationName,
+                distance: km == null ? null : GeoDistance.shortLabel(km),
+                tag: event.eventType,
+                imageUrl: event.imageUrl,
+                shortDescription: event.shortDescription,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)),
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 }
@@ -288,17 +338,15 @@ class _CalendarWidget extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (eventProvider.selectedMonthIndex > 0) ...[
-                      GestureDetector(
-                        onTap: () => eventProvider.previousMonth(),
-                        child: Icon(
-                          Icons.chevron_left, 
-                          size: 24, 
-                          color: Theme.of(context).brightness == Brightness.light ? AppColors.textSecondary : AppColors.darkTextSecondary
-                        ),
+                    GestureDetector(
+                      onTap: () => eventProvider.previousMonth(),
+                      child: Icon(
+                        Icons.chevron_left,
+                        size: 24,
+                        color: Theme.of(context).brightness == Brightness.light ? AppColors.textSecondary : AppColors.darkTextSecondary
                       ),
-                      const SizedBox(width: 6),
-                    ],
+                    ),
+                    const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () => eventProvider.resetToToday(),
                       child: Container(

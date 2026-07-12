@@ -3,7 +3,7 @@ import 'package:sampada/core/network/api_constants.dart';
 import 'package:sampada/data/models/cultural_event_model.dart';
 
 abstract class EventRemoteDataSource {
-  Future<List<CulturalEventModel>> getEvents({int? monthBs, int? districtId});
+  Future<List<CulturalEventModel>> getEvents({String? dateFrom, String? dateTo, int? districtId});
   Future<List<CulturalEventModel>> getNearbyEvents({required double lat, required double lng, double radiusKm = 10, int? limit});
   Future<List<Map<String, dynamic>>> getCalendarEvents(int monthBs);
   Future<List<CulturalEventModel>> getUpcomingEvents();
@@ -21,9 +21,10 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   EventRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<List<CulturalEventModel>> getEvents({int? monthBs, int? districtId}) async {
+  Future<List<CulturalEventModel>> getEvents({String? dateFrom, String? dateTo, int? districtId}) async {
     final Map<String, dynamic> queryParams = {};
-    if (monthBs != null) queryParams['month_bs'] = monthBs;
+    if (dateFrom != null) queryParams['date_from'] = dateFrom;
+    if (dateTo != null) queryParams['date_to'] = dateTo;
     if (districtId != null) queryParams['district_id'] = districtId;
 
     final data = await apiClient.get(

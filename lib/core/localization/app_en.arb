@@ -110,6 +110,9 @@
   "sectionHowToReach": "How to Reach",
   "sectionDownloads": "Offline Packs",
   "sectionCurrentEvents": "Current Cultural Events",
+  "sectionEventsThisMonth": "Events in This Month",
+  "emptyEventsStartingSoon": "No events starting in the next 7 days",
+  "emptyEventsThisMonth": "No events starting in this month",
   "sectionNearbyFestivals": "Nearby & Upcoming Festivals",
 
   "emptyBookmarks": "No bookmarks yet.\nTap ♥ on any site to save it.",
