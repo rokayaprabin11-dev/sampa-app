@@ -306,6 +306,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 12),
 
+                  // My Bookings (guide tours) Tile
+                  _buildAccountTile(
+                    context,
+                    icon: Icons.event_note_outlined,
+                    title: 'My Bookings',
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
+                    onTap: () => Navigator.pushNamed(context, AppStrings.myBookingsPath),
+                  ),
+
+                  const SizedBox(height: 12),
+
                   // Be a Guide / Guide Profile Tile — swaps once the guide
                   // application has been approved.
                   _buildAccountTile(

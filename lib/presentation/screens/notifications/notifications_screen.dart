@@ -167,6 +167,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'event':
       case 'event_reminder':
         Navigator.pushNamed(context, AppStrings.eventsPath);
+      // Booking accepted/declined/payment updates open the tourist's
+      // bookings list where the new status (and next action) is visible.
+      case 'booking':
+        Navigator.pushNamed(context, AppStrings.myBookingsPath);
     }
   }
 
@@ -259,6 +263,7 @@ class _NotificationCard extends StatelessWidget {
         'geofence' => Icons.location_on,
         'heritage' => Icons.account_balance,
         'review' => Icons.star,
+        'booking' => Icons.event_note,
         _ => Icons.notifications,
       };
 
@@ -267,6 +272,7 @@ class _NotificationCard extends StatelessWidget {
         'geofence' => Colors.teal,
         'heritage' => const Color(0xFF9E3D1A),
         'review' => Colors.amber,
+        'booking' => const Color(0xFF2E7D32),
         _ => const Color(0xFF9E3D1A),
       };
 
@@ -276,6 +282,7 @@ class _NotificationCard extends StatelessWidget {
       'geofence' => 'Nearby heritage',
       'heritage' => 'New heritage site',
       'review' => 'Review',
+      'booking' => 'Booking update',
       _ => 'System',
     };
     final dt = notification.receivedAt;

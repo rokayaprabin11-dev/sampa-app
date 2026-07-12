@@ -285,6 +285,11 @@ class NotificationService {
           _navigatorKey?.currentState?.pushNamed(AppStrings.notificationsPath);
         }
         break;
+      // Booking accepted/declined/payment pushes land the tourist on their
+      // bookings list, where the updated status and next action live.
+      case 'booking':
+        _navigatorKey?.currentState?.pushNamed(AppStrings.myBookingsPath);
+        break;
       default:
         _navigatorKey?.currentState?.pushNamed(AppStrings.notificationsPath);
     }

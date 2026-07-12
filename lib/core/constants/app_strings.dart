@@ -31,6 +31,7 @@ class AppStrings {
   static const String copyrightPolicyPath = '/copyright_policy';
   static const String districtDetailPath = '/district_detail';
   static const String districtListPath = '/districts';
+  static const String myBookingsPath = '/my_bookings';
 
   // Localization Keys (Internal)
   static const String titleKey = 'title';
