@@ -30,6 +30,10 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   String _selectedLocation    = 'Kathmandu';
   DateTime? _dateOfBirth;
   final Set<String> _languages = {'Nepali', 'English'};
+  // Languages the applicant typed in via "+ Add Other" — kept apart from the
+  // preset list so they can still be rendered as chips (and re-shown when an
+  // existing application is loaded back in).
+  final List<String> _customLanguages = [];
 
   // Step 2 – Expertise
   final Set<String> _specializations = {'Temples', 'Stupas'};
@@ -135,6 +139,108 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     return out.toString();
   }
 
+  /// All language chips shown in step 1: the presets plus anything typed in.
+  List<String> get _languageOptions => [..._allLanguages, ..._customLanguages];
+
+  /// Case/space-insensitive match against a language already offered or added,
+  /// so "nepali " can't be added a second time alongside "Nepali".
+  String? _existingLanguageMatch(String candidate) {
+    final needle = candidate.toLowerCase();
+    for (final l in _languageOptions) {
+      if (l.toLowerCase() == needle) return l;
+    }
+    return null;
+  }
+
+  /// Prompts for a language not in the preset list, then adds it as a selected
+  /// chip. Submitted verbatim in the `languages` list (the backend stores it as
+  /// free-form JSON), so it is trimmed and length-capped here.
+  Future<void> _addCustomLanguage() async {
+    final controller = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+
+    final entered = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            void submit() {
+              final value = controller.text.trim();
+              if (value.isEmpty) {
+                setDialogState(() => errorText = 'Enter a language.');
+                return;
+              }
+              if (value.length > 30) {
+                setDialogState(() => errorText = 'Keep it under 30 characters.');
+                return;
+              }
+              if (!RegExp(r"^[\p{L}][\p{L} '\-]*$", unicode: true).hasMatch(value)) {
+                setDialogState(() => errorText = 'Letters only.');
+                return;
+              }
+              final duplicate = _existingLanguageMatch(value);
+              if (duplicate != null) {
+                setDialogState(() => errorText = '$duplicate is already listed.');
+                return;
+              }
+              Navigator.pop(dialogContext, value);
+            }
+
+            return AlertDialog(
+              backgroundColor: isDark ? AppColors.darkBgCard : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+              ),
+              title: Text(
+                'Add a language',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(dialogContext).colorScheme.onSurface,
+                ),
+              ),
+              content: TextField(
+                controller: controller,
+                autofocus: true,
+                maxLength: 30,
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => submit(),
+                style: TextStyle(
+                  color: Theme.of(dialogContext).colorScheme.onSurface,
+                  fontSize: 14,
+                ),
+                decoration: _inputDecor(isDark, 'e.g. Newari, French').copyWith(
+                  errorText: errorText,
+                  counterText: '',
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text('Cancel', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey[700])),
+                ),
+                TextButton(
+                  onPressed: submit,
+                  child: Text('Add', style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    controller.dispose();
+    if (entered == null || !mounted) return;
+    setState(() {
+      _customLanguages.add(entered);
+      _languages.add(entered);
+    });
+  }
+
   Future<void> _pickImage(void Function(XFile) onPicked) async {
     final file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (file == null) return;
@@ -181,7 +287,16 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         _appStatus = p['status'] as String?;
         _introController.text = p['bio'] ?? '';
         final langs = p['languages'];
-        if (langs is List) { _languages.clear(); _languages.addAll(langs.cast<String>()); }
+        if (langs is List) {
+          _languages.clear();
+          _languages.addAll(langs.cast<String>());
+          // Anything saved that isn't a preset was typed in on a previous pass —
+          // re-register it so it renders as a (selected) chip rather than being
+          // silently dropped from the form.
+          _customLanguages.addAll(
+            _languages.where((l) => !_allLanguages.contains(l)),
+          );
+        }
         final specs = p['specialties'];
         if (specs is List) { _specializations.clear(); _specializations.addAll(specs.cast<String>()); }
       }
@@ -662,12 +777,12 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         Wrap(
           spacing: 8, runSpacing: 8,
           children: [
-            ..._allLanguages.map((l) => _chip(
+            ..._languageOptions.map((l) => _chip(
               context, isDark, l, _languages.contains(l),
               () => setState(() => _languages.contains(l) ? _languages.remove(l) : _languages.add(l)),
               showCheck: true,
             )),
-            _outlineChip(context, isDark, '+ Add Other'),
+            _outlineChip(context, isDark, '+ Add Other', onTap: _addCustomLanguage),
           ],
         ),
         const SizedBox(height: 24),
@@ -1187,15 +1302,20 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     );
   }
 
-  Widget _outlineChip(BuildContext context, bool isDark, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBgCard : Colors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+  /// Without [onTap] this is a static affordance — the "+ More" / "+ Other"
+  /// chips on step 2 are still inert.
+  Widget _outlineChip(BuildContext context, bool isDark, String label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkBgCard : Colors.white,
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+          border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+        ),
+        child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey[600])),
       ),
-      child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey[600])),
     );
   }
 
