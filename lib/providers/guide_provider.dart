@@ -27,6 +27,8 @@ class GuideProvider with ChangeNotifier {
     _myBookings = [];
     _incomingBookings = [];
     _error = null;
+    _bookingsError = null;
+    _bookingsSyncedAt = null;
     _syncLiveTracking(); // profile gone → stop pushing this user's location
     notifyListeners();
   }
@@ -195,13 +197,28 @@ class GuideProvider with ChangeNotifier {
     }
   }
 
+  /// Non-null when the last [fetchMyBookings] failed. Without this the bookings
+  /// screen cannot tell "the request failed" apart from "you have no bookings",
+  /// so a network error would silently render as an empty list.
+  String? _bookingsError;
+  String? get bookingsError => _bookingsError;
+
+  /// When the bookings list last came back from the server — backs the
+  /// "last synced" line shown while offline.
+  DateTime? _bookingsSyncedAt;
+  DateTime? get bookingsSyncedAt => _bookingsSyncedAt;
+
   Future<void> fetchMyBookings() async {
     try {
       final data = await _apiClient.get(ApiEndpoints.guideBookings);
       _myBookings = _asList(data).cast<Map<String, dynamic>>();
+      _bookingsError = null;
+      _bookingsSyncedAt = DateTime.now();
       notifyListeners();
     } catch (e) {
       debugPrint('Error fetching bookings: $e');
+      _bookingsError = e.toString();
+      notifyListeners();
     }
   }
 

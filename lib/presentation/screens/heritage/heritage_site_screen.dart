@@ -130,6 +130,12 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      // The hero and the card are positioned as fractions of the *full* screen
+      // height, but the body shrinks when a keyboard opens (e.g. a dialog
+      // pushed over this route), which squeezed the card to a fraction of its
+      // intended height and overflowed it. Nothing in this body takes text
+      // input, so it has no reason to resize for the keyboard.
+      resizeToAvoidBottomInset: false,
       body: SizedBox.expand(
         child: Stack(
           children: [
