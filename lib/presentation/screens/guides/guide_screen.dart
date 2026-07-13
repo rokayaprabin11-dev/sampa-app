@@ -13,6 +13,8 @@ import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/providers/auth_provider.dart';
 import 'package:sampada/presentation/screens/guides/chat_screen.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
+import 'package:sampada/presentation/screens/payments/payment_screen.dart';
+import 'package:sampada/presentation/screens/reviews/guide_reviews_screen.dart';
 
 class GuideScreen extends StatefulWidget {
   const GuideScreen({super.key});
@@ -275,100 +277,14 @@ class _GuideScreenState extends State<GuideScreen> {
   void _snack(String msg) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
 
-  /// Reviews are tied to a completed booking. Find the tourist's completed,
-  /// not-yet-reviewed booking with this guide, then open the rating dialog.
-  Future<void> _reviewGuide(Map<String, dynamic> guide) async {
-    final gp = context.read<GuideProvider>();
-    final gid = guide['id'];
-
-    Map<String, dynamic>? booking;
-    for (final b in gp.myBookings) {
-      if (b['guide'] == gid && b['status'] == 'completed' && b['reviewed_at'] == null) {
-        booking = b;
-        break;
-      }
-    }
-
-    final l10n = AppLocalizations.of(context)!;
-    if (booking == null) {
-      // Distinguish "already reviewed" from "no completed tour" for clarity.
-      final hasCompleted = gp.myBookings.any((b) => b['guide'] == gid && b['status'] == 'completed');
-      _snack(hasCompleted ? l10n.reviewAlreadyDone : l10n.reviewAfterTour);
-      return;
-    }
-
-    final result = await _showReviewDialog(guide);
-    if (result == null) return; // cancelled
-
-    final err = await gp.reviewBooking(booking['id'] as int, result.$1, result.$2);
-    if (!mounted) return;
-    if (err == null) {
-      _snack(l10n.reviewThanks);
-      gp.fetchGuides(); // refresh the guide's rating
-    } else {
-      _snack(l10n.reviewFailed(err));
-    }
-  }
-
-  /// Returns (rating, text) or null if cancelled.
-  Future<(int, String)?> _showReviewDialog(Map<String, dynamic> guide) {
-    final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.goldMain : AppColors.kColorPrimary;
-    final user = guide['user'] as Map<String, dynamic>? ?? {};
-    final name = (user['full_name'] ?? user['username'] ?? 'this guide').toString();
-    final controller = TextEditingController();
-    int rating = 5;
-
-    return showDialog<(int, String)?>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocal) => AlertDialog(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-          title: Text(l10n.reviewGuide(name), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (i) {
-                  final filled = i < rating;
-                  return IconButton(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    constraints: const BoxConstraints(),
-                    onPressed: () => setLocal(() => rating = i + 1),
-                    icon: Icon(filled ? Icons.star : Icons.star_border, color: isDark ? AppColors.goldMain : AppColors.kColorAccent, size: AppDimensions.iconXl),
-                  );
-                }),
-              ),
-              const SizedBox(height: AppDimensions.sp12),
-              TextField(
-                controller: controller,
-                maxLines: 3,
-                maxLength: 300,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: l10n.reviewHint,
-                  hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 13),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, null), child: Text(l10n.btnCancel, style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey))),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, (rating, controller.text.trim())),
-              style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: isDark ? Colors.black : Colors.white),
-              child: Text(l10n.btnSubmit),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  /// Open every review of this guide. The screen carries the write-a-review
+  /// button itself (gated on a completed, unreviewed booking), so the card's
+  /// button no longer needs to know whether reviewing is allowed — it just
+  /// shows the reviews, which is what a tourist choosing a guide wants anyway.
+  void _openReviews(Map<String, dynamic> guide) => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => GuideReviewsScreen(guide: guide)),
+      );
 
   // ─── Build ────────────────────────────────────────────────────
 
@@ -381,8 +297,10 @@ class _GuideScreenState extends State<GuideScreen> {
       final awaitingConfirm = b['status'] == 'confirmed' &&
           b['guide_marked_complete_at'] != null &&
           b['tourist_confirmed_complete_at'] == null;
-      final paymentDue =
-          b['status'] == 'completed' && b['payment_status'] == 'due';
+      // `submitted` is not action-needed: the tourist has paid and is waiting on
+      // the guide. `rejected` is — the guide could not find the money.
+      final paymentDue = b['status'] == 'completed' &&
+          (b['payment_status'] == 'due' || b['payment_status'] == 'rejected');
       return awaitingConfirm || paymentDue;
     }).toList();
   }
@@ -405,7 +323,8 @@ class _GuideScreenState extends State<GuideScreen> {
   Widget _actionCard(
       BuildContext context, bool isDark, Map<String, dynamic> b) {
     final l10n = AppLocalizations.of(context)!;
-    final paymentDue = b['payment_status'] == 'due' && b['status'] == 'completed';
+    final paymentDue = b['status'] == 'completed' &&
+        (b['payment_status'] == 'due' || b['payment_status'] == 'rejected');
     final guideName = (b['guide_name'] ?? 'your guide').toString();
     final price = b['total_price'];
     final title = paymentDue ? l10n.payDueTitle : l10n.confirmTourTitle;
@@ -445,9 +364,7 @@ class _GuideScreenState extends State<GuideScreen> {
           ),
           const SizedBox(width: 8),
           ElevatedButton(
-            onPressed: () => paymentDue
-                ? _openPaymentSheet(b)
-                : _confirmCompletion(b),
+            onPressed: () => paymentDue ? _openPayment(b) : _confirmCompletion(b),
             style: ElevatedButton.styleFrom(
               backgroundColor: paymentDue
                   ? AppColors.kColorPrimary
@@ -474,226 +391,20 @@ class _GuideScreenState extends State<GuideScreen> {
     _snack(err ?? confirmedMsg);
   }
 
-  static const _paymentMethods = [
-    ('esewa', 'eSewa', Icons.account_balance_wallet_outlined),
-    ('khalti', 'Khalti', Icons.account_balance_wallet_outlined),
-    ('fonepay', 'Fonepay', Icons.qr_code_2),
-    ('cash', 'Cash', Icons.payments_outlined),
-  ];
-
-  Future<void> _openPaymentSheet(Map<String, dynamic> b) async {
-    final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final refController = TextEditingController();
-    String method = 'esewa';
-    bool submitting = false;
-    final price = b['total_price'];
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppDimensions.kRadiusXxl)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocal) => Padding(
-          padding: EdgeInsets.fromLTRB(
-              20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.paySheetTitle,
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(ctx).colorScheme.onSurface)),
-              const SizedBox(height: 4),
-              Text(
-                '${l10n.paySheetBody('${b['guide_name'] ?? 'your guide'}')}'
-                '${price != null ? ' — NPR $price' : ''}',
-                style: TextStyle(
-                    fontSize: 13,
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              ..._paymentMethods.map((m) {
-                final selected = method == m.$1;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: InkWell(
-                    onTap: () => setLocal(() => method = m.$1),
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.kRadiusLg),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.kColorPrimary.withValues(alpha: 0.08)
-                            : Colors.transparent,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.kRadiusLg),
-                        border: Border.all(
-                          color: selected
-                              ? AppColors.kColorPrimary
-                              : (isDark
-                                  ? AppColors.darkBorder
-                                  : AppColors.kColorBorderSubtle),
-                          width: selected ? 1.6 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(m.$3,
-                              size: 20,
-                              color: selected
-                                  ? AppColors.kColorPrimary
-                                  : Theme.of(ctx).colorScheme.onSurface),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(m.$2,
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: selected
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color:
-                                        Theme.of(ctx).colorScheme.onSurface)),
-                          ),
-                          if (selected)
-                            const Icon(Icons.check_circle,
-                                size: 18, color: AppColors.kColorPrimary),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-              if (method != 'cash') ...[
-                const SizedBox(height: 4),
-                TextField(
-                  controller: refController,
-                  decoration: InputDecoration(
-                    labelText: l10n.payTxnIdLabel,
-                    isDense: true,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: submitting
-                      ? null
-                      : () async {
-                          setLocal(() => submitting = true);
-                          final (err, paid) = await context
-                              .read<GuideProvider>()
-                              .recordPayment(b['id'] as int, method,
-                                  refController.text.trim());
-                          if (!ctx.mounted) return;
-                          Navigator.pop(ctx);
-                          if (err != null) {
-                            _snack(l10n.payRecordFailed(err));
-                          } else if (paid != null && mounted) {
-                            _showReceipt(paid);
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.kColorPrimary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                  ),
-                  child: submitting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : Text(l10n.btnRecordPayment,
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ),
-        ),
+  /// Paying is a screen now, not a sheet. The old sheet let the tourist pick a
+  /// method from a hardcoded list — with no idea of the guide's actual account —
+  /// and flipped the booking straight to `paid` with no confirmation from the
+  /// guide. [PaymentScreen] shows where to actually send the money and submits a
+  /// claim the guide has to confirm.
+  Future<void> _openPayment(Map<String, dynamic> b) async {
+    final guides = context.read<GuideProvider>();
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(bookingId: b['id'] as int, booking: b),
       ),
     );
-  }
-
-  void _showReceipt(Map<String, dynamic> b) {
-    final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(ctx).colorScheme.surface,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-        title: Row(
-          children: [
-            Icon(Icons.receipt_long,
-                color: isDark ? AppColors.goldMain : AppColors.kColorPrimary),
-            const SizedBox(width: 10),
-            Text(l10n.payRecordedTitle,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(ctx).colorScheme.onSurface)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _receiptRow(ctx, l10n.receiptLabelNo, '${b['receipt_no'] ?? '—'}'),
-            _receiptRow(ctx, l10n.receiptLabelGuide, '${b['guide_name'] ?? '—'}'),
-            _receiptRow(ctx, l10n.receiptLabelDate, '${b['date'] ?? '—'}'),
-            _receiptRow(ctx, l10n.receiptLabelMethod, '${b['payment_method'] ?? '—'}'),
-            if (b['total_price'] != null)
-              _receiptRow(ctx, l10n.receiptLabelAmount, 'NPR ${b['total_price']}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.btnDone),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _receiptRow(BuildContext ctx, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 70,
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(ctx).brightness == Brightness.dark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.textSecondary)),
-          ),
-          Expanded(
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(ctx).colorScheme.onSurface)),
-          ),
-        ],
-      ),
-    );
+    await guides.fetchMyBookings();
   }
 
   @override
@@ -1126,7 +837,7 @@ class _GuideScreenState extends State<GuideScreen> {
                       ),
                       const SizedBox(width: 6),
                     ],
-                    Expanded(child: _outlineBtn(context, isDark, 'Review', () => _reviewGuide(guide))),
+                    Expanded(child: _outlineBtn(context, isDark, 'Reviews', () => _openReviews(guide))),
                     const SizedBox(width: 6),
                     Expanded(flex: 2, child: _filledBtn(context, isDark, 'Hire Now', () => _openDetail(guide))),
                   ],

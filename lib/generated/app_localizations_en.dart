@@ -636,43 +636,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tour confirmed. Please settle the payment.';
 
   @override
-  String get paySheetTitle => 'Settle payment';
-
-  @override
-  String paySheetBody(String guide) {
-    return 'Pay $guide directly, then record it here.';
-  }
-
-  @override
-  String get payTxnIdLabel => 'Transaction ID (optional)';
-
-  @override
-  String get btnRecordPayment => 'Record payment';
-
-  @override
-  String payRecordFailed(String error) {
-    return 'Could not record payment: $error';
-  }
-
-  @override
-  String get payRecordedTitle => 'Payment recorded';
-
-  @override
-  String get receiptLabelNo => 'Receipt';
-
-  @override
-  String get receiptLabelGuide => 'Guide';
-
-  @override
-  String get receiptLabelDate => 'Date';
-
-  @override
-  String get receiptLabelMethod => 'Method';
-
-  @override
-  String get receiptLabelAmount => 'Amount';
-
-  @override
   String get btnDone => 'Done';
 
   @override

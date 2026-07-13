@@ -7,6 +7,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../network/api_client.dart';
@@ -14,6 +15,11 @@ import '../network/api_endpoints.dart';
 import '../database/database_helper.dart';
 import '../../data/datasources/local/notification_local_datasource.dart';
 import '../../core/constants/app_strings.dart';
+import '../../presentation/screens/guides/chat_screen.dart';
+import '../../presentation/screens/payments/guide_confirm_payment_screen.dart';
+import '../../presentation/screens/payments/payment_receipt_screen.dart';
+import '../../presentation/screens/payments/payment_screen.dart';
+import '../../providers/guide_provider.dart';
 import '../../core/constants/prefs_keys.dart';
 
 // Top-level background handler — separate isolate, no DB/ApiClient access
@@ -260,7 +266,31 @@ class NotificationService {
     final type = msg.data['type'] as String? ?? '';
     final eventId = msg.data['event_id'] ?? '';
     final siteSlug = msg.data['site_slug'] ?? msg.data['site_id'] ?? '';
-    return '$type:$eventId:$siteSlug';
+    // booking_id rides along so a chat push can open the thread it belongs to,
+    // not just the app.
+    final bookingId = msg.data['booking_id'] ?? '';
+    // Payment pushes are `type: booking` with an action — a guide being told
+    // money arrived and a tourist being told it was confirmed are the same type
+    // but belong on completely different screens, and only the action separates
+    // them.
+    final action = msg.data['action'] ?? '';
+    final paymentId = msg.data['payment_id'] ?? '';
+    return '$type:$eventId:$siteSlug:$bookingId:$action:$paymentId';
+  }
+
+  /// Whether the signed-in user is an approved guide. Read off the navigator's
+  /// context because this service lives outside the widget tree; false when the
+  /// tree isn't up yet, which is the right default (a tourist screen).
+  bool _isApprovedGuide() {
+    final context = _navigatorKey?.currentContext;
+    if (context == null) return false;
+    try {
+      return Provider.of<GuideProvider>(context, listen: false)
+              .myProfile?['status'] ==
+          'approved';
+    } catch (_) {
+      return false; // provider not in scope — treat as a tourist
+    }
   }
 
   void _handleTap(String? payload) {
@@ -285,10 +315,58 @@ class NotificationService {
           _navigatorKey?.currentState?.pushNamed(AppStrings.notificationsPath);
         }
         break;
-      // Booking accepted/declined/payment pushes land the tourist on their
-      // bookings list, where the updated status and next action live.
+      // A chat push means someone replied — open that conversation, not a list.
+      // The name isn't in the payload, so ChatScreen resolves it from the
+      // channel's participants.
+      case 'chat':
+        final bookingId = int.tryParse(parts.length > 3 ? parts[3] : '');
+        if (bookingId != null) {
+          _navigatorKey?.currentState?.push(
+            MaterialPageRoute(builder: (_) => ChatScreen(bookingId: bookingId)),
+          );
+        } else {
+          _navigatorKey?.currentState?.pushNamed(AppStrings.messagesPath);
+        }
+        break;
+      // Booking pushes go to both sides of a booking — the tourist ("your guide
+      // accepted") and the guide ("new request", "tourist cancelled") — so send
+      // each to the screen that actually holds their side of it. A guide has no
+      // My Bookings screen; their requests, tours and history live in the guide
+      // profile.
       case 'booking':
-        _navigatorKey?.currentState?.pushNamed(AppStrings.myBookingsPath);
+        final action = parts.length > 4 ? parts[4] : '';
+        final paymentId = int.tryParse(parts.length > 5 ? parts[5] : '');
+        final bookingId = int.tryParse(parts.length > 3 ? parts[3] : '');
+
+        // A payment push is about one payment, and dropping the user on a list
+        // to hunt for it wastes the only thing the notification knew.
+        if (paymentId != null) {
+          switch (action) {
+            case 'payment_submitted':
+              _navigatorKey?.currentState?.push(MaterialPageRoute(
+                builder: (_) => GuideConfirmPaymentScreen(paymentId: paymentId),
+              ));
+              return;
+            case 'payment_confirmed':
+              _navigatorKey?.currentState?.push(MaterialPageRoute(
+                builder: (_) => PaymentReceiptScreen(paymentId: paymentId),
+              ));
+              return;
+            case 'payment_rejected':
+              // The tourist has to fix and resubmit, which is the payment screen
+              // for that booking — not the receipt they never got.
+              if (bookingId != null) {
+                _navigatorKey?.currentState?.push(MaterialPageRoute(
+                  builder: (_) => PaymentScreen(bookingId: bookingId),
+                ));
+                return;
+              }
+          }
+        }
+
+        _navigatorKey?.currentState?.pushNamed(
+          _isApprovedGuide() ? AppStrings.guideProfilePath : AppStrings.myBookingsPath,
+        );
         break;
       default:
         _navigatorKey?.currentState?.pushNamed(AppStrings.notificationsPath);

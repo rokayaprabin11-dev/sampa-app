@@ -8,7 +8,24 @@ import 'package:sampada/data/datasources/local/notification_local_datasource.dar
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
+import 'package:sampada/presentation/screens/guides/chat_screen.dart';
+import 'package:sampada/presentation/screens/payments/guide_confirm_payment_screen.dart';
+import 'package:sampada/presentation/screens/payments/payment_receipt_screen.dart';
+import 'package:sampada/presentation/screens/payments/payment_screen.dart';
+import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/providers/notification_provider.dart';
+
+/// What a notification *is*, for icons and routing.
+///
+/// Prefer the `type` inside the data payload over the row's own `type` column:
+/// the backend files chat messages under the booking type (its `_notify_user`
+/// helper hardcodes `TYPE_BOOKING`), but stamps the real kind — `chat` — into
+/// `data`, which is the same key FCM routes on. Falls back to the column for
+/// notifications that carry no data.
+String notificationKind(LocalNotification n) {
+  final fromData = n.data['type']?.toString();
+  return (fromData == null || fromData.isEmpty) ? n.type : fromData;
+}
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -114,7 +131,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 final filtered = _selectedFilter == 'All'
                     ? provider.notifications
                     : provider.notifications
-                        .where((n) => _matchesFilter(n.type))
+                        .where((n) => _matchesFilter(notificationKind(n)))
                         .toList();
 
                 if (filtered.isEmpty) {
@@ -154,7 +171,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _navigate(LocalNotification n) {
-    switch (n.type) {
+    switch (notificationKind(n)) {
       // New-site + proximity alerts open that heritage site's detail page.
       case 'heritage':
       case 'geofence':
@@ -167,10 +184,65 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'event':
       case 'event_reminder':
         Navigator.pushNamed(context, AppStrings.eventsPath);
-      // Booking accepted/declined/payment updates open the tourist's
-      // bookings list where the new status (and next action) is visible.
+      // A chat notification means someone replied — open that conversation.
+      // ChatScreen resolves who it is from the channel, since the notification
+      // only carries the booking id.
+      case 'chat':
+        final bookingId = int.tryParse('${n.data['booking_id']}');
+        if (bookingId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ChatScreen(bookingId: bookingId)),
+          );
+        } else {
+          Navigator.pushNamed(context, AppStrings.messagesPath);
+        }
+      // Booking updates reach both sides of a booking, so send each to the
+      // screen that holds their side of it: a guide's requests, tours and
+      // history live in the guide profile, not in My Bookings.
       case 'booking':
-        Navigator.pushNamed(context, AppStrings.myBookingsPath);
+        // Payment notifications are booking notifications with an action. They
+        // name one payment, so they open that payment rather than a list the
+        // user then has to search.
+        final paymentId = int.tryParse('${n.data['payment_id']}');
+        final bookingId = int.tryParse('${n.data['booking_id']}');
+        final action = '${n.data['action'] ?? ''}';
+        if (paymentId != null) {
+          switch (action) {
+            case 'payment_submitted':
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GuideConfirmPaymentScreen(paymentId: paymentId),
+                ),
+              );
+              return;
+            case 'payment_confirmed':
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PaymentReceiptScreen(paymentId: paymentId),
+                ),
+              );
+              return;
+            case 'payment_rejected':
+              if (bookingId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PaymentScreen(bookingId: bookingId),
+                  ),
+                );
+                return;
+              }
+          }
+        }
+
+        final isGuide = context.read<GuideProvider>().myProfile?['status'] == 'approved';
+        Navigator.pushNamed(
+          context,
+          isGuide ? AppStrings.guideProfilePath : AppStrings.myBookingsPath,
+        );
     }
   }
 
@@ -258,29 +330,32 @@ class _NotificationCard extends StatelessWidget {
             size: 26),
       );
 
-  IconData get _icon => switch (notification.type) {
+  IconData get _icon => switch (notificationKind(notification)) {
         'event' || 'event_reminder' => Icons.event,
         'geofence' => Icons.location_on,
         'heritage' => Icons.account_balance,
         'review' => Icons.star,
         'booking' => Icons.event_note,
+        'chat' => Icons.chat_bubble,
         _ => Icons.notifications,
       };
 
-  Color get _accent => switch (notification.type) {
+  Color get _accent => switch (notificationKind(notification)) {
         'event' || 'event_reminder' => Colors.orange,
         'geofence' => Colors.teal,
         'heritage' => const Color(0xFF9E3D1A),
         'review' => Colors.amber,
         'booking' => const Color(0xFF2E7D32),
+        'chat' => AppColors.kColorPrimary,
         _ => const Color(0xFF9E3D1A),
       };
 
   String get _subtitle {
-    final type = switch (notification.type) {
+    final type = switch (notificationKind(notification)) {
       'event' || 'event_reminder' => 'Event reminder',
       'geofence' => 'Nearby heritage',
       'heritage' => 'New heritage site',
+      'chat' => 'Message',
       'review' => 'Review',
       'booking' => 'Booking update',
       _ => 'System',

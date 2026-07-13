@@ -267,6 +267,36 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> put(String path, {dynamic data}) async {
+    try {
+      final response = await dio.put(
+        path.startsWith('http') ? path : '${ApiEndpoints.baseUrl}$path',
+        data: data,
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  /// GET a binary body (a PDF receipt, say) through the authenticated client —
+  /// endpoints that require a Bearer token cannot simply be opened in a browser.
+  Future<List<int>> getBytes(String path) async {
+    try {
+      final response = await dio.get<List<int>>(
+        path.startsWith('http') ? path : '${ApiEndpoints.baseUrl}$path',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response.data ?? const [];
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
   Future<dynamic> patch(String path, {dynamic data}) async {
     try {
       final response = await dio.patch(
@@ -320,17 +350,40 @@ class ApiClient {
     } else if (e.response != null) {
       final data = e.response?.data;
       if (data is Map && data.containsKey('message')) {
-        message = data['message'];
+        message = '${data['message']}';
       } else if (data is Map && data.containsKey('detail')) {
-        message = data['detail'];
+        message = '${data['detail']}';
       } else {
-        message = 'Server error: ${e.response?.statusMessage ?? e.message}';
+        // DRF validation errors arrive keyed by field
+        // ({"transaction_reference": ["…"]}) or as a bare list of non-field
+        // errors. Surface the first one: the server already wrote a sentence
+        // the user can act on, and "Server error: Bad Request" throws it away.
+        final first = _firstValidationMessage(data);
+        message = first ?? 'Server error: ${e.response?.statusMessage ?? e.message}';
       }
     } else {
       message = e.message ?? message;
     }
 
     return ServerException(message: message, statusCode: statusCode);
+  }
+
+  /// First human-readable string inside a DRF error body, whatever shape it took.
+  static String? _firstValidationMessage(dynamic data) {
+    if (data is String && data.trim().isNotEmpty) return data;
+    if (data is List) {
+      for (final item in data) {
+        final found = _firstValidationMessage(item);
+        if (found != null) return found;
+      }
+    }
+    if (data is Map) {
+      for (final value in data.values) {
+        final found = _firstValidationMessage(value);
+        if (found != null) return found;
+      }
+    }
+    return null;
   }
 }
 

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/services/chat_service.dart';
 import 'package:sampada/injection.dart' as di;
+import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Booking chat. The conversation lives in Firestore (real-time + offline
 /// cache); Django decides whether it may be opened at all — this screen asks it
@@ -11,12 +14,16 @@ import 'package:sampada/injection.dart' as di;
 /// no.
 class ChatScreen extends StatefulWidget {
   final int bookingId;
-  final String otherPartyName;
+
+  /// Who we're talking to. Optional: a chat notification carries only the
+  /// booking id, so when this is null the screen resolves the name from the
+  /// channel's `participants` map instead of showing a blank title.
+  final String? otherPartyName;
 
   const ChatScreen({
     super.key,
     required this.bookingId,
-    required this.otherPartyName,
+    this.otherPartyName,
   });
 
   @override
@@ -31,6 +38,39 @@ class _ChatScreenState extends State<ChatScreen> {
   ChatChannel? _channel;
   bool _loading = true;
   bool _sending = false;
+  String? _resolvedName;
+
+  /// The title: whatever the caller passed, else whatever the channel told us,
+  /// else a neutral placeholder while that is in flight.
+  String get _title => widget.otherPartyName ?? _resolvedName ?? 'Chat';
+
+  /// Ring the other party on the number they gave. Guides supply one when they
+  /// apply; tourists are never asked for one, so this is often absent — and the
+  /// button is hidden rather than shown dead.
+  Future<void> _call() async {
+    final phone = _channel?.otherPartyPhone ?? '';
+    if (phone.isEmpty) return;
+
+    final uri = Uri(scheme: 'tel', path: phone);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final launched = await launchUrl(uri);
+      if (!launched) throw Exception('no dialer');
+    } catch (_) {
+      // No dialer (a tablet, an emulator) — show the number so it is still
+      // usable rather than failing silently.
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Could not open the dialer. $_title: $phone'),
+          action: SnackBarAction(
+            label: 'Copy',
+            onPressed: () => Clipboard.setData(ClipboardData(text: phone)),
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -46,7 +86,22 @@ class _ChatScreenState extends State<ChatScreen> {
       _channel = channel;
       _loading = false;
     });
-    if (channel != null) _chat.markRead(channel.channelId);
+    if (channel == null) return;
+    _chat.markRead(channel.channelId);
+
+    // Opened from a notification, which knows the booking but not the person.
+    // Django already told us who they are when it handed over the channel; only
+    // fall back to the Firestore participants map if it did not.
+    if (widget.otherPartyName == null) {
+      if (channel.otherPartyName.isNotEmpty) {
+        setState(() => _resolvedName = channel.otherPartyName);
+        return;
+      }
+      final other = await _chat.otherParticipant(channel.channelId);
+      if (mounted && other != null && other.name.isNotEmpty) {
+        setState(() => _resolvedName = other.name);
+      }
+    }
   }
 
   @override
@@ -82,15 +137,20 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final canCall = _channel?.canCall ?? false;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: isDark ? AppColors.brownDeep : const Color(0xFF7B1E00),
-        foregroundColor: Colors.white,
-        title: Text(
-          widget.otherPartyName,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+      appBar: SampadaAppBar(
+        title: Text(_title),
+        actions: [
+          if (canCall)
+            IconButton(
+              tooltip: 'Call $_title',
+              icon: const Icon(Icons.call),
+              onPressed: _call,
+            ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

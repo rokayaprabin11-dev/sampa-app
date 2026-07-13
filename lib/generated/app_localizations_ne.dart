@@ -642,43 +642,6 @@ class AppLocalizationsNe extends AppLocalizations {
       'भ्रमण पुष्टि भयो। कृपया भुक्तानी गर्नुहोस्।';
 
   @override
-  String get paySheetTitle => 'भुक्तानी मिलाउनुहोस्';
-
-  @override
-  String paySheetBody(String guide) {
-    return '$guide लाई सिधै भुक्तानी गरी यहाँ रेकर्ड गर्नुहोस्।';
-  }
-
-  @override
-  String get payTxnIdLabel => 'कारोबार आईडी (वैकल्पिक)';
-
-  @override
-  String get btnRecordPayment => 'भुक्तानी रेकर्ड गर्नुहोस्';
-
-  @override
-  String payRecordFailed(String error) {
-    return 'भुक्तानी रेकर्ड गर्न सकिएन: $error';
-  }
-
-  @override
-  String get payRecordedTitle => 'भुक्तानी रेकर्ड भयो';
-
-  @override
-  String get receiptLabelNo => 'रसिद';
-
-  @override
-  String get receiptLabelGuide => 'गाइड';
-
-  @override
-  String get receiptLabelDate => 'मिति';
-
-  @override
-  String get receiptLabelMethod => 'माध्यम';
-
-  @override
-  String get receiptLabelAmount => 'रकम';
-
-  @override
   String get btnDone => 'भयो';
 
   @override

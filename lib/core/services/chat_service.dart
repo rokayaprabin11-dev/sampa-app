@@ -43,11 +43,23 @@ class ChatChannel {
   final int bookingId;
   final bool writable;
 
+  /// The person on the other end, per Django. [otherPartyPhone] is empty when
+  /// they never gave one — tourists are not asked for a number, and guides who
+  /// applied before the form persisted it may still have none.
+  final String otherPartyName;
+  final String otherPartyPhone;
+  final String otherPartyRole;
+
   const ChatChannel({
     required this.channelId,
     required this.bookingId,
     required this.writable,
+    this.otherPartyName = '',
+    this.otherPartyPhone = '',
+    this.otherPartyRole = '',
   });
+
+  bool get canCall => otherPartyPhone.isNotEmpty;
 }
 
 /// Booking chat over Firestore.
@@ -80,15 +92,90 @@ class ChatService {
     try {
       final data = await _apiClient.get(ApiEndpoints.bookingChat(bookingId));
       if (data is! Map) return null;
+      final other = (data['other_party'] as Map?) ?? const {};
       return ChatChannel(
         channelId: data['channel_id'] as String,
         bookingId: bookingId,
         writable: (data['writable'] as bool?) ?? false,
+        otherPartyName: (other['name'] ?? '').toString(),
+        otherPartyPhone: (other['phone'] ?? '').toString(),
+        otherPartyRole: (other['role'] ?? '').toString(),
       );
     } catch (e) {
       debugPrint('ChatService.openChannel($bookingId) refused: $e');
       return null;
     }
+  }
+
+  /// The channel id for a booking. Deterministic, and mirrors Django's own
+  /// `channel_id()` (backend/apps/guides/chat.py) — which lets an inbox turn a
+  /// list of the user's bookings into a list of channels without a REST
+  /// round-trip per row.
+  ///
+  /// Deriving it client-side grants nothing: the security rules only serve a
+  /// channel to a uid listed in its `members`, so an id you are not party to
+  /// returns permission-denied rather than data. [openChannel] is still what the
+  /// chat screen itself uses, because *sending* also needs Django's `writable`
+  /// verdict, which cannot be guessed.
+  static String channelIdFor(int bookingId) => 'booking_$bookingId';
+
+  /// The other person in a channel — name, role and photo — read from the
+  /// `participants` map Django writes onto the channel doc.
+  ///
+  /// This is what lets a chat be opened knowing only its booking id: a push
+  /// notification carries `booking_id` but not who sent it, so the screen would
+  /// otherwise have no title. Returns null when the channel is unreadable (not a
+  /// member) or has no participant other than us.
+  Future<({String name, String role, String photoUrl})?> otherParticipant(
+      String channelId) async {
+    final uid = currentUid;
+    if (uid == null) return null;
+    try {
+      final snap = await _db.collection('chats').doc(channelId).get();
+      final participants = snap.data()?['participants'];
+      if (participants is! Map) return null;
+      for (final entry in participants.entries) {
+        if (entry.key == uid) continue;
+        final p = entry.value;
+        if (p is! Map) continue;
+        return (
+          name: (p['name'] ?? '') as String,
+          role: (p['role'] ?? '') as String,
+          photoUrl: (p['photo_url'] ?? '') as String,
+        );
+      }
+    } catch (e) {
+      debugPrint('ChatService.otherParticipant($channelId) failed: $e');
+    }
+    return null;
+  }
+
+  /// The most recent message in a channel, or null while the thread is empty.
+  /// Backs the preview line in the conversation list.
+  Stream<ChatMessage?> lastMessage(String channelId) {
+    return _db
+        .collection('chats')
+        .doc(channelId)
+        .collection('messages')
+        .orderBy('sent_at', descending: true)
+        .limit(1)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.isEmpty ? null : ChatMessage.fromDoc(snap.docs.first));
+  }
+
+  /// When *this* user last opened the thread. Paired with [lastMessage] it is
+  /// what makes the unread dot honest — the counterpart of [otherPartyReadAt].
+  Stream<DateTime?> myReadAt(String channelId) {
+    final uid = currentUid;
+    if (uid == null) return Stream.value(null);
+    return _db
+        .collection('chats')
+        .doc(channelId)
+        .collection('read_receipts')
+        .doc(uid)
+        .snapshots()
+        .map((doc) => (doc.data()?['read_at'] as Timestamp?)?.toDate());
   }
 
   /// Live message stream, oldest first. Firestore serves this from its local

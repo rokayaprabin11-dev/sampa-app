@@ -4,6 +4,8 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/generated/app_localizations.dart';
+import 'package:sampada/presentation/screens/payments/payment_screen.dart';
+import 'package:sampada/presentation/screens/reviews/write_review_sheet.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/guide_provider.dart';
@@ -14,31 +16,6 @@ import 'package:sampada/providers/guide_provider.dart';
 ///
 /// Every colour comes from an [AppColors] token (or an alpha of one) and every
 /// text style from the app [TextTheme]; nothing here introduces new design.
-
-// ── Header ───────────────────────────────────────────────────────────────────
-
-/// Bottom rounding of the bookings app bars. The AppBar's solid [shape] and its
-/// gradient `flexibleSpace` must both use this, or the solid layer shows through
-/// as square corners behind the rounded gradient.
-const BorderRadius kBookingHeaderRadius = BorderRadius.only(
-  bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
-  bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
-);
-
-/// The maroon→terracotta header. A childless [Container] (not a `DecoratedBox`,
-/// which collapses to zero under the loose constraints `flexibleSpace` is given)
-/// so the gradient actually fills the bar.
-class BookingHeaderBackground extends StatelessWidget {
-  const BookingHeaderBackground({super.key});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.navGradient,
-          borderRadius: kBookingHeaderRadius,
-        ),
-      );
-}
 
 // ── Theme-derived helpers ────────────────────────────────────────────────────
 
@@ -253,6 +230,12 @@ StatusMeta bookingStatusMeta(String status) => switch (status) {
 
 /// Null when there is nothing owed yet (`payment_status == none`) — the chip is
 /// simply not shown in that case.
+///
+/// The four states the backend actually emits: `due` (the tour is over, the
+/// money is not sent), `submitted` (the tourist says they paid and the guide has
+/// not answered), `rejected` (the guide could not find it), `paid` (the guide
+/// confirmed). Only that last one means settled — the tourist can no longer put
+/// a booking there on their own word.
 StatusMeta? bookingPaymentMeta(Map<String, dynamic> b) {
   final status = (b['payment_status'] ?? 'none').toString();
   final method = b['payment_method']?.toString();
@@ -263,17 +246,23 @@ StatusMeta? bookingPaymentMeta(Map<String, dynamic> b) {
         icon: Icons.payments_outlined,
         label: (method == null || method.isEmpty) ? 'Paid' : 'Paid · $method',
       ),
+    'submitted' => (
+        bg: AppColors.statusInfo.withValues(alpha: 0.12),
+        fg: AppColors.statusInfo,
+        icon: Icons.hourglass_top,
+        label: 'Awaiting guide',
+      ),
+    'rejected' => (
+        bg: AppColors.statusError.withValues(alpha: 0.10),
+        fg: AppColors.statusError,
+        icon: Icons.error_outline,
+        label: 'Payment disputed',
+      ),
     'due' => (
         bg: AppColors.kColorPendingBg,
         fg: AppColors.kColorPendingText,
         icon: Icons.schedule,
         label: 'Payment due',
-      ),
-    'refunded' => (
-        bg: AppColors.statusWarning.withValues(alpha: 0.12),
-        fg: AppColors.statusWarning,
-        icon: Icons.undo,
-        label: 'Refunded',
       ),
     _ => null,
   };
@@ -955,8 +944,16 @@ class BookingActions {
       b['guide_marked_complete_at'] != null &&
       b['tourist_confirmed_complete_at'] == null;
 
+  /// The tourist owes money and can act on it. `submitted` is deliberately not
+  /// here: they have paid and are waiting on the guide, and offering "Pay Now"
+  /// again is how someone pays twice. `rejected` is — the guide could not find
+  /// the payment, so it is owed again.
   static bool paymentDue(Map<String, dynamic> b) =>
-      b['payment_status'] == 'due';
+      b['payment_status'] == 'due' || b['payment_status'] == 'rejected';
+
+  /// A claim is in, and the guide has not answered it yet.
+  static bool paymentAwaitingGuide(Map<String, dynamic> b) =>
+      b['payment_status'] == 'submitted';
 
   static bool canReview(Map<String, dynamic> b) =>
       b['status'] == 'completed' && b['reviewed_at'] == null;
@@ -1015,218 +1012,51 @@ class BookingActions {
         SnackBar(content: Text(err ?? l10n.tourConfirmedSettle)));
   }
 
-  static const _paymentMethods = [
-    ('esewa', 'eSewa', Icons.account_balance_wallet_outlined),
-    ('khalti', 'Khalti', Icons.account_balance_wallet_outlined),
-    ('fonepay', 'Fonepay', Icons.qr_code_2),
-    ('cash', 'Cash', Icons.payments_outlined),
-  ];
-
-  /// Records how the tourist settled up — no money moves through the app
-  /// (pay-after-service), so this captures the method + reference and issues a
-  /// receipt number server-side.
-  static Future<void> openPaymentSheet(
+  /// Opens the payment screen for this booking.
+  ///
+  /// This used to be a bottom sheet in which the tourist picked a method from a
+  /// hardcoded list and the booking went straight to `paid` — with no idea of
+  /// the guide's actual account and no confirmation from them. Paying is now a
+  /// screen of its own: it shows the guide's published wallet details, the
+  /// tourist submits proof, and the guide confirms it.
+  static Future<void> openPayment(
       BuildContext context, Map<String, dynamic> booking) async {
-    final gp = context.read<GuideProvider>();
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    final guideName = (booking['guide_name'] ?? 'your guide').toString();
-    final price = asDoubleOrNull(booking['total_price']);
-    final refController = TextEditingController();
-    String method = 'esewa';
-    bool submitting = false;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
+    final guides = context.read<GuideProvider>();
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          bookingId: booking['id'] as int,
+          booking: booking,
+        ),
       ),
-      builder: (ctx) {
-        final t = Theme.of(ctx).textTheme;
-        return StatefulBuilder(
-          builder: (ctx, setLocal) => Padding(
-            padding: EdgeInsets.fromLTRB(AppDimensions.sp20, AppDimensions.sp20,
-                AppDimensions.sp20, MediaQuery.of(ctx).viewInsets.bottom + 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.paySheetTitle,
-                    style: t.titleMedium
-                        ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface)),
-                const SizedBox(height: AppDimensions.sp4),
-                Text(
-                  '${l10n.paySheetBody(guideName)}'
-                  '${price != null ? ' — NPR ${money(price)}' : ''}',
-                  style: t.bodySmall?.copyWith(color: bookingSecondary(ctx)),
-                ),
-                const SizedBox(height: AppDimensions.sp16),
-                ..._paymentMethods.map((m) {
-                  final selected = method == m.$1;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppDimensions.sp8),
-                    child: InkWell(
-                      onTap: () => setLocal(() => method = m.$1),
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.kRadiusLg),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.sp14,
-                            vertical: AppDimensions.sp12),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.kColorPrimary.withValues(alpha: 0.08)
-                              : Colors.transparent,
-                          borderRadius:
-                              BorderRadius.circular(AppDimensions.kRadiusLg),
-                          border: Border.all(
-                            color: selected
-                                ? AppColors.kColorPrimary
-                                : bookingBorder(ctx),
-                            width: selected ? 1.6 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(m.$3,
-                                size: AppDimensions.iconMd,
-                                color: selected
-                                    ? AppColors.kColorPrimary
-                                    : bookingMuted(ctx)),
-                            const SizedBox(width: AppDimensions.sp10),
-                            Text(m.$2,
-                                style: t.bodyMedium?.copyWith(
-                                  fontWeight: selected
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: Theme.of(ctx).colorScheme.onSurface,
-                                )),
-                            const Spacer(),
-                            if (selected)
-                              const Icon(Icons.check_circle,
-                                  size: 18, color: AppColors.kColorPrimary),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-                const SizedBox(height: AppDimensions.sp8),
-                TextField(
-                  controller: refController,
-                  style: t.bodyMedium
-                      ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface),
-                  decoration: const InputDecoration(
-                      hintText: 'Transaction reference (optional)'),
-                ),
-                const SizedBox(height: AppDimensions.sp16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: submitting
-                        ? null
-                        : () async {
-                            setLocal(() => submitting = true);
-                            final (err, updated) = await gp.recordPayment(
-                                booking['id'] as int,
-                                method,
-                                refController.text.trim());
-                            if (!ctx.mounted) return;
-                            Navigator.pop(ctx);
-                            final receipt = updated?['receipt_no'];
-                            messenger.showSnackBar(SnackBar(
-                              content: Text(err ??
-                                  'Payment recorded'
-                                      '${receipt != null ? ' — receipt $receipt' : ''}.'),
-                            ));
-                          },
-                    child: Text(submitting ? 'Recording…' : l10n.btnPayNow),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
+    // The booking's payment_status has very likely moved (due → submitted, or
+    // rejected → submitted); the list behind this screen must not keep showing
+    // "Pay Now".
+    await guides.fetchMyBookings();
   }
 
+  /// Rate the guide for a completed booking. Delegates to the one write-review
+  /// sheet in the app (overall stars + optional per-category scores), so a review
+  /// written from a booking card is the same thing as one written from the
+  /// guide's reviews screen.
   static Future<void> openReviewDialog(
       BuildContext context, Map<String, dynamic> booking) async {
     final gp = context.read<GuideProvider>();
     final l10n = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final guideName = (booking['guide_name'] ?? 'this guide').toString();
-    final controller = TextEditingController();
-    int rating = 5;
 
-    final result = await showDialog<(int, String)?>(
-      context: context,
-      builder: (ctx) {
-        final t = Theme.of(ctx).textTheme;
-        final dark = _isDark(ctx);
-        return StatefulBuilder(
-          builder: (ctx, setLocal) => AlertDialog(
-            backgroundColor: Theme.of(ctx).colorScheme.surface,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-            title: Text(l10n.reviewGuide(guideName),
-                style: t.titleMedium
-                    ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (i) {
-                    return IconButton(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: AppDimensions.sp2),
-                      constraints: const BoxConstraints(),
-                      tooltip: '${i + 1} star${i == 0 ? '' : 's'}',
-                      onPressed: () => setLocal(() => rating = i + 1),
-                      icon: Icon(
-                        i < rating ? Icons.star : Icons.star_border,
-                        color: dark
-                            ? AppColors.kColorAccentLight
-                            : AppColors.kColorAccent,
-                        size: AppDimensions.iconXl,
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: AppDimensions.sp12),
-                TextField(
-                  controller: controller,
-                  maxLines: 3,
-                  maxLength: 300,
-                  style: t.bodyMedium
-                      ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface),
-                  decoration: InputDecoration(hintText: l10n.reviewHint),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, null),
-                child: Text(l10n.btnCancel,
-                    style: TextStyle(color: bookingSecondary(ctx))),
-              ),
-              ElevatedButton(
-                onPressed: () =>
-                    Navigator.pop(ctx, (rating, controller.text.trim())),
-                child: Text(l10n.btnSubmit),
-              ),
-            ],
-          ),
-        );
-      },
+    final draft = await showWriteReviewSheet(context, guideName: guideName);
+    if (draft == null) return;
+
+    final err = await gp.reviewBooking(
+      booking['id'] as int,
+      draft.rating,
+      draft.text,
+      categories: draft.categories,
     );
-    if (result == null) return;
-    final err = await gp.reviewBooking(booking['id'] as int, result.$1, result.$2);
     messenger.showSnackBar(SnackBar(content: Text(err ?? l10n.reviewThanks)));
   }
 }

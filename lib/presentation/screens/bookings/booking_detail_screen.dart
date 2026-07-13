@@ -6,7 +6,9 @@ import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
 import 'package:sampada/presentation/screens/guides/chat_screen.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
+import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
 import 'package:sampada/providers/guide_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Everything known about one booking: who is guiding, when, on what package,
 /// what it costs and how it was reached, plus the actions legal in its current
@@ -26,25 +28,9 @@ class BookingDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        // Solid header colour, not transparent: if the gradient below ever fails
-        // to paint, the bar still reads white-on-maroon rather than white-on-cream.
-        // The shape must match the gradient's radius, or this solid layer shows
-        // as square corners behind the rounded gradient.
-        backgroundColor: AppColors.kColorDeep,
-        shape: const RoundedRectangleBorder(borderRadius: kBookingHeaderRadius),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        foregroundColor: AppColors.kColorTextOnHeader,
-        flexibleSpace: const BookingHeaderBackground(),
-        title: Text(
-          bookingRef(initial),
-          style: t.titleLarge?.copyWith(color: AppColors.kColorTextOnHeader),
-        ),
-      ),
+      appBar: SampadaAppBar(title: Text(bookingRef(initial))),
       body: Consumer<GuideProvider>(
         builder: (context, gp, _) {
           final booking = gp.myBookings.firstWhere(
@@ -118,15 +104,33 @@ class _DetailBody extends StatelessWidget {
       ));
     }
     if (BookingActions.paymentDue(booking)) {
+      final disputed = booking['payment_status'] == 'rejected';
       banners.add(BookingBanner(
-        icon: Icons.payments_outlined,
-        title: 'Payment pending',
-        message: 'Settle with $_guideName to keep booking new guides.',
-        bg: AppColors.kColorPendingBg,
-        fg: AppColors.kColorPendingText,
+        icon: disputed ? Icons.error_outline : Icons.payments_outlined,
+        title: disputed ? 'Payment not confirmed' : 'Payment pending',
+        message: disputed
+            ? '$_guideName could not find your payment. Check the details and send it again.'
+            : 'Settle with $_guideName to keep booking new guides.',
+        bg: disputed
+            ? AppColors.statusError.withValues(alpha: 0.08)
+            : AppColors.kColorPendingBg,
+        fg: disputed ? AppColors.statusError : AppColors.kColorPendingText,
         action: TextButton(
-          onPressed: () => BookingActions.openPaymentSheet(context, booking),
-          child: const Text('Pay'),
+          onPressed: () => BookingActions.openPayment(context, booking),
+          child: Text(disputed ? 'Fix' : 'Pay'),
+        ),
+      ));
+    }
+    if (BookingActions.paymentAwaitingGuide(booking)) {
+      banners.add(BookingBanner(
+        icon: Icons.hourglass_top,
+        title: 'Waiting for $_guideName to confirm',
+        message: 'You have told them you paid. Nothing else to do for now.',
+        bg: AppColors.statusInfo.withValues(alpha: 0.10),
+        fg: AppColors.statusInfo,
+        action: TextButton(
+          onPressed: () => BookingActions.openPayment(context, booking),
+          child: const Text('View'),
         ),
       ));
     }
@@ -316,11 +320,23 @@ class _DetailBody extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () =>
-                    BookingActions.openPaymentSheet(context, booking),
+                onPressed: () => BookingActions.openPayment(context, booking),
                 icon: const Icon(Icons.payments_outlined,
                     size: AppDimensions.iconSm),
-                label: const Text('Pay Now'),
+                label: Text(booking['payment_status'] == 'rejected'
+                    ? 'Pay Again'
+                    : 'Pay Now'),
+              ),
+            ),
+          ],
+          if (BookingActions.paymentAwaitingGuide(booking)) ...[
+            const SizedBox(height: AppDimensions.sp10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => BookingActions.openPayment(context, booking),
+                icon: const Icon(Icons.hourglass_top, size: AppDimensions.iconSm),
+                label: const Text('View Submitted Payment'),
               ),
             ),
           ],
@@ -443,45 +459,27 @@ class _GuideHeader extends StatelessWidget {
     return (phone == null || phone.isEmpty) ? null : phone;
   }
 
-  /// No `url_launcher` in this app, so a real `tel:` hand-off isn't available —
-  /// surface the number and let the tourist copy it instead of pretending.
-  void _showPhone(BuildContext context) {
+  /// Hand the guide's number to the dialer. Falls back to showing it (with a
+  /// copy action) when there is no dialer — a tablet or an emulator — rather
+  /// than failing silently.
+  Future<void> _call(BuildContext context) async {
     final phone = _phone;
     if (phone == null) return;
-    final t = Theme.of(context).textTheme;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(ctx).colorScheme.surface,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-        title: Text('Call $_guideName',
-            style: t.titleMedium
-                ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface)),
-        content: SelectableText(
-          phone,
-          style: t.titleLarge
-              ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface),
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final launched = await launchUrl(Uri(scheme: 'tel', path: phone));
+      if (!launched) throw Exception('no dialer');
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Could not open the dialer. $_guideName: $phone'),
+          action: SnackBarAction(
+            label: 'Copy',
+            onPressed: () => Clipboard.setData(ClipboardData(text: phone)),
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: phone));
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Phone number copied.')),
-              );
-            },
-            icon: const Icon(Icons.copy_all_outlined, size: AppDimensions.iconSm),
-            label: const Text('Copy'),
-          ),
-        ],
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -568,7 +566,7 @@ class _GuideHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _phone == null ? null : () => _showPhone(context),
+                  onPressed: _phone == null ? null : () => _call(context),
                   icon: const Icon(Icons.call_outlined,
                       size: AppDimensions.iconSm),
                   label: const Text('Call'),

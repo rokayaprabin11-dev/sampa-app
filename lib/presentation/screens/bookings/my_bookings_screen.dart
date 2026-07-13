@@ -10,6 +10,7 @@ import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/presentation/screens/bookings/booking_detail_screen.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
 import 'package:sampada/presentation/screens/guides/chat_screen.dart';
+import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
 import 'package:sampada/providers/guide_provider.dart';
 
 /// Which tab a booking belongs to. Derived from status, not stored:
@@ -266,18 +267,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   PreferredSizeWidget _appBar(BuildContext context) {
     final t = Theme.of(context).textTheme;
     const onHeader = AppColors.kColorTextOnHeader;
-    return AppBar(
-      // Solid header colour, not transparent: if the gradient below ever fails
-      // to paint, the bar still reads white-on-maroon rather than white-on-cream.
-      // The shape must match the gradient's radius, or this solid layer shows
-      // as square corners behind the rounded gradient.
-      backgroundColor: AppColors.kColorDeep,
-      shape: const RoundedRectangleBorder(borderRadius: kBookingHeaderRadius),
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: false,
-      foregroundColor: onHeader,
-      flexibleSpace: const BookingHeaderBackground(),
+    return SampadaAppBar(
       title: _searching
           ? TextField(
               controller: _searchController,
@@ -296,8 +286,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     ?.copyWith(color: onHeader.withValues(alpha: 0.7)),
               ),
             )
-          : Text('My Bookings',
-              style: t.titleLarge?.copyWith(color: onHeader)),
+          : const Text('My Bookings'),
       actions: [
         IconButton(
           tooltip: _searching ? 'Close search' : 'Search bookings',
@@ -776,8 +765,18 @@ class _QuickActions extends StatelessWidget {
     if (BookingActions.paymentDue(booking)) {
       actions.add(_FilledAction(
         icon: Icons.payments_outlined,
-        label: 'Pay Now',
-        onTap: () => BookingActions.openPaymentSheet(context, booking),
+        label: booking['payment_status'] == 'rejected' ? 'Pay Again' : 'Pay Now',
+        onTap: () => BookingActions.openPayment(context, booking),
+      ));
+    }
+    // A submitted payment is waiting on the guide. Offering a second "Pay Now"
+    // here is how a tourist pays twice, so this is a way in, not a call to act.
+    if (BookingActions.paymentAwaitingGuide(booking)) {
+      actions.add(_FilledAction(
+        icon: Icons.hourglass_top,
+        label: 'Payment Sent',
+        color: AppColors.statusInfo,
+        onTap: () => BookingActions.openPayment(context, booking),
       ));
     }
     if (BookingActions.awaitingConfirm(booking)) {

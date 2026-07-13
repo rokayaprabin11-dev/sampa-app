@@ -22,7 +22,7 @@ dependencies:
   sqflite: ^2.3.2
   path: ^1.9.0
   dio_cache_interceptor: ^3.5.0
-  dio_cache_interceptor_db_store: ^5.1.0
+  dio_cache_interceptor_db_store: ^6.0.0
   path_provider: ^2.1.5
   get_it: ^9.2.1
   flutter_secure_storage: ^10.3.1
@@ -45,12 +45,13 @@ dependencies:
   connectivity_plus: ^7.1.1
   shared_preferences: ^2.5.5
   image_picker: ^1.1.2
-  google_fonts: ^6.2.1
-  device_info_plus: ^10.1.0
-  package_info_plus: ^8.3.1
+  google_fonts: ^8.1.0
+  device_info_plus: ^13.2.0
+  package_info_plus: ^10.2.0
+  url_launcher: ^6.3.2
+  share_plus: ^13.2.0
 
-dependency_overrides:
-  win32: 5.5.4
+
 
 dev_dependencies:
   flutter_test:

@@ -8,7 +8,9 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/network/api_endpoints.dart';
+import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/injection.dart' as di;
+import 'package:sampada/providers/guide_payment_provider.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/features/auth/presentation/providers/auth_provider.dart';
 
@@ -45,6 +47,15 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   // Profile photo (step 1)
   String? _existingPhotoUrl;
   XFile? _pickedProfilePhoto;
+
+  // Step 4 – Payment. Where tourists send money once a tour is done. Sampada
+  // never holds it: these accounts are the guide's own, and they confirm each
+  // payment themselves.
+  final _esewaController   = TextEditingController();
+  final _khaltiController  = TextEditingController();
+  final _fonepayController = TextEditingController();
+  final _payNotesController = TextEditingController();
+  PaymentMethod _preferredPayment = PaymentMethod.esewa;
 
   // Step 3 – Verify
   XFile? _idFront;
@@ -256,6 +267,10 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     _introController.dispose();
     _emergencyController.dispose();
     _referralController.dispose();
+    _esewaController.dispose();
+    _khaltiController.dispose();
+    _fonepayController.dispose();
+    _payNotesController.dispose();
     super.dispose();
   }
 
@@ -265,7 +280,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
       return;
     }
-    if (_step < 2) {
+    if (_step < 3) {
       setState(() => _step++);
     } else {
       _submit();
@@ -299,9 +314,25 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         if (!RegExp(r'^\d{10}$').hasMatch(_emergencyController.text.trim())) return 'Emergency contact must be 10 digits.';
         if (!_confirmedAccuracy) return 'Confirm that the information is true and accurate.';
         return null;
+      case 3:
+        // Cash is not an account: it needs nothing published, so it can never be
+        // the thing that makes this step complete. Without a wallet here, every
+        // tourist who owes this guide would have to ask them in chat — which is
+        // the gap this step exists to close.
+        if (_paymentMethodsFilled.isEmpty) {
+          return 'Add at least one account so tourists can pay you.';
+        }
+        return null;
     }
     return null;
   }
+
+  /// The wallets the applicant has actually filled in.
+  List<PaymentMethod> get _paymentMethodsFilled => [
+        if (_esewaController.text.trim().isNotEmpty) PaymentMethod.esewa,
+        if (_khaltiController.text.trim().isNotEmpty) PaymentMethod.khalti,
+        if (_fonepayController.text.trim().isNotEmpty) PaymentMethod.fonepay,
+      ];
 
   void _prevStep() {
     if (_step > 0) {
@@ -340,6 +371,10 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
         'tour_types':        _tourTypes.toList(),
         'knowledge_level':   _knowledgeLevel,
         'years_experience':  _yearsExperience,
+        // The applicant's own number, sent as a field rather than only being
+        // buried in the `message` blob below — it is what a tourist rings from
+        // the chat screen, so it has to survive as data.
+        'phone':             _phoneController.text.trim(),
         'emergency_contact': _emergencyController.text.trim(),
         'referral_code':     _referralController.text.trim(),
         'hourly_rate':       2500.0,
@@ -364,6 +399,33 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
 
       if (!mounted) return;
       if (gp.error == null) {
+        // The guide row now exists, so its payment details can be attached. A
+        // failure here is not fatal to the application — the guide can fill this
+        // in from their profile — so it is reported, not thrown.
+        final payments = context.read<GuidePaymentProvider>();
+        final methods = _paymentMethodsFilled;
+        final payError = await payments.saveInformation(GuidePaymentInformation(
+          preferred:
+              methods.contains(_preferredPayment) || _preferredPayment == PaymentMethod.cash
+                  ? _preferredPayment
+                  : methods.first,
+          esewaId: _esewaController.text,
+          khaltiMobile: _khaltiController.text,
+          fonepayNumber: _fonepayController.text,
+          notes: _payNotesController.text,
+          isActive: true,
+          availableMethods: [...methods, PaymentMethod.cash],
+        ));
+        if (!mounted) return;
+        if (payError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'Application sent, but your payment details did not save: '
+                '$payError You can add them from your guide profile.'),
+            backgroundColor: Colors.orange,
+          ));
+        }
+
         // Show the success screen and lock the form until admin reviews.
         setState(() {
           _appStatus = 'pending';
@@ -420,6 +482,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                   if (_step == 0) _buildStep1(context, isDark),
                   if (_step == 1) _buildStep2(context, isDark),
                   if (_step == 2) _buildStep3(context, isDark),
+                  if (_step == 3) _buildStep4(context, isDark),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
@@ -437,11 +500,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  _step == 2 ? 'Submit for Review' : 'Save & Continue',
+                                  _step == 3 ? 'Submit for Review' : 'Save & Continue',
                                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(width: 8),
-                                Icon(_step == 2 ? Icons.send_outlined : Icons.arrow_forward, size: 18),
+                                Icon(_step == 3 ? Icons.send_outlined : Icons.arrow_forward, size: 18),
                               ],
                             ),
                     ),
@@ -581,7 +644,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
   }
 
   Widget _buildStepIndicator(BuildContext context, bool isDark) {
-    const steps = ['Profile', 'Expertise', 'Verify'];
+    const steps = ['Profile', 'Expertise', 'Verify', 'Payment'];
     final activeColor = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
     final inactiveColor = isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC);
 
@@ -950,6 +1013,113 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
                 child: Text(
                   AppLocalizations.of(context)!.confirmInfoAccurate,
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Step 4: Payment ──────────────────────────────────────────
+
+  /// Where tourists send the money. Sampada is not a payment processor: it holds
+  /// nothing and transfers nothing. These are the guide's own accounts, shown
+  /// only to tourists who have actually booked them, and the guide confirms each
+  /// payment themselves before a booking counts as settled.
+  Widget _buildStep4(BuildContext context, bool isDark) {
+    final muted = isDark ? AppColors.darkTextTertiary : Colors.grey;
+    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final filled = _paymentMethodsFilled;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _infoBar(context, isDark),
+        const SizedBox(height: 24),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.account_balance_wallet_outlined, color: accent, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('How you get paid',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  Text(
+                    'Tourists pay these accounts directly after a tour. Sampada '
+                    'never holds your money.',
+                    style: TextStyle(fontSize: 11, color: muted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        _field(context, isDark, 'eSewa ID', 'Mobile number or eSewa ID', _esewaController),
+        const SizedBox(height: 16),
+        _field(context, isDark, 'Khalti Mobile', '98XXXXXXXX', _khaltiController),
+        const SizedBox(height: 16),
+        _field(context, isDark, 'Fonepay Number', 'Mobile or Fonepay account number',
+            _fonepayController),
+        const SizedBox(height: 8),
+        Text('Add at least one. You can add the others later.',
+            style: TextStyle(fontSize: 11, color: muted)),
+        const SizedBox(height: 24),
+
+        _label(context, isDark, 'Preferred Method'),
+        const SizedBox(height: 8),
+        // Only methods the applicant has actually filled in: offering a
+        // preference they left blank would point tourists at an empty account.
+        // Cash is always an option — it needs no account at all.
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final method in [...filled, PaymentMethod.cash])
+              ChoiceChip(
+                label: Text(method.label),
+                selected: _preferredPayment == method,
+                onSelected: (_) => setState(() => _preferredPayment = method),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text('Shown first when a tourist opens the payment screen.',
+            style: TextStyle(fontSize: 11, color: muted)),
+        const SizedBox(height: 24),
+
+        _field(context, isDark, 'Note for Tourists (Optional)',
+            'e.g. Put your booking reference in the remarks.', _payNotesController),
+        const SizedBox(height: 16),
+
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline, size: 15, color: accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'After a tour, the tourist pays you and tells us. You confirm '
+                  'the money arrived, and only then is the booking marked paid.',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface),
                 ),
               ),
             ],

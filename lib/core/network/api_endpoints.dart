@@ -96,6 +96,20 @@ class ApiEndpoints {
   static const String guideBookings = '/guides/bookings/';
   static String guideDetail(int id) => '/guides/$id/';
   static String guideAvailability(int id) => '/guides/$id/availability/';
+  static String guideReviews(int id) => '/guides/$id/reviews/';
+
+  // --- Direct guide payment ---
+  // The tourist pays the guide's own wallet, then submits proof; the guide
+  // confirms or rejects it. No money passes through Sampada.
+  static const String myPaymentInformation = '/guides/payment-information/';
+  static String guidePaymentInformation(int guideId) =>
+      '/guides/$guideId/payment-information/';
+  static const String paymentSubmit = '/payments/submit/';
+  static const String paymentHistory = '/payments/history/';
+  static String paymentDetail(int id) => '/payments/$id/';
+  static String paymentConfirm(int id) => '/payments/$id/confirm/';
+  static String paymentReject(int id) => '/payments/$id/reject/';
+  static String paymentReceiptPdf(int id) => '/payments/$id/receipt.pdf';
 
   // --- Bookings ---
   static const String bookings = '/guides/bookings/';
@@ -103,8 +117,10 @@ class ApiEndpoints {
   static String bookingDetail(int id) => '/guides/bookings/$id/';
   static String bookingRespond(int id) => '/guides/bookings/$id/respond/';
   static String bookingComplete(int id) => '/guides/bookings/$id/complete/';
-  static String bookingPayment(int id) => '/guides/bookings/$id/payment/';
+  // `bookings/<id>/payment/` is gone: it let the tourist flip their own booking
+  // to `paid`. Settlement now runs through the /payments/ endpoints above.
   static String bookingReview(int id) => '/guides/bookings/$id/review/';
+  static String bookingReviewReply(int id) => '/guides/bookings/$id/reply/';
 
   // --- Offline Downloads ---
   static const String downloads = '/users/me/downloads/';

@@ -17,6 +17,7 @@ import 'core/services/nearby_service.dart';
 import 'data/repositories/heritage_repository_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/event_repository_impl.dart';
+import 'data/repositories/payment_repository.dart';
 
 import 'data/datasources/local/heritage_local_datasource.dart';
 import 'data/datasources/remote/heritage_remote_datasource.dart';
@@ -36,6 +37,8 @@ import 'providers/text_size_provider.dart';
 import 'providers/auto_sync_provider.dart';
 import 'providers/notification_prefs_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/payment_provider.dart';
+import 'providers/guide_payment_provider.dart';
 
 import 'injection.dart' as di;
 
@@ -151,6 +154,10 @@ void main() async {
     localDataSource: eventLocalDataSource,
   );
 
+  // Both payment providers read the same endpoints from opposite sides — the
+  // tourist submits, the guide confirms — so they share one repository.
+  final paymentRepository = PaymentRepository(apiClient: apiClient);
+
   runApp(
     MultiProvider(
       providers: [
@@ -199,6 +206,21 @@ void main() async {
         ),
         ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
           create: (_) => NotificationProvider(apiClient: apiClient, dbHelper: dbHelper),
+          update: (_, authProvider, previous) {
+            previous!.updateUserId(authProvider.user?.uid);
+            return previous;
+          },
+        ),
+        // Payment history is private; both providers clear on a user switch.
+        ChangeNotifierProxyProvider<AuthProvider, PaymentProvider>(
+          create: (_) => PaymentProvider(repository: paymentRepository),
+          update: (_, authProvider, previous) {
+            previous!.updateUserId(authProvider.user?.uid);
+            return previous;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, GuidePaymentProvider>(
+          create: (_) => GuidePaymentProvider(repository: paymentRepository),
           update: (_, authProvider, previous) {
             previous!.updateUserId(authProvider.user?.uid);
             return previous;

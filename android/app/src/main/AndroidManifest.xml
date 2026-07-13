@@ -54,5 +54,12 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Calling a guide from the chat screen. Android 11+ hides packages the
+             app has not declared an interest in, so without this the dialer is
+             invisible and url_launcher's tel: launch silently fails. -->
+        <intent>
+            <action android:name="android.intent.action.DIAL"/>
+            <data android:scheme="tel"/>
+        </intent>
     </queries>
 </manifest>

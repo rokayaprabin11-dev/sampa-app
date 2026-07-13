@@ -31,6 +31,7 @@ import 'presentation/screens/heritage/heritage_site_screen.dart';
 import 'presentation/screens/heritage/district_detail_screen.dart';
 import 'presentation/screens/districts/district_list_screen.dart';
 import 'presentation/screens/bookings/my_bookings_screen.dart';
+import 'presentation/screens/messages/messages_screen.dart';
 import 'data/models/heritage_site.dart';
 import 'data/models/cultural_event.dart';
 import 'data/models/district_model.dart';
@@ -117,6 +118,7 @@ class SampadaApp extends StatelessWidget {
         },
         AppStrings.districtListPath: (context) => const DistrictListScreen(),
         AppStrings.myBookingsPath: (context) => const MyBookingsScreen(),
+        AppStrings.messagesPath: (context) => const MessagesScreen(),
         ...policyRoutes,
       },
     );

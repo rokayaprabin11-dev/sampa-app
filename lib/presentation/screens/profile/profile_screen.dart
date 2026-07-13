@@ -6,6 +6,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
+import 'package:sampada/presentation/screens/payments/payment_history_screen.dart';
 import 'package:sampada/presentation/widgets/profile_widgets.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/profile_provider.dart';
@@ -304,15 +305,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onTap: () => Navigator.pushNamed(context, AppStrings.savedSitesPath),
                   ),
 
+                  // My Bookings (tours this user booked) — hidden for approved
+                  // guides: their side of a booking is the tours addressed *to*
+                  // them, which live in the Guide Profile (requests, ongoing
+                  // tours, tour history) rather than here.
+                  if (!isApprovedGuide) ...[
+                    const SizedBox(height: 12),
+                    _buildAccountTile(
+                      context,
+                      icon: Icons.event_note_outlined,
+                      title: 'My Bookings',
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
+                      onTap: () => Navigator.pushNamed(context, AppStrings.myBookingsPath),
+                    ),
+                    const SizedBox(height: 12),
+                    // What this user has paid their guides, and what is still
+                    // waiting on a guide's confirmation. A guide reaches the
+                    // other side of this — payments received — from their own
+                    // profile.
+                    _buildAccountTile(
+                      context,
+                      icon: Icons.receipt_long_outlined,
+                      title: 'My Payments',
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const PaymentHistoryScreen()),
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 12),
 
-                  // My Bookings (guide tours) Tile
+                  // Messages — both sides of a booking talk here, so this tile is
+                  // for everyone; the inbox itself merges the conversations the
+                  // user has as a tourist and as a guide.
                   _buildAccountTile(
                     context,
-                    icon: Icons.event_note_outlined,
-                    title: 'My Bookings',
+                    icon: Icons.forum_outlined,
+                    title: 'Messages',
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
-                    onTap: () => Navigator.pushNamed(context, AppStrings.myBookingsPath),
+                    onTap: () => Navigator.pushNamed(context, AppStrings.messagesPath),
                   ),
 
                   const SizedBox(height: 12),

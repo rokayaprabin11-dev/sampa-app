@@ -289,36 +289,89 @@ class GuideProvider with ChangeNotifier {
     }
   }
 
-  /// Records how the tourist settled a completed tour (no money moves through
-  /// the app). Returns (error, updatedBooking) — the booking carries the
-  /// receipt number for the confirmation dialog.
-  Future<(String?, Map<String, dynamic>?)> recordPayment(
-      int bookingId, String method, String reference) async {
+  /// One booking, straight from the server. Used where the caller has an id but
+  /// no booking — a payment push opening the payment screen, or a payment whose
+  /// booking is not in this user's cached list. Returns null if it cannot be
+  /// read (deleted, or not this user's).
+  ///
+  /// There is no `recordPayment` any more: the tourist used to POST
+  /// `bookings/<id>/payment/` and the booking became `paid` on their word alone.
+  /// Settlement now runs through PaymentRepository — the tourist submits a
+  /// claim, the guide confirms it.
+  Future<Map<String, dynamic>?> fetchBooking(int bookingId) async {
     try {
-      final data = await _apiClient.post(
-        ApiEndpoints.bookingPayment(bookingId),
-        data: {'method': method, 'reference': reference},
-      );
-      await fetchMyBookings();
-      return (null, (data as Map).cast<String, dynamic>());
+      final data = await _apiClient.get(ApiEndpoints.bookingDetail(bookingId));
+      return data is Map ? data.cast<String, dynamic>() : null;
     } catch (e) {
-      return (e.toString(), null);
+      debugPrint('Error fetching booking $bookingId: $e');
+      return null;
     }
   }
 
-  /// Submit a review (1–5 + optional text) for a completed booking. Returns
-  /// null on success, or an error message to show the user.
-  Future<String?> reviewBooking(int bookingId, int rating, String text) async {
+  /// Submit a review for a completed booking: an overall 1–5 rating, optional
+  /// text, and optionally a 1–5 score per category (knowledge, communication,
+  /// friendliness, punctuality, value). Categories the tourist skipped are
+  /// simply absent — the server stores those as null rather than as a zero.
+  /// Returns null on success, or an error message to show the user.
+  Future<String?> reviewBooking(
+    int bookingId,
+    int rating,
+    String text, {
+    Map<String, int> categories = const {},
+  }) async {
     try {
       await _apiClient.post(
         ApiEndpoints.bookingReview(bookingId),
-        data: {'rating': rating, 'text': text},
+        data: {
+          'rating': rating,
+          'text': text,
+          if (categories.isNotEmpty) 'categories': categories,
+        },
       );
       await fetchMyBookings();
       return null;
     } catch (e) {
       return e.toString();
     }
+  }
+
+  /// The guide's public answer to a review of them. Only the reviewed guide may
+  /// call this, and only once the tourist has written the review — the server
+  /// enforces both. Returns null on success, else an error message.
+  Future<String?> replyToReview(int bookingId, String text) async {
+    try {
+      await _apiClient.post(
+        ApiEndpoints.bookingReviewReply(bookingId),
+        data: {'text': text},
+      );
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  /// A guide's public reviews, paginated, plus a `summary` (rating average,
+  /// star distribution and per-category averages) computed over *all* of their
+  /// reviews — not just the page or the current search.
+  ///
+  /// Not cached in the provider: the reviews screen owns this state (it has its
+  /// own paging, sort and search), and stashing it here would make one guide's
+  /// reviews leak into the next guide's screen.
+  Future<Map<String, dynamic>> fetchGuideReviews(
+    int guideId, {
+    String sort = 'recent',
+    String search = '',
+    int page = 1,
+  }) async {
+    final data = await _apiClient.get(
+      ApiEndpoints.guideReviews(guideId),
+      queryParameters: {
+        'sort': sort,
+        'page': page,
+        if (search.trim().isNotEmpty) 'search': search.trim(),
+      },
+    );
+    return (data as Map).cast<String, dynamic>();
   }
 }
 

@@ -3,10 +3,14 @@ import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
 import 'package:sampada/presentation/screens/guides/guide_edit_screen.dart';
+import 'package:sampada/presentation/screens/payments/guide_payment_settings_screen.dart';
+import 'package:sampada/presentation/screens/payments/payment_history_screen.dart';
+import 'package:sampada/providers/guide_payment_provider.dart';
 
 /// Guide's own listing dashboard. Reached from the Profile screen once the
 /// guide application has been approved (status == 'approved').
@@ -33,6 +37,12 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       final gp = context.read<GuideProvider>();
       gp.fetchMyProfile();
       gp.fetchIncomingBookings();
+
+      // Payments the guide has to answer, and whether they have published an
+      // account at all — both surface as tiles below.
+      final payments = context.read<GuidePaymentProvider>();
+      payments.loadInformation();
+      payments.loadReceived();
     });
   }
 
@@ -77,10 +87,13 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     const SizedBox(height: 20),
                     _buildBookingRequests(context, isDark, gp),
                     _buildOngoingTours(context, isDark, gp),
+                    _buildMessagesEntry(context, isDark, gp),
+                    _buildPaymentEntries(context, isDark),
                     _buildListingCard(context, isDark, p),
                     const SizedBox(height: 16),
                     _buildStatsCard(context, isDark, p),
                     const SizedBox(height: 24),
+                    _buildTourHistory(context, isDark, gp),
                     _buildSettings(context, isDark),
                     const SizedBox(height: 24),
                     _buildActions(context, isDark, p),
@@ -343,6 +356,404 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Messages ─────────────────────────────────────────────────
+
+  /// Entry point to the guide's inbox. A chat exists for every booking that
+  /// reached `confirmed` (and stays reachable through `completed`), which is
+  /// exactly what the inbox lists — so the count here is the count there.
+  Widget _buildMessagesEntry(BuildContext context, bool isDark, GuideProvider gp) {
+    final conversations = gp.incomingBookings
+        .where((b) => b['status'] == 'confirmed' || b['status'] == 'completed')
+        .length;
+    final accent = _accent(isDark);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Material(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+          onTap: () => Navigator.pushNamed(context, AppStrings.messagesPath),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+              border: Border.all(
+                  color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                  ),
+                  child: Icon(Icons.forum_outlined, size: 20, color: accent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Messages',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface)),
+                      const SizedBox(height: 2),
+                      Text(
+                        conversations == 0
+                            ? 'No conversations yet'
+                            : '$conversations ${conversations == 1 ? 'conversation' : 'conversations'}',
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : const Color(0xFF8C7162)),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : const Color(0xFF8C7162)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Payments ─────────────────────────────────────────────────
+
+  /// The two things a guide does about money: say where to send it, and confirm
+  /// it arrived. Both are theirs alone — Sampada holds no funds and cannot
+  /// confirm a payment on their behalf.
+  Widget _buildPaymentEntries(BuildContext context, bool isDark) {
+    final payments = context.watch<GuidePaymentProvider>();
+    final pending = payments.pending.length;
+    final needsSetup = !payments.loadingInformation && payments.needsSetup;
+
+    return Column(
+      children: [
+        _buildNavTile(
+          context,
+          isDark,
+          icon: Icons.account_balance_wallet_outlined,
+          title: 'Payment Information',
+          // The empty state is the important one: with no account published,
+          // every tourist who owes this guide has to ask them in chat.
+          subtitle: needsSetup
+              ? 'Not set up — tourists cannot pay you'
+              : 'Where tourists send your money',
+          warn: needsSetup,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const GuidePaymentSettingsScreen()),
+          ).then((_) => payments.loadInformation()),
+        ),
+        _buildNavTile(
+          context,
+          isDark,
+          icon: Icons.receipt_long_outlined,
+          title: 'Payments Received',
+          subtitle: pending == 0
+              ? 'Confirm payments from your tourists'
+              : '$pending waiting for your confirmation',
+          badge: pending,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const GuidePaymentHistoryScreen()),
+          ).then((_) => payments.loadReceived()),
+        ),
+      ],
+    );
+  }
+
+  /// The row used by the messages and payment entries: icon, title, one line of
+  /// context, optional count.
+  Widget _buildNavTile(
+    BuildContext context,
+    bool isDark, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    int badge = 0,
+    bool warn = false,
+  }) {
+    final accent = warn ? AppColors.statusWarning : _accent(isDark);
+    final muted =
+        isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Material(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+              border: Border.all(
+                  color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                  ),
+                  child: Icon(icon, size: 20, color: accent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface)),
+                      const SizedBox(height: 2),
+                      Text(subtitle,
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              color: warn ? AppColors.statusWarning : muted)),
+                    ],
+                  ),
+                ),
+                if (badge > 0)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.kColorPendingBg,
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.kRadiusPill),
+                    ),
+                    child: Text('$badge',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.kColorPendingText)),
+                  ),
+                Icon(Icons.chevron_right, color: muted),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Tour history ─────────────────────────────────────────────
+
+  /// Everything this guide has finished or lost: completed and cancelled tours.
+  /// Lives here rather than in the tourist's My Bookings, because a guide's
+  /// bookings are the ones addressed *to* them, not the ones they made.
+  Widget _buildTourHistory(BuildContext context, bool isDark, GuideProvider gp) {
+    final history = gp.incomingBookings
+        .where((b) => b['status'] == 'completed' || b['status'] == 'cancelled')
+        .toList()
+      ..sort((a, b) => '${b['date']}'.compareTo('${a['date']}'));
+
+    final accent = _accent(isDark);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('TOUR HISTORY',
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                    color: accent)),
+            const SizedBox(width: 8),
+            if (history.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusXxl)),
+                child: Text('${history.length}',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.black : Colors.white)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (history.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+              border: Border.all(
+                  color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+            ),
+            child: Text(
+              'Tours you finish will be listed here.',
+              style: TextStyle(
+                  fontSize: 12.5,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : const Color(0xFF8C7162)),
+            ),
+          )
+        else
+          ...history.map((b) => _historyCard(context, isDark, b)),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _historyCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
+    final name = (b['tourist_name'] ?? 'Tourist').toString();
+    final completed = b['status'] == 'completed';
+    final price = b['total_price'];
+    final rating = b['review_rating'];
+    final pkg = (b['package_label'] ?? '').toString();
+    final group = int.tryParse('${b['group_size'] ?? 1}') ?? 1;
+    final paid = b['payment_status'] == 'paid';
+
+    final statusBg = completed
+        ? AppColors.statusInfo.withValues(alpha: 0.12)
+        : AppColors.statusError.withValues(alpha: 0.10);
+    final statusFg = completed ? AppColors.statusInfo : AppColors.statusError;
+
+    final sub = [
+      if (pkg.isNotEmpty) pkg,
+      if (group > 1) '$group people',
+    ].join(' · ');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface)),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusXxl)),
+                child: Text(completed ? 'Completed' : 'Cancelled',
+                    style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: statusFg)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              const Icon(Icons.event_outlined,
+                  size: 13, color: AppColors.kColorAccentSafe),
+              const SizedBox(width: 4),
+              Text('${b['date'] ?? ''}',
+                  style: TextStyle(
+                      fontSize: 11.5,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : const Color(0xFF8C7162))),
+              if (sub.isNotEmpty) ...[
+                const SizedBox(width: 10),
+                const Icon(Icons.tour_outlined,
+                    size: 13, color: AppColors.kColorAccentSafe),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(sub,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : const Color(0xFF8C7162))),
+                ),
+              ],
+            ],
+          ),
+          if (completed && (price != null || rating is num)) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                if (price != null) ...[
+                  Text('NPR $price',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  const SizedBox(width: 6),
+                  Text(paid ? '· Paid' : '· Unpaid',
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: paid
+                              ? AppColors.kColorOfflineText
+                              : AppColors.kColorPendingText)),
+                ],
+                const Spacer(),
+                if (rating is num)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ...List.generate(
+                        5,
+                        (i) => Icon(
+                          i < rating.round()
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          size: 14,
+                          color: AppColors.kColorAccentLight,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );

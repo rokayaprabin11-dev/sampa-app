@@ -3,6 +3,7 @@ import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
 import 'package:sampada/providers/guide_provider.dart';
 
 /// One editable package row: label + hours + price controllers.
@@ -176,12 +177,7 @@ class _GuideEditScreenState extends State<GuideEditScreen> {
     final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.btnEditProfile),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
-      ),
+      appBar: SampadaAppBar(title: Text(l10n.btnEditProfile)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         child: Column(
