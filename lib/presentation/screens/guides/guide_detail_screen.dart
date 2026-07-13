@@ -25,6 +25,45 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
   final _notesController = TextEditingController();
   bool _submitting = false;
 
+  // Package booking state (used when the guide has configured packages).
+  int? _packageIndex;
+  int _groupSize = 1;
+
+  List<Map<String, dynamic>> get _packages =>
+      ((widget.guide['packages'] as List?) ?? [])
+          .whereType<Map>()
+          .map((m) => m.cast<String, dynamic>())
+          .toList();
+
+  int get _includedGroupSize =>
+      int.tryParse('${widget.guide['included_group_size'] ?? 5}') ?? 5;
+  int get _maxGroupSize =>
+      int.tryParse('${widget.guide['max_group_size'] ?? 10}') ?? 10;
+  double get _extraPersonFee =>
+      double.tryParse('${widget.guide['extra_person_fee'] ?? 0}') ?? 0;
+
+  /// Live client-side preview; the server computes the authoritative price.
+  double? get _previewTotal {
+    if (_packageIndex == null) return null;
+    final pkg = _packages[_packageIndex!];
+    final base = double.tryParse('${pkg['price']}');
+    if (base == null) return null;
+    final extras = (_groupSize - _includedGroupSize).clamp(0, 1000);
+    return base + extras * _extraPersonFee;
+  }
+
+  /// End time derived from the chosen package's duration, for display and for
+  /// the request payload (the server re-derives and overrides it anyway).
+  TimeOfDay? get _derivedEndTime {
+    if (_packageIndex == null || _startTime == null) return null;
+    final hours = double.tryParse('${_packages[_packageIndex!]['hours']}');
+    if (hours == null) return null;
+    final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
+    final endMinutes = startMinutes + (hours * 60).round();
+    if (endMinutes >= 24 * 60) return null; // past midnight — server rejects too
+    return TimeOfDay(hour: endMinutes ~/ 60, minute: endMinutes % 60);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +85,23 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
   }
 
   Future<void> _submitBooking() async {
-    if (_selectedDate == null || _startTime == null || _endTime == null) {
+    final usePackages = _packages.isNotEmpty;
+    final endTime = usePackages ? _derivedEndTime : _endTime;
+
+    if (usePackages && _packageIndex == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pick a tour package first.')),
+      );
+      return;
+    }
+    if (usePackages && _startTime != null && endTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('That start time would run the tour past midnight.')),
+      );
+      return;
+    }
+    if (_selectedDate == null || _startTime == null || endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.selectDateTimeSlot)),
       );
@@ -63,8 +118,10 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
         'guide': guideId,
         'date': _selectedDate!.toIso8601String().split('T').first,
         'start_time': '${_startTime!.hour.toString().padLeft(2, '0')}:${_startTime!.minute.toString().padLeft(2, '0')}:00',
-        'end_time': '${_endTime!.hour.toString().padLeft(2, '0')}:${_endTime!.minute.toString().padLeft(2, '0')}:00',
+        'end_time': '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00',
         'notes': _notesController.text,
+        if (usePackages) 'package_index': _packageIndex,
+        if (usePackages) 'group_size': _groupSize,
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,12 +247,13 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Rate + verified badge row
+                  // Rate + verified badge row. Package guides advertise their
+                  // cheapest package; hourly guides keep the per-hour label.
                   Row(
                     children: [
-                      if (rate != null) ...[
+                      if (_priceHeadline(rate) != null) ...[
                         Text(
-                          'NPR $rate / hr',
+                          _priceHeadline(rate)!,
                           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
                         ),
                         const Spacer(),
@@ -411,16 +469,61 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
 
           const SizedBox(height: 16),
 
-          // Start / end time row
-          Row(
-            children: [
-              Expanded(child: _timePicker(context, isDark, label: 'Start Time', value: _startTime, onPicked: (t) => setState(() => _startTime = t))),
-              const SizedBox(width: 12),
-              Expanded(child: _timePicker(context, isDark, label: 'End Time', value: _endTime, onPicked: (t) => setState(() => _endTime = t))),
-            ],
-          ),
-
-          const SizedBox(height: 16),
+          if (_packages.isNotEmpty) ...[
+            // Package selector — duration comes from the package, so only a
+            // start time is picked; end time is derived.
+            _fieldLabel(context, 'Tour Package'),
+            const SizedBox(height: 8),
+            ..._packages.asMap().entries.map((e) => _packageOption(context, isDark, e.key, e.value)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(child: _timePicker(context, isDark, label: 'Start Time', value: _startTime, onPicked: (t) => setState(() => _startTime = t))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _fieldLabel(context, 'Ends At'),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkBgSurface : const Color(0xFFF7F3EE),
+                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.access_time, size: 15, color: isDark ? AppColors.goldMain : AppColors.brownDark),
+                            const SizedBox(width: 8),
+                            Text(
+                              _derivedEndTime?.format(context) ?? '--:--',
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _fieldLabel(context, 'Group Size'),
+            const SizedBox(height: 8),
+            _groupSizeStepper(context, isDark),
+            const SizedBox(height: 16),
+          ] else ...[
+            // Legacy hourly flow: guide has no packages, free start/end times.
+            Row(
+              children: [
+                Expanded(child: _timePicker(context, isDark, label: 'Start Time', value: _startTime, onPicked: (t) => setState(() => _startTime = t))),
+                const SizedBox(width: 12),
+                Expanded(child: _timePicker(context, isDark, label: 'End Time', value: _endTime, onPicked: (t) => setState(() => _endTime = t))),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Notes
           _fieldLabel(context, 'Notes (optional)'),
@@ -439,6 +542,48 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
             ),
           ),
 
+          if (_packages.isNotEmpty && _previewTotal != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkBgSurface : const Color(0xFFFDF3DC),
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+                border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFEAD9A8)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Total',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
+                        if (_groupSize > _includedGroupSize)
+                          Text(
+                            '${_packages[_packageIndex!]['label']} + ${_groupSize - _includedGroupSize} extra ${_groupSize - _includedGroupSize == 1 ? 'person' : 'people'}',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    'NPR ${_previewTotal!.toStringAsFixed(_previewTotal! % 1 == 0 ? 0 : 2)}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 20),
 
           SizedBox(
@@ -454,6 +599,129 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : Text(l10n.confirmBookingRequest, style: TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "From NPR 1500" for package guides (cheapest package), "NPR 700 / hr"
+  /// for hourly guides, null when neither is configured.
+  String? _priceHeadline(dynamic rate) {
+    final prices = _packages
+        .map((p) => double.tryParse('${p['price']}'))
+        .whereType<double>()
+        .toList();
+    if (prices.isNotEmpty) {
+      final min = prices.reduce((a, b) => a < b ? a : b);
+      return 'From NPR ${min.toStringAsFixed(min % 1 == 0 ? 0 : 2)}';
+    }
+    if (rate != null) return 'NPR $rate / hr';
+    return null;
+  }
+
+  Widget _packageOption(BuildContext context, bool isDark, int index, Map<String, dynamic> pkg) {
+    final selected = _packageIndex == index;
+    final hours = pkg['hours'];
+    final hoursLabel = (hours is num && hours == hours.roundToDouble())
+        ? '${hours.toInt()}h'
+        : '${hours}h';
+    final price = double.tryParse('${pkg['price']}');
+    final priceLabel = price == null
+        ? '${pkg['price']}'
+        : price.toStringAsFixed(price % 1 == 0 ? 0 : 2);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () => setState(() => _packageIndex = index),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: selected
+                ? (isDark
+                    ? AppColors.goldMain.withValues(alpha: 0.10)
+                    : const Color(0xFF7B1E00).withValues(alpha: 0.06))
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+            border: Border.all(
+              color: selected
+                  ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
+                  : (isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                size: 18,
+                color: selected
+                    ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
+                    : AppColors.kColorTextMuted,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${pkg['label']}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              Text('$hoursLabel · NPR $priceLabel',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe,
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _groupSizeStepper(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$_groupSize ${_groupSize == 1 ? 'person' : 'people'}',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface)),
+                Text(
+                  _extraPersonFee > 0
+                      ? 'Up to $_includedGroupSize included · NPR ${_extraPersonFee.toStringAsFixed(_extraPersonFee % 1 == 0 ? 0 : 2)}/extra person'
+                      : 'Up to $_maxGroupSize people',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: _groupSize > 1 ? () => setState(() => _groupSize--) : null,
+            icon: const Icon(Icons.remove_circle_outline),
+            color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+          ),
+          IconButton(
+            onPressed: _groupSize < _maxGroupSize ? () => setState(() => _groupSize++) : null,
+            icon: const Icon(Icons.add_circle_outline),
+            color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
           ),
         ],
       ),

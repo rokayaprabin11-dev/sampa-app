@@ -140,6 +140,16 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     String t(dynamic v) => (v ?? '').toString().length >= 5 ? (v).toString().substring(0, 5) : (v ?? '').toString();
     final when = '$date · ${t(b['start_time'])}–${t(b['end_time'])}';
     final notes = (b['notes'] ?? '').toString();
+    // Package bookings carry what was chosen and for how many people, plus the
+    // locked price — the guide should see exactly what they're accepting.
+    final pkgLabel = (b['package_label'] ?? '').toString();
+    final groupSize = int.tryParse('${b['group_size'] ?? 1}') ?? 1;
+    final price = b['total_price'];
+    final pkgLine = [
+      if (pkgLabel.isNotEmpty) pkgLabel,
+      if (groupSize > 1) '$groupSize people',
+      if (price != null) 'NPR $price',
+    ].join(' · ');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -175,6 +185,23 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               ),
             ],
           ),
+          if (pkgLine.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.tour_outlined, size: 14,
+                    color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(pkgLine,
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
+                ),
+              ],
+            ),
+          ],
           if (notes.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(notes, maxLines: 2, overflow: TextOverflow.ellipsis,

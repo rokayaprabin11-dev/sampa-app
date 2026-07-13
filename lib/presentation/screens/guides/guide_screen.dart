@@ -83,6 +83,22 @@ class _GuideScreenState extends State<GuideScreen> {
   double _ratingOf(Map<String, dynamic> g) => double.tryParse('${g['rating_avg'] ?? ''}') ?? 0.0;
   int _reviewsOf(Map<String, dynamic> g) => (g['review_count'] as int?) ?? 0;
 
+  /// Cheapest configured package price as a display string, or null when the
+  /// guide has no packages (cards then fall back to the hourly rate).
+  String? _cheapestPackagePrice(Map<String, dynamic> g) {
+    final pkgs = g['packages'];
+    if (pkgs is! List) return null;
+    double? min;
+    for (final p in pkgs) {
+      if (p is Map) {
+        final v = double.tryParse('${p['price']}');
+        if (v != null && (min == null || v < min)) min = v;
+      }
+    }
+    if (min == null) return null;
+    return min.toStringAsFixed(min % 1 == 0 ? 0 : 2);
+  }
+
   /// The server computes this at request time (never from its response cache):
   /// online == a fresh heartbeat AND the guide is accepting bookings, so a green
   /// dot always means "bookable right now", not merely "app is open".
@@ -1068,7 +1084,16 @@ class _GuideScreenState extends State<GuideScreen> {
                     ],
                   ),
                 ),
-                if (rate != null)
+                if (_cheapestPackagePrice(guide) != null)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('From ${AppLocalizations.of(context)!.nprAmount(_cheapestPackagePrice(guide)!)}',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: accent)),
+                      Text('per tour', style: TextStyle(fontSize: 10, color: sub)),
+                    ],
+                  )
+                else if (rate != null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -1189,7 +1214,10 @@ class _GuideScreenState extends State<GuideScreen> {
                     ],
                   ),
                 ),
-                if (rate != null)
+                if (_cheapestPackagePrice(guide) != null)
+                  Text('From ${l10n.nprAmount(_cheapestPackagePrice(guide)!)}',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: accent))
+                else if (rate != null)
                   Text(l10n.nprAmount(rate.toString()), style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: accent)),
               ],
             ),

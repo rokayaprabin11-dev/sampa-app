@@ -2,27 +2,59 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
-import 'package:sampada/generated/app_localizations.dart';
-import 'package:sampada/presentation/screens/guides/chat_screen.dart';
+import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/theme/app_theme.dart';
+import 'package:sampada/presentation/screens/bookings/booking_detail_screen.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
+import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/guide_provider.dart';
 
 /// Which tab a booking belongs to. Derived from status, not stored:
 /// pending + confirmed → Upcoming; completed → Completed; cancelled → Cancelled.
-enum _BookingTab { upcoming, completed, cancelled }
+enum BookingTab { upcoming, completed, cancelled }
 
-extension on _BookingTab {
+extension BookingTabLabel on BookingTab {
   String get label => switch (this) {
-        _BookingTab.upcoming => 'Upcoming',
-        _BookingTab.completed => 'Completed',
-        _BookingTab.cancelled => 'Cancelled',
+        BookingTab.upcoming => 'Upcoming',
+        BookingTab.completed => 'Completed',
+        BookingTab.cancelled => 'Cancelled',
       };
 }
 
-_BookingTab _tabOf(Map<String, dynamic> b) => switch (b['status']) {
-      'completed' => _BookingTab.completed,
-      'cancelled' => _BookingTab.cancelled,
-      _ => _BookingTab.upcoming,
+BookingTab bookingTabOf(Map<String, dynamic> b) => switch (b['status']) {
+      'completed' => BookingTab.completed,
+      'cancelled' => BookingTab.cancelled,
+      _ => BookingTab.upcoming,
+    };
+
+/// Booking-status chip colors/icon/label — shared by the list card and the
+/// detail screen so a status always renders identically.
+({Color bg, Color fg, IconData icon, String label}) bookingStatusMeta(String status) =>
+    switch (status) {
+      'confirmed' => (
+          bg: const Color(0xFFDCEFE0),
+          fg: const Color(0xFF1F6B3B),
+          icon: Icons.verified_outlined,
+          label: 'Confirmed'
+        ),
+      'completed' => (
+          bg: const Color(0xFFE1EAF5),
+          fg: const Color(0xFF1E4E79),
+          icon: Icons.check_circle_outline,
+          label: 'Completed'
+        ),
+      'cancelled' => (
+          bg: const Color(0xFFF6DEDC),
+          fg: const Color(0xFFA3271F),
+          icon: Icons.cancel_outlined,
+          label: 'Cancelled'
+        ),
+      _ => (
+          bg: const Color(0xFFFBEBC8),
+          fg: const Color(0xFF8A5A00),
+          icon: Icons.hourglass_top,
+          label: 'Pending'
+        ),
     };
 
 class MyBookingsScreen extends StatefulWidget {
@@ -33,44 +65,100 @@ class MyBookingsScreen extends StatefulWidget {
 }
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
-  _BookingTab _tab = _BookingTab.upcoming;
+  BookingTab _tab = BookingTab.upcoming;
+  bool _loading = true;
+  bool _searching = false;
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<GuideProvider>().fetchMyBookings();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load() async {
+    final gp = context.read<GuideProvider>();
+    // Guides list enriches booking cards (rating, verified badge, languages);
+    // fetched in parallel, non-blocking for the bookings themselves.
+    if (gp.guides.isEmpty) gp.fetchGuides();
+    await gp.fetchMyBookings();
+    if (mounted) setState(() => _loading = false);
+  }
+
+  bool _matchesQuery(Map<String, dynamic> b) {
+    if (_query.trim().isEmpty) return true;
+    final q = _query.trim().toLowerCase();
+    return '${b['guide_name']}'.toLowerCase().contains(q) ||
+        '${b['date']}'.contains(q) ||
+        '${b['id']}' == q;
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
-        foregroundColor: isDark ? AppColors.goldMain : AppColors.kColorTextHeading,
-        title: Text(
-          'My Bookings',
-          style: TextStyle(
-            fontFamily: 'serif',
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            color: isDark ? AppColors.goldMain : AppColors.kColorTextHeading,
+        foregroundColor: Colors.white,
+        flexibleSpace: const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: AppTheme.navGradient,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
+              bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
+            ),
           ),
         ),
+        title: _searching
+            ? TextField(
+                autofocus: true,
+                onChanged: (q) => setState(() => _query = q),
+                cursorColor: Colors.white,
+                style: const TextStyle(fontSize: 15, color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Guide, date or booking #…',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+              )
+            : const Text(
+                'My Bookings',
+                style: TextStyle(
+                  fontFamily: 'serif',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+        actions: [
+          IconButton(
+            icon: Icon(_searching ? Icons.close : Icons.search, color: Colors.white),
+            onPressed: () => setState(() {
+              _searching = !_searching;
+              if (!_searching) _query = '';
+            }),
+          ),
+          if (!_searching)
+            IconButton(
+              icon: const Icon(Icons.notifications_none, color: Colors.white),
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppStrings.notificationsPath),
+            ),
+        ],
       ),
       body: Consumer<GuideProvider>(
         builder: (context, gp, _) {
           final bookings = gp.myBookings;
-          final counts = <_BookingTab, int>{
-            for (final t in _BookingTab.values)
-              t: bookings.where((b) => _tabOf(b) == t).length,
+          final counts = <BookingTab, int>{
+            for (final t in BookingTab.values)
+              t: bookings.where((b) => bookingTabOf(b) == t).length,
           };
-          final visible = bookings.where((b) => _tabOf(b) == _tab).toList()
+          final visible = bookings
+              .where((b) => bookingTabOf(b) == _tab && _matchesQuery(b))
+              .toList()
             ..sort((a, b) => '${b['date']}'.compareTo('${a['date']}'));
 
           return Column(
@@ -81,25 +169,36 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 onChanged: (t) => setState(() => _tab = t),
               ),
               Expanded(
-                child: RefreshIndicator(
-                  color: AppColors.kColorPrimary,
-                  onRefresh: gp.fetchMyBookings,
-                  child: visible.isEmpty
-                      ? ListView(
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.55,
-                              child: _EmptyView(tab: _tab),
-                            ),
-                          ],
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount: visible.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 14),
-                          itemBuilder: (context, i) => _BookingCard(booking: visible[i]),
-                        ),
-                ),
+                child: _loading && bookings.isEmpty
+                    ? _skeletonList()
+                    : RefreshIndicator(
+                        color: AppColors.kColorPrimary,
+                        onRefresh: gp.fetchMyBookings,
+                        child: visible.isEmpty
+                            ? ListView(
+                                children: [
+                                  SizedBox(
+                                    height:
+                                        MediaQuery.of(context).size.height * 0.55,
+                                    child: _EmptyView(
+                                        tab: _tab, filtered: _query.isNotEmpty),
+                                  ),
+                                ],
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                                itemCount: visible.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 14),
+                                itemBuilder: (context, i) => _FadeSlideIn(
+                                  index: i,
+                                  child: _BookingCard(
+                                    booking: visible[i],
+                                    guide: _guideOf(gp, visible[i]),
+                                  ),
+                                ),
+                              ),
+                      ),
               ),
             ],
           );
@@ -107,13 +206,52 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       ),
     );
   }
+
+  Map<String, dynamic>? _guideOf(GuideProvider gp, Map<String, dynamic> b) {
+    for (final g in gp.guides) {
+      if (g['id'] == b['guide']) return g;
+    }
+    return null;
+  }
+
+  Widget _skeletonList() {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      itemCount: 3,
+      separatorBuilder: (_, __) => const SizedBox(height: 14),
+      itemBuilder: (_, __) => const ShimmerSkeleton(
+          width: double.infinity, height: 190, borderRadius: 20),
+    );
+  }
+}
+
+class _FadeSlideIn extends StatelessWidget {
+  final int index;
+  final Widget child;
+  const _FadeSlideIn({required this.index, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 250 + (index.clamp(0, 8) * 60)),
+      curve: Curves.easeOut,
+      builder: (context, value, child) => Opacity(
+        opacity: value,
+        child:
+            Transform.translate(offset: Offset(0, (1 - value) * 16), child: child),
+      ),
+      child: child,
+    );
+  }
 }
 
 class _TabBar extends StatelessWidget {
-  final _BookingTab active;
-  final Map<_BookingTab, int> counts;
-  final ValueChanged<_BookingTab> onChanged;
-  const _TabBar({required this.active, required this.counts, required this.onChanged});
+  final BookingTab active;
+  final Map<BookingTab, int> counts;
+  final ValueChanged<BookingTab> onChanged;
+  const _TabBar(
+      {required this.active, required this.counts, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +264,7 @@ class _TabBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
       ),
       child: Row(
-        children: _BookingTab.values.map((tab) {
+        children: BookingTab.values.map((tab) {
           final selected = tab == active;
           final count = counts[tab] ?? 0;
           return Expanded(
@@ -137,8 +275,20 @@ class _TabBar extends StatelessWidget {
                 curve: Curves.easeOut,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.kColorPrimary : Colors.transparent,
+                  gradient: selected
+                      ? const LinearGradient(
+                          colors: [AppColors.kColorDeep, AppColors.kColorPrimary])
+                      : null,
                   borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.kColorDeep.withValues(alpha: 0.28),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -148,7 +298,9 @@ class _TabBar extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: selected
                         ? Colors.white
-                        : (isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
+                        : (isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.kColorTextSecondary),
                   ),
                 ),
               ),
@@ -161,23 +313,27 @@ class _TabBar extends StatelessWidget {
 }
 
 class _EmptyView extends StatelessWidget {
-  final _BookingTab tab;
-  const _EmptyView({required this.tab});
+  final BookingTab tab;
+  final bool filtered;
+  const _EmptyView({required this.tab, required this.filtered});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final message = switch (tab) {
-      _BookingTab.upcoming => 'No upcoming bookings.\nFind a guide to plan your next tour!',
-      _BookingTab.completed => 'No completed tours yet.',
-      _BookingTab.cancelled => 'No cancelled bookings.',
-    };
+    final message = filtered
+        ? 'No bookings match your search.'
+        : switch (tab) {
+            BookingTab.upcoming => 'No bookings yet',
+            BookingTab.completed => 'No completed tours yet.',
+            BookingTab.cancelled => 'No cancelled bookings.',
+          };
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.event_note_outlined,
-              size: 64, color: isDark ? AppColors.darkTextSecondary : const Color(0xFFB08060)),
+              size: 64,
+              color: isDark ? AppColors.darkTextSecondary : const Color(0xFFB08060)),
           const SizedBox(height: 16),
           Text(
             message,
@@ -187,6 +343,22 @@ class _EmptyView extends StatelessWidget {
               color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),
             ),
           ),
+          if (!filtered && tab == BookingTab.upcoming) ...[
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppStrings.guidePath),
+              icon: const Icon(Icons.tour_outlined, size: 18),
+              label: const Text('Find a Guide'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.kColorPrimary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -195,412 +367,153 @@ class _EmptyView extends StatelessWidget {
 
 class _BookingCard extends StatelessWidget {
   final Map<String, dynamic> booking;
-  const _BookingCard({required this.booking});
+  final Map<String, dynamic>? guide;
+  const _BookingCard({required this.booking, this.guide});
 
   String get _guideName => (booking['guide_name'] ?? 'Guide').toString();
-  String get _status => (booking['status'] ?? 'pending').toString();
-  String? get _price => booking['total_price']?.toString();
-
-  bool get _awaitingConfirm =>
-      _status == 'confirmed' &&
-      booking['guide_marked_complete_at'] != null &&
-      booking['tourist_confirmed_complete_at'] == null;
-
-  bool get _paymentDue => _status == 'completed' && booking['payment_status'] == 'due';
-  bool get _canReview => _status == 'completed' && booking['reviewed_at'] == null;
-  bool get _canChat => _status == 'confirmed' || _status == 'completed';
-  bool get _canCancel => _status == 'pending' || (_status == 'confirmed' && !_awaitingConfirm);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+    final status = (booking['status'] ?? 'pending').toString();
+    final s = bookingStatusMeta(status);
+    final rating = asDoubleOrNull(guide?['rating_avg']);
+    final verified = guide?['is_verified'] == true;
+
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+      child: InkWell(
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _guideAvatar(),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_guideName,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        )),
-                    const SizedBox(height: 2),
-                    Text('Tour Guide',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted,
-                        )),
-                  ],
-                ),
-              ),
-              _StatusChip(status: _status),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.kColorBorderFaint),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Icons.event_outlined, size: 16, color: AppColors.kColorAccentSafe),
-              const SizedBox(width: 6),
-              Text('${booking['date'] ?? ''}',
-                  style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
-              const SizedBox(width: 14),
-              const Icon(Icons.schedule, size: 16, color: AppColors.kColorAccentSafe),
-              const SizedBox(width: 6),
-              Text(_timeRange(),
-                  style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
-            ],
-          ),
-          if (_price != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.payments_outlined, size: 16, color: AppColors.kColorAccentSafe),
-                const SizedBox(width: 6),
-                Text('NPR $_price', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
-                const SizedBox(width: 10),
-                _PaymentChip(booking: booking),
-              ],
-            ),
-          ],
-          if ((booking['notes'] ?? '').toString().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text('“${booking['notes']}”',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
-          ],
-          if (booking['receipt_no'] != null) ...[
-            const SizedBox(height: 8),
-            Text('Receipt: ${booking['receipt_no']}',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
-          ],
-          if (_status == 'pending') ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.kColorPendingBg,
-                borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
-                border: Border.all(color: AppColors.kColorPendingBorder),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.hourglass_top, size: 15, color: AppColors.kColorPendingText),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Waiting for the guide to respond',
-                        style: TextStyle(fontSize: 12, color: AppColors.kColorPendingText)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          _actions(context),
-        ],
-      ),
-    );
-  }
-
-  String _timeRange() {
-    String hhmm(dynamic v) {
-      final s = '$v';
-      return s.length >= 5 ? s.substring(0, 5) : s;
-    }
-
-    return '${hhmm(booking['start_time'])} – ${hhmm(booking['end_time'])}';
-  }
-
-  Widget _guideAvatar() {
-    final initial = CircleAvatar(
-      radius: 22,
-      backgroundColor: AppColors.kColorTagBg,
-      child: Text(
-        _guideName.isNotEmpty ? _guideName[0].toUpperCase() : 'G',
-        style: const TextStyle(
-            fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.kColorAccentDark),
-      ),
-    );
-    final photo = booking['guide_photo']?.toString();
-    if (photo == null || photo.isEmpty) return initial;
-    return ClipOval(
-      child: AppNetworkImage(
-        url: photo,
-        width: 44,
-        height: 44,
-        fit: BoxFit.cover,
-        errorWidget: initial,
-      ),
-    );
-  }
-
-  Widget _actions(BuildContext context) {
-    final gp = context.read<GuideProvider>();
-    final id = booking['id'] as int;
-    final buttons = <Widget>[];
-
-    if (_awaitingConfirm) {
-      buttons.add(_primaryBtn(
-        icon: Icons.task_alt,
-        label: 'Confirm Tour Done',
-        color: const Color(0xFF2E7D32),
-        onTap: () async {
-          final l10n = AppLocalizations.of(context)!;
-          final messenger = ScaffoldMessenger.of(context);
-          final err = await gp.completeTour(id, asGuide: false);
-          messenger.showSnackBar(SnackBar(content: Text(err ?? l10n.tourConfirmedSettle)));
-        },
-      ));
-    }
-
-    if (_paymentDue) {
-      buttons.add(_primaryBtn(
-        icon: Icons.payments_outlined,
-        label: 'Pay Now',
-        color: AppColors.kColorPrimary,
-        onTap: () => _openPaymentSheet(context, gp),
-      ));
-    }
-
-    if (_canReview) {
-      buttons.add(_outlineBtn(
-        icon: Icons.star_outline,
-        label: 'Rate Guide',
-        onTap: () => _openReviewDialog(context, gp),
-      ));
-    }
-
-    if (_canChat) {
-      buttons.add(_outlineBtn(
-        icon: Icons.chat_bubble_outline,
-        label: 'Message',
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatScreen(bookingId: id, otherPartyName: _guideName),
+            builder: (_) =>
+                BookingDetailScreen(bookingId: booking['id'] as int, initial: booking),
           ),
         ),
-      ));
-    }
-
-    if (_canCancel) {
-      buttons.add(_outlineBtn(
-        icon: Icons.close,
-        label: _status == 'pending' ? 'Cancel Request' : 'Cancel Booking',
-        danger: true,
-        onTap: () => _confirmCancel(context, gp),
-      ));
-    }
-
-    if (buttons.isEmpty) return const SizedBox.shrink();
-    return Wrap(spacing: 8, runSpacing: 8, children: buttons);
-  }
-
-  Widget _primaryBtn({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) =>
-      ElevatedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, size: 16),
-        label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        ),
-      );
-
-  Widget _outlineBtn({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool danger = false,
-  }) {
-    final color = danger ? AppColors.statusError : AppColors.kColorPrimary;
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: color,
-        side: BorderSide(color: color),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      ),
-    );
-  }
-
-  Future<void> _confirmCancel(BuildContext context, GuideProvider gp) async {
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(ctx).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-        title: Text('Cancel this booking?',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(ctx).colorScheme.onSurface)),
-        content: Text('The guide will be notified. This cannot be undone.',
-            style: TextStyle(fontSize: 13, color: Theme.of(ctx).colorScheme.onSurface)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Keep Booking', style: TextStyle(color: Colors.grey.shade600)),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+            border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3C1E14).withValues(alpha: isDark ? 0 : 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.statusError, foregroundColor: Colors.white),
-            child: Text(l10n.btnConfirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await gp.updateBookingStatus(booking['id'] as int, 'cancelled');
-    messenger.showSnackBar(const SnackBar(content: Text('Booking cancelled.')));
-  }
-
-  static const _paymentMethods = [
-    ('esewa', 'eSewa', Icons.account_balance_wallet_outlined),
-    ('khalti', 'Khalti', Icons.account_balance_wallet_outlined),
-    ('fonepay', 'Fonepay', Icons.qr_code_2),
-    ('cash', 'Cash', Icons.payments_outlined),
-  ];
-
-  /// Records how the tourist settled up (no money moves through the app) —
-  /// same pay-after-service model as the Guides screen's action card.
-  Future<void> _openPaymentSheet(BuildContext context, GuideProvider gp) async {
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final refController = TextEditingController();
-    String method = 'esewa';
-    bool submitting = false;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocal) => Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.paySheetTitle,
-                  style: TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
-              const SizedBox(height: 4),
-              Text(
-                '${l10n.paySheetBody(_guideName)}${_price != null ? ' — NPR $_price' : ''}',
-                style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              ..._paymentMethods.map((m) {
-                final selected = method == m.$1;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: InkWell(
-                    onTap: () => setLocal(() => method = m.$1),
-                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.kColorPrimary.withValues(alpha: 0.08)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-                        border: Border.all(
-                          color: selected
-                              ? AppColors.kColorPrimary
-                              : (isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
-                          width: selected ? 1.6 : 1,
+              Row(
+                children: [
+                  BookingGuideAvatar(
+                    booking: booking,
+                    verified: verified,
+                    heroTag: 'booking-avatar-${booking['id']}',
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_guideName,
+                            style: TextStyle(
+                              fontFamily: 'serif',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            )),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(verified ? 'Licensed Tour Guide' : 'Tour Guide',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.kColorTextMuted,
+                                )),
+                            if (rating != null) ...[
+                              const SizedBox(width: 8),
+                              const Icon(Icons.star_rounded,
+                                  size: 14, color: AppColors.kColorAccentLight),
+                              Text(rating.toStringAsFixed(1),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  )),
+                            ],
+                          ],
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(m.$3, size: 20,
-                              color: selected ? AppColors.kColorPrimary : AppColors.kColorTextMuted),
-                          const SizedBox(width: 10),
-                          Text(m.$2,
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                  color: Theme.of(ctx).colorScheme.onSurface)),
-                          const Spacer(),
-                          if (selected)
-                            const Icon(Icons.check_circle, size: 18, color: AppColors.kColorPrimary),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-                );
-              }),
-              const SizedBox(height: 8),
-              TextField(
-                controller: refController,
-                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: 'Transaction reference (optional)',
-                  hintStyle: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? AppColors.darkTextTertiary : Colors.grey),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
-                ),
+                  Icon(Icons.chevron_right,
+                      color:
+                          isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted),
+                ],
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: submitting
-                      ? null
-                      : () async {
-                          setLocal(() => submitting = true);
-                          final (err, updated) = await gp.recordPayment(
-                              booking['id'] as int, method, refController.text.trim());
-                          if (!ctx.mounted) return;
-                          Navigator.pop(ctx);
-                          messenger.showSnackBar(SnackBar(
-                            content: Text(err ??
-                                'Payment recorded${updated?['receipt_no'] != null ? ' — receipt ${updated!['receipt_no']}' : ''}.'),
-                          ));
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.kColorPrimary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text(submitting ? 'Recording…' : l10n.btnPayNow),
+              const SizedBox(height: 12),
+              Divider(
+                  height: 1,
+                  color: isDark ? AppColors.darkBorder : AppColors.kColorBorderFaint),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(Icons.event_outlined,
+                      size: 16, color: AppColors.kColorAccentSafe),
+                  const SizedBox(width: 6),
+                  Text('${booking['date'] ?? ''}',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  const SizedBox(width: 14),
+                  const Icon(Icons.schedule,
+                      size: 16, color: AppColors.kColorAccentSafe),
+                  const SizedBox(width: 6),
+                  Text(bookingTimeRange(booking),
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  const Spacer(),
+                  if (booking['total_price'] != null)
+                    Text('NPR ${booking['total_price']}',
+                        style: TextStyle(
+                          fontFamily: 'serif',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        )),
+                ],
+              ),
+              if (bookingPackageLine(booking) != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.tour_outlined,
+                        size: 16, color: AppColors.kColorAccentSafe),
+                    const SizedBox(width: 6),
+                    Text(bookingPackageLine(booking)!,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.onSurface)),
+                  ],
                 ),
+              ],
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  BookingChip(bg: s.bg, fg: s.fg, icon: s.icon, label: s.label),
+                  BookingPaymentChip(booking: booking),
+                ],
               ),
             ],
           ),
@@ -608,122 +521,176 @@ class _BookingCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Future<void> _openReviewDialog(BuildContext context, GuideProvider gp) async {
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final controller = TextEditingController();
-    int rating = 5;
+// ── Shared bits (also used by the detail screen) ────────────────────────────
 
-    final result = await showDialog<(int, String)?>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocal) => AlertDialog(
-          backgroundColor: Theme.of(ctx).colorScheme.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-          title: Text(l10n.reviewGuide(_guideName),
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(ctx).colorScheme.onSurface)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (i) {
-                  final filled = i < rating;
-                  return IconButton(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    constraints: const BoxConstraints(),
-                    onPressed: () => setLocal(() => rating = i + 1),
-                    icon: Icon(filled ? Icons.star : Icons.star_border,
-                        color: isDark ? AppColors.goldMain : AppColors.kColorAccent,
-                        size: AppDimensions.iconXl),
-                  );
-                }),
-              ),
-              const SizedBox(height: AppDimensions.sp12),
-              TextField(
-                controller: controller,
-                maxLines: 3,
-                maxLength: 300,
-                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: l10n.reviewHint,
-                  hintStyle: TextStyle(
-                      color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 13),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
+/// DRF renders DecimalFields (e.g. `rating_avg`) as JSON strings — parse
+/// numbers tolerantly instead of casting, so "4.9", 4.9 and null all work.
+double? asDoubleOrNull(dynamic v) =>
+    v is num ? v.toDouble() : double.tryParse('$v');
+
+int? asIntOrNull(dynamic v) => v is num ? v.toInt() : int.tryParse('$v');
+
+/// "Half Day · 6 people" — package + group summary for a booking, or null
+/// for legacy hourly bookings booked solo.
+String? bookingPackageLine(Map<String, dynamic> b) {
+  final label = (b['package_label'] ?? '').toString();
+  final size = asIntOrNull(b['group_size']) ?? 1;
+  final parts = <String>[
+    if (label.isNotEmpty) label,
+    if (size > 1) '$size people',
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
+
+String bookingTimeRange(Map<String, dynamic> b) {
+  String hhmm(dynamic v) {
+    final s = '$v';
+    return s.length >= 5 ? s.substring(0, 5) : s;
+  }
+
+  return '${hhmm(b['start_time'])} – ${hhmm(b['end_time'])}';
+}
+
+class BookingGuideAvatar extends StatelessWidget {
+  final Map<String, dynamic> booking;
+  final bool verified;
+  final String heroTag;
+  final double size;
+  const BookingGuideAvatar({
+    super.key,
+    required this.booking,
+    required this.verified,
+    required this.heroTag,
+    this.size = 52,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (booking['guide_name'] ?? 'G').toString();
+    final photo = booking['guide_photo']?.toString();
+
+    Widget initial = Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [AppColors.kColorDeep, AppColors.kColorPrimary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : 'G',
+        style: TextStyle(
+          fontFamily: 'serif',
+          fontSize: size * 0.36,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    );
+
+    Widget avatar = (photo == null || photo.isEmpty)
+        ? initial
+        : ClipOval(
+            child: AppNetworkImage(
+              url: photo,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorWidget: initial,
+            ),
+          );
+
+    return Hero(
+      tag: heroTag,
+      child: SizedBox(
+        width: size + 4,
+        height: size + 4,
+        child: Stack(
+          children: [
+            avatar,
+            if (verified)
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(1),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.verified,
+                      size: 16, color: AppColors.kColorAccentLight),
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx, null),
-                child: Text(l10n.btnCancel,
-                    style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey))),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, (rating, controller.text.trim())),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? AppColors.goldMain : AppColors.kColorPrimary,
-                  foregroundColor: isDark ? Colors.black : Colors.white),
-              child: Text(l10n.btnSubmit),
-            ),
           ],
         ),
       ),
     );
-    if (result == null) return;
-    final err = await gp.reviewBooking(booking['id'] as int, result.$1, result.$2);
-    messenger.showSnackBar(SnackBar(content: Text(err ?? l10n.reviewThanks)));
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  final String status;
-  const _StatusChip({required this.status});
+class BookingChip extends StatelessWidget {
+  final Color bg;
+  final Color fg;
+  final IconData icon;
+  final String label;
+  const BookingChip(
+      {super.key,
+      required this.bg,
+      required this.fg,
+      required this.icon,
+      required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, label) = switch (status) {
-      'confirmed' => (AppColors.kColorOfflineBg, AppColors.kColorOfflineText, 'Confirmed'),
-      'completed' => (const Color(0xFFE8F0FB), const Color(0xFF1B5FA8), 'Completed'),
-      'cancelled' => (const Color(0xFFFBEDEB), const Color(0xFFA3271F), 'Cancelled'),
-      _ => (AppColors.kColorPendingBg, AppColors.kColorPendingText, 'Pending'),
-    };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
       ),
-      child: Text(label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: fg),
+          const SizedBox(width: 5),
+          Text(label,
+              style:
+                  TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: fg)),
+        ],
+      ),
     );
   }
 }
 
-class _PaymentChip extends StatelessWidget {
+class BookingPaymentChip extends StatelessWidget {
   final Map<String, dynamic> booking;
-  const _PaymentChip({required this.booking});
+  const BookingPaymentChip({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {
     final status = (booking['payment_status'] ?? 'none').toString();
     if (status == 'none') return const SizedBox.shrink();
     final method = booking['payment_method']?.toString();
-    final (bg, fg, label) = status == 'paid'
-        ? (AppColors.kColorOfflineBg, AppColors.kColorOfflineText,
-            'Paid${method != null ? ' · $method' : ''}')
-        : (AppColors.kColorPendingBg, AppColors.kColorPendingText, 'Payment due');
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-      ),
-      child: Text(label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg)),
+    if (status == 'paid') {
+      return BookingChip(
+        bg: const Color(0xFFDCEFE0),
+        fg: const Color(0xFF1F6B3B),
+        icon: Icons.payments_outlined,
+        label: 'Paid${method != null ? ' · $method' : ''}',
+      );
+    }
+    return const BookingChip(
+      bg: Color(0xFFF7E7C8),
+      fg: Color(0xFF8A5A00),
+      icon: Icons.schedule,
+      label: 'Payment due',
     );
   }
 }
