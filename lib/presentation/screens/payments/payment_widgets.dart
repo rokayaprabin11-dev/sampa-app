@@ -4,7 +4,6 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// Shared pieces of the payment screens.
 ///
@@ -210,46 +209,13 @@ class PaymentDestinationTile extends StatelessWidget {
   }
 }
 
-/// Opens the wallet app, falling back to its store listing.
-///
-/// Nepali wallets publish no documented deep link, so this tries the app's
-/// scheme and, when nothing handles it, sends the user to the store rather than
-/// failing silently. It never claims to have started a payment — the transfer
-/// happens in the wallet, and Sampada only hears about it when the tourist says
-/// so.
-Future<void> openWalletApp(BuildContext context, PaymentMethod method) async {
-  final messenger = ScaffoldMessenger.of(context);
-  const schemes = {
-    PaymentMethod.esewa: 'esewa://',
-    PaymentMethod.khalti: 'khalti://',
-    PaymentMethod.fonepay: 'fonepay://',
-  };
-  const stores = {
-    PaymentMethod.esewa: 'https://play.google.com/store/apps/details?id=com.f1soft.esewa',
-    PaymentMethod.khalti: 'https://play.google.com/store/apps/details?id=com.khalti',
-    PaymentMethod.fonepay: 'https://play.google.com/store/apps/details?id=com.f1soft.fonepay.consumer',
-  };
-
-  final scheme = schemes[method];
-  if (scheme == null) return; // cash — nothing to open
-
-  try {
-    final opened = await launchUrl(Uri.parse(scheme),
-        mode: LaunchMode.externalApplication);
-    if (opened) return;
-  } catch (_) {
-    // Not installed, or the OS refused the scheme. Fall through to the store.
-  }
-
-  final store = stores[method];
-  if (store == null) return;
-  try {
-    await launchUrl(Uri.parse(store), mode: LaunchMode.externalApplication);
-  } catch (_) {
-    messenger.showSnackBar(SnackBar(
-        content: Text('Could not open ${method.label}. Pay from the app directly.')));
-  }
-}
+// There is deliberately no "Open eSewa/Khalti/Fonepay" button here.
+//
+// None of those wallets publishes a documented URL scheme, so such a button
+// could only guess at one — and on Android 11+ an unlisted scheme fails outright
+// unless it is declared in the manifest. A button labelled "Open Khalti" that
+// lands on a store page instead is worse than no button, so the tourist copies
+// the identifier above and switches to their wallet themselves.
 
 // ── Claim summary ────────────────────────────────────────────────────────────
 

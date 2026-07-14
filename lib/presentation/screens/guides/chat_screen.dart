@@ -4,6 +4,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/services/chat_service.dart';
+import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/injection.dart' as di;
 import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,7 +31,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
   late final ChatService _chat;
   final _composer = TextEditingController();
   final _scroll = ScrollController();

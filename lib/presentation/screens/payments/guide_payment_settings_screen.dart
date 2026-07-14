@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
 import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
@@ -22,7 +23,8 @@ class GuidePaymentSettingsScreen extends StatefulWidget {
       _GuidePaymentSettingsScreenState();
 }
 
-class _GuidePaymentSettingsScreenState extends State<GuidePaymentSettingsScreen> {
+class _GuidePaymentSettingsScreenState extends State<GuidePaymentSettingsScreen>
+    with SecureScreenMixin {
   final _formKey = GlobalKey<FormState>();
   final _esewa = TextEditingController();
   final _khalti = TextEditingController();

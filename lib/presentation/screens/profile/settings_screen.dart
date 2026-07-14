@@ -183,7 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SettingsNavigationTile(
                     title: l10n.aboutSampada,
                     icon: Icons.info_outline,
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(context, AppStrings.aboutPath),
                   ),
 
                   const SizedBox(height: 24),

@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
 import 'package:sampada/presentation/screens/payments/payment_widgets.dart';
@@ -31,7 +32,8 @@ class PaymentReceiptScreen extends StatefulWidget {
   State<PaymentReceiptScreen> createState() => _PaymentReceiptScreenState();
 }
 
-class _PaymentReceiptScreenState extends State<PaymentReceiptScreen> {
+class _PaymentReceiptScreenState extends State<PaymentReceiptScreen>
+    with SecureScreenMixin {
   PaymentConfirmation? _payment;
   bool _loading = false;
   bool _downloading = false;

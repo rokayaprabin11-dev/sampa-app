@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,7 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
-import 'package:sampada/core/network/api_endpoints.dart';
+import 'package:sampada/core/services/cloudinary_uploader.dart';
+import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/injection.dart' as di;
 import 'package:sampada/providers/guide_payment_provider.dart';
@@ -21,7 +21,8 @@ class BecomeGuideScreen extends StatefulWidget {
   State<BecomeGuideScreen> createState() => _BecomeGuideScreenState();
 }
 
-class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
+class _BecomeGuideScreenState extends State<BecomeGuideScreen>
+    with SecureScreenMixin {
   int _step = 0;
 
   // Step 1 – Personal Details
@@ -114,41 +115,12 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen> {
     'Educational Tours': Icons.school_outlined,
   };
 
-  Future<String?> _uploadToCloudinary(XFile file, String folder) async {
-    final apiClient = di.sl<ApiClient>();
-    final sig = await apiClient.post(
-      ApiEndpoints.uploadSignature,
-      data: {'folder': folder},
-    ) as Map<String, dynamic>;
-
-    final bytes = await File(file.path).readAsBytes();
-    final ext   = file.name.split('.').last.toLowerCase();
-    final res   = await apiClient.dio.post<Map<String, dynamic>>(
-      'https://api.cloudinary.com/v1_1/${sig['cloud_name']}/image/upload',
-      data: {
-        'file':      'data:image/$ext;base64,${_b64(bytes)}',
-        'api_key':   sig['api_key'],
-        'timestamp': sig['timestamp'].toString(),
-        'signature': sig['signature'],
-        'folder':    sig['folder'],
-      },
-      options: Options(contentType: 'application/x-www-form-urlencoded'),
-    );
-    return res.data?['secure_url'] as String?;
-  }
-
-  String _b64(List<int> bytes) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-    final out = StringBuffer();
-    for (var i = 0; i < bytes.length; i += 3) {
-      final b0 = bytes[i], b1 = i + 1 < bytes.length ? bytes[i + 1] : 0, b2 = i + 2 < bytes.length ? bytes[i + 2] : 0;
-      out.write(chars[(b0 >> 2) & 0x3F]);
-      out.write(chars[((b0 << 4) | (b1 >> 4)) & 0x3F]);
-      out.write(i + 1 < bytes.length ? chars[((b1 << 2) | (b2 >> 6)) & 0x3F] : '=');
-      out.write(i + 2 < bytes.length ? chars[b2 & 0x3F] : '=');
-    }
-    return out.toString();
-  }
+  /// Uploads through the shared [CloudinaryUploader], which handles the signed
+  /// handshake — including the `authenticated` delivery type the server stamps
+  /// on the KYC folders (`sampada/guides/id`, `.../certs`), so ID documents are
+  /// stored privately rather than at a public URL.
+  Future<String?> _uploadToCloudinary(XFile file, String folder) =>
+      CloudinaryUploader(apiClient: di.sl<ApiClient>()).upload(file, folder);
 
   /// All language chips shown in step 1: the presets plus anything typed in.
   List<String> get _languageOptions => [..._allLanguages, ..._customLanguages];

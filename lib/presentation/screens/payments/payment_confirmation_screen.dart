@@ -8,6 +8,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/services/cloudinary_uploader.dart';
+import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/injection.dart' as di;
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
@@ -40,7 +41,8 @@ class PaymentConfirmationScreen extends StatefulWidget {
       _PaymentConfirmationScreenState();
 }
 
-class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
+class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen>
+    with SecureScreenMixin {
   final _formKey = GlobalKey<FormState>();
   final _referenceController = TextEditingController();
   final _notesController = TextEditingController();

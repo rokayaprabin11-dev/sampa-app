@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
 import 'package:sampada/presentation/screens/payments/payment_confirmation_screen.dart';
@@ -31,7 +32,7 @@ class PaymentScreen extends StatefulWidget {
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentScreenState extends State<PaymentScreen> {
+class _PaymentScreenState extends State<PaymentScreen> with SecureScreenMixin {
   Map<String, dynamic>? _booking;
   bool _loadingBooking = false;
   String? _bookingError;
@@ -261,25 +262,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (final destination in destinations.ordered)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PaymentDestinationTile(
-                  destination: destination,
-                  preferred: destination.method == destinations.preferred,
-                ),
-                if (destination.method != PaymentMethod.cash)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppDimensions.sp12),
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.open_in_new,
-                          size: AppDimensions.iconSm),
-                      label: Text('Open ${destination.method.label}'),
-                      onPressed: () => openWalletApp(context, destination.method),
-                    ),
-                  ),
-              ],
+            PaymentDestinationTile(
+              destination: destination,
+              preferred: destination.method == destinations.preferred,
             ),
+          // Copy the identifier, then pay from the wallet app itself. Sampada
+          // cannot open those apps reliably (they publish no documented deep
+          // link), and it starts no payment — it only records the one you make.
+          Text(
+            'Copy the ID above, open your wallet app, and send the amount. Come '
+            'back here afterwards to tell $guideName you have paid.',
+            style: t.bodySmall?.copyWith(color: bookingMuted(context)),
+          ),
+          const SizedBox(height: AppDimensions.sp12),
           if (destinations.notes.isNotEmpty) ...[
             const SizedBox(height: AppDimensions.sp4),
             Container(

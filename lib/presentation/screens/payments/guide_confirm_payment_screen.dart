@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/data/models/payment_model.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
 import 'package:sampada/presentation/screens/payments/payment_widgets.dart';
@@ -33,7 +34,8 @@ class GuideConfirmPaymentScreen extends StatefulWidget {
       _GuideConfirmPaymentScreenState();
 }
 
-class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen> {
+class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
+    with SecureScreenMixin {
   PaymentConfirmation? _payment;
   bool _loading = false;
   bool _working = false;

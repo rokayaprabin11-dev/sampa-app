@@ -28,6 +28,11 @@ class CloudinaryUploader {
 
     final bytes = await File(file.path).readAsBytes();
     final ext = file.name.split('.').last.toLowerCase();
+    // Sensitive folders (KYC, payment screenshots) come back with type
+    // 'authenticated' — the asset is then private and delivered via a signed
+    // URL. It has to be sent because the server folded it into the signature;
+    // public folders return an empty type and upload normally.
+    final deliveryType = '${signature['type'] ?? ''}';
     final response = await _api.dio.post<Map<String, dynamic>>(
       'https://api.cloudinary.com/v1_1/${signature['cloud_name']}/image/upload',
       data: {
@@ -38,6 +43,7 @@ class CloudinaryUploader {
         // The folder the *server* signed, not the one we asked for: they are the
         // same, but trusting the signed value is what makes that guaranteed.
         'folder': signature['folder'],
+        if (deliveryType.isNotEmpty) 'type': deliveryType,
       },
       options: Options(contentType: 'application/x-www-form-urlencoded'),
     );
