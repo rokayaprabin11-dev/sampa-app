@@ -58,11 +58,18 @@ class SampadaApp extends StatelessWidget {
       themeAnimationDuration: const Duration(milliseconds: 400),
       themeAnimationCurve: Curves.easeInOut,
       builder: (context, child) {
+        // Compose the in-app text-size preference WITH the device's accessibility
+        // font scale, rather than replacing it — a user who enlarges system fonts
+        // must still get bigger text here. Clamped to 2.0 so extreme scales don't
+        // shatter dense layouts (see the QA audit, H-1/H-3).
+        final systemScale = MediaQuery.textScalerOf(context).scale(1.0);
+        final scale =
+            (systemScale * textSizeProvider.textScaleFactor).clamp(0.85, 2.0);
         return Container(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: MediaQuery(
             data: MediaQuery.of(context).copyWith(
-              textScaler: TextScaler.linear(textSizeProvider.textScaleFactor),
+              textScaler: TextScaler.linear(scale),
             ),
             child: child!,
           ),

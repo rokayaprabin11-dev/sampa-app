@@ -129,7 +129,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: l10n.textSize,
                     icon: Icons.text_fields,
                     trailingText: textSizeProvider.getTextSizeLabel(context),
-                    onTap: () {},
+                    onTap: () =>
+                        _showTextSizeOptions(context, textSizeProvider),
                   ),
 
                   const SizedBox(height: 16),
@@ -236,6 +237,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain,
         ),
       ),
+    );
+  }
+
+  void _showTextSizeOptions(BuildContext context, TextSizeProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
+      ),
+      builder: (sheetContext) {
+        final l10n = AppLocalizations.of(sheetContext)!;
+        Widget option(TextSize size, String label, IconData icon) => ListTile(
+              leading: Icon(icon),
+              title: Text(label),
+              trailing: provider.textSize == size
+                  ? const Icon(Icons.check, color: AppColors.kColorPrimary)
+                  : null,
+              onTap: () {
+                provider.setTextSize(size);
+                Navigator.pop(sheetContext);
+              },
+            );
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  l10n.textSize,
+                  style:
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              option(TextSize.small, l10n.textSizeSmall, Icons.text_decrease),
+              option(TextSize.medium, l10n.textSizeMedium, Icons.text_fields),
+              option(TextSize.large, l10n.textSizeLarge, Icons.text_increase),
+              const SizedBox(height: AppDimensions.sp8),
+            ],
+          ),
+        );
+      },
     );
   }
 

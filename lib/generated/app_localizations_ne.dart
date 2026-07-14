@@ -574,6 +574,15 @@ class AppLocalizationsNe extends AppLocalizations {
   String get textSize => 'अक्षरको आकार';
 
   @override
+  String get textSizeSmall => 'सानो';
+
+  @override
+  String get textSizeMedium => 'मध्यम';
+
+  @override
+  String get textSizeLarge => 'ठूलो';
+
+  @override
   String get autoSync => 'अटो सिंक';
 
   @override

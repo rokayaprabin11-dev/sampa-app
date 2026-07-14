@@ -569,6 +569,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get textSize => 'Text Size';
 
   @override
+  String get textSizeSmall => 'Small';
+
+  @override
+  String get textSizeMedium => 'Medium';
+
+  @override
+  String get textSizeLarge => 'Large';
+
+  @override
   String get autoSync => 'Auto Sync';
 
   @override

@@ -43,6 +43,13 @@ import 'providers/guide_payment_provider.dart';
 import 'injection.dart' as di;
 
 void main() async {
+  // Silence every debugPrint in release. debugPrint — unlike assertions — is not
+  // stripped from a release build, so the app's ~80 diagnostic prints would run
+  // on production devices, costing log I/O and spilling internal detail into
+  // logcat. This one reassignment neutralises all of them at once.
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
   debugPrint('--- APP STARTING ---');
   WidgetsFlutterBinding.ensureInitialized();
 
