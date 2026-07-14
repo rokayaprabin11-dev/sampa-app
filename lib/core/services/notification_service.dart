@@ -297,7 +297,11 @@ class NotificationService {
     // them.
     final action = msg.data['action'] ?? '';
     final paymentId = msg.data['payment_id'] ?? '';
-    return '$type:$eventId:$siteSlug:$bookingId:$action:$paymentId';
+    // 'guide' or 'tourist' — the server tells us who this is for, so the tap
+    // routes to the right screen without the app guessing the recipient's role
+    // (which is unknowable when a notification cold-starts the app).
+    final audience = msg.data['audience'] ?? '';
+    return '$type:$eventId:$siteSlug:$bookingId:$action:$paymentId:$audience';
   }
 
   /// Whether the signed-in user is an approved guide. Read off the navigator's
@@ -386,9 +390,23 @@ class NotificationService {
           }
         }
 
-        _navigatorKey?.currentState?.pushNamed(
-          _isApprovedGuide() ? AppStrings.guideProfilePath : AppStrings.myBookingsPath,
-        );
+        // Route on the server-provided audience, NOT on a client-side role
+        // guess. A booking push can cold-start the app from a killed state, when
+        // the guide profile has not loaded yet — guessing then sent a guide's
+        // request to the tourist My Bookings screen. `_isApprovedGuide()` stays
+        // only as a fallback for legacy pushes with no audience field.
+        final audience = parts.length > 6 ? parts[6] : '';
+        final String bookingDest;
+        if (audience == 'guide') {
+          bookingDest = AppStrings.guideProfilePath;
+        } else if (audience == 'tourist') {
+          bookingDest = AppStrings.myBookingsPath;
+        } else {
+          bookingDest = _isApprovedGuide()
+              ? AppStrings.guideProfilePath
+              : AppStrings.myBookingsPath;
+        }
+        _navigatorKey?.currentState?.pushNamed(bookingDest);
         break;
       default:
         _navigatorKey?.currentState?.pushNamed(AppStrings.notificationsPath);

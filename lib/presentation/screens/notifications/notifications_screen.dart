@@ -238,7 +238,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
         }
 
-        final isGuide = context.read<GuideProvider>().myProfile?['status'] == 'approved';
+        // Route on the server-provided audience, not a role guess (see the
+        // notification service for why). Fallback to the guess only for legacy
+        // rows without an audience field.
+        final audience = '${n.data['audience'] ?? ''}';
+        final bool isGuide;
+        if (audience == 'guide') {
+          isGuide = true;
+        } else if (audience == 'tourist') {
+          isGuide = false;
+        } else {
+          isGuide = context.read<GuideProvider>().myProfile?['status'] == 'approved';
+        }
         Navigator.pushNamed(
           context,
           isGuide ? AppStrings.guideProfilePath : AppStrings.myBookingsPath,

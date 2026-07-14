@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- API 21+ launch window (the variant real devices use). Header-gradient
+     background + centred emblem, matching the Flutter splash. Regenerating
+     flutter_native_splash overwrites this — re-apply the gradient item after. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <bitmap android:gravity="fill" android:src="@drawable/background"/>
-    </item>
+    <item android:drawable="@drawable/splash_gradient"/>
     <item>
         <bitmap android:gravity="center" android:src="@drawable/splash"/>
     </item>

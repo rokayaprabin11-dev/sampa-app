@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Header-gradient background + centred emblem. Kept in sync with the Flutter
+     splash (AppTheme.navGradient). Regenerating flutter_native_splash overwrites
+     this file back to a flat @drawable/background — re-apply the gradient item
+     after running it. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <bitmap android:gravity="fill" android:src="@drawable/background"/>
-    </item>
+    <item android:drawable="@drawable/splash_gradient"/>
     <item>
         <bitmap android:gravity="center" android:src="@drawable/splash"/>
     </item>

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
@@ -10,6 +11,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sampada/data/datasources/local/secure_token_storage.dart';
 import 'network_exceptions.dart';
 import 'api_endpoints.dart';
+
+/// Temporary network diagnostics for debugging a release build in the field.
+/// Off by default; turn on for one build with:
+///   flutter build apk --release --dart-define=API_DIAGNOSTICS=true
+/// Then read it over USB with `flutter logs` or `adb logcat | grep API`.
+/// Uses `developer.log`, so it survives the release `debugPrint` silencing.
+/// Logs the base URL (catches a stray LAN/localhost dart-define) and the typed
+/// failure of every request (SocketException, timeout, TLS handshake, etc.).
+const bool _kApiDiagnostics = bool.fromEnvironment('API_DIAGNOSTICS');
+
+void _diag(String message) {
+  if (_kApiDiagnostics) developer.log(message, name: 'API');
+}
 
 // TTLs for cacheable endpoints
 const _ttlSiteList    = Duration(hours: 6);
@@ -44,6 +58,7 @@ class ApiClient {
   void Function()? onSessionExpired;
 
   ApiClient({required this.dio, required this.tokenStorage, this.onSessionExpired}) {
+    _diag('ApiClient baseUrl = ${ApiEndpoints.baseUrl}');
     _addPerformanceInterceptor();
     _addAuthInterceptor();
   }
@@ -142,37 +157,52 @@ class ApiClient {
   }
 
   void _addPerformanceInterceptor() {
-    final perf = FirebasePerformance.instance;
     final metrics = <RequestOptions, HttpMetric>{};
 
+    // CRITICAL: performance telemetry must NEVER block or fail the actual
+    // request. This is the first interceptor, so it gates every call. The old
+    // version awaited `metric.start()`/`stop()` with no try/catch — if the
+    // native Firebase Performance SDK threw (common on a device with degraded or
+    // absent Google Play Services, which is exactly why a release APK worked on
+    // the dev phone but "never connected" on another), the exception skipped
+    // `handler.next(...)` and silently dropped the request. Now every perf call
+    // is guarded and fire-and-forget, and `handler.next(...)` is ALWAYS reached.
     dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        final url = options.uri.toString();
-        final method = HttpMethod.values.firstWhere(
-          (m) => m.name == options.method.toUpperCase(),
-          orElse: () => HttpMethod.Get,
-        );
-        final metric = perf.newHttpMetric(url, method);
-        await metric.start();
-        metrics[options] = metric;
+      onRequest: (options, handler) {
+        try {
+          final url = options.uri.toString();
+          final method = HttpMethod.values.firstWhere(
+            (m) => m.name == options.method.toUpperCase(),
+            orElse: () => HttpMethod.Get,
+          );
+          final metric = FirebasePerformance.instance.newHttpMetric(url, method);
+          metric.start(); // not awaited — a hang here must not stall the request
+          metrics[options] = metric;
+        } catch (_) {
+          // Perf unavailable on this device/build — carry on without it.
+        }
         handler.next(options);
       },
-      onResponse: (response, handler) async {
-        final metric = metrics.remove(response.requestOptions);
-        if (metric != null) {
-          metric
-            ..responsePayloadSize = response.data.toString().length
-            ..httpResponseCode = response.statusCode;
-          await metric.stop();
-        }
+      onResponse: (response, handler) {
+        try {
+          final metric = metrics.remove(response.requestOptions);
+          if (metric != null) {
+            metric
+              ..responsePayloadSize = response.data.toString().length
+              ..httpResponseCode = response.statusCode;
+            metric.stop();
+          }
+        } catch (_) {}
         handler.next(response);
       },
-      onError: (e, handler) async {
-        final metric = metrics.remove(e.requestOptions);
-        if (metric != null) {
-          metric.httpResponseCode = e.response?.statusCode;
-          await metric.stop();
-        }
+      onError: (e, handler) {
+        try {
+          final metric = metrics.remove(e.requestOptions);
+          if (metric != null) {
+            metric.httpResponseCode = e.response?.statusCode;
+            metric.stop();
+          }
+        } catch (_) {}
         handler.next(e);
       },
     ));
@@ -342,6 +372,14 @@ class ApiClient {
   ServerException _handleDioError(DioException e) {
     String message = 'An unexpected error occurred';
     int? statusCode = e.response?.statusCode;
+
+    // Diagnostics: the request's full URL, Dio's failure type, and the
+    // underlying error. `e.error` is where a SocketException (DNS / no route),
+    // HandshakeException (TLS), or a native platform error actually shows up —
+    // exactly what distinguishes "wrong URL" from "no network" from "cert".
+    _diag('${e.requestOptions.method} ${e.requestOptions.uri} '
+        'FAILED type=${e.type} status=${e.response?.statusCode ?? "-"} '
+        'error=${e.error ?? e.message}');
 
     if (e.type == DioExceptionType.connectionTimeout) {
       message = 'Connection timeout';

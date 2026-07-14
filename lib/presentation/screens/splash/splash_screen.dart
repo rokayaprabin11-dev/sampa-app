@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/providers/auth_provider.dart';
@@ -266,10 +267,19 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildBackground() {
-    // Flat temple-red, identical to the native launch window (and to the
-    // Android 12 system splash, which only supports a solid colour). A gradient
-    // here would make the handoff from the native splash visibly change colour.
-    return const ColoredBox(color: AppColors.brownDeep);
+    // The app header's maroon→terracotta gradient (AppTheme.navGradient), so the
+    // splash wears the same skin as the rest of the app. The native launch
+    // window (pre-Android-12) paints the identical gradient; the Android 12
+    // system splash can only be a flat colour, so it uses this gradient's top
+    // maroon — the top edge still matches at the handoff.
+    // SizedBox.expand, not a bare DecoratedBox: a childless box takes the
+    // Stack's smallest constraint (zero) and paints nothing — expand forces it
+    // to fill.
+    return const SizedBox.expand(
+      child: DecoratedBox(
+        decoration: BoxDecoration(gradient: AppTheme.navGradient),
+      ),
+    );
   }
 }
 
