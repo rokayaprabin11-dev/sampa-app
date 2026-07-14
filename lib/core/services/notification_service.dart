@@ -69,10 +69,14 @@ class NotificationService {
   }
 
   Future<void> _setupFcm() async {
-    final settings = await _fcm.requestPermission(
-      alert: true, badge: true, sound: true,
-    );
-    if (settings.authorizationStatus == AuthorizationStatus.denied) return;
+    // NOTE: we do NOT request OS notification permission here. This runs at
+    // startup, and asking on Android 13+ threw the system permission dialog
+    // straight onto the splash screen before the user had seen anything. The
+    // prompt is deferred to [ensurePermissionPrompt], called in-context from the
+    // first Home screen. Everything below — listeners, token, device
+    // registration — works without display permission (it governs data delivery
+    // and topic reach; permission only gates whether a notification is shown),
+    // so setup proceeds unconditionally rather than aborting when undecided.
 
     // ── Register message listeners FIRST ──────────────────────────────────
     // These need no FCM token, so a token-registration failure (common on
@@ -138,6 +142,24 @@ class NotificationService {
     }
     debugPrint('NotificationService: FCM token unavailable after retries — '
         'onTokenRefresh will register the device if FCM recovers.');
+  }
+
+  /// Shows the OS notification-permission dialog once, at an in-context moment
+  /// (first Home entry) rather than on the splash. Guarded by a persisted flag,
+  /// so we ask at most once; after that the user manages it from system
+  /// settings. Skips the prompt entirely if the user has already turned the
+  /// in-app push switch off — no point asking the OS for something they opted
+  /// out of. Safe to call on every Home build.
+  Future<void> ensurePermissionPrompt() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(PrefsKeys.notifPermissionAsked) ?? false) return;
+      if (!await isPushEnabled()) return;
+      await _fcm.requestPermission(alert: true, badge: true, sound: true);
+      await prefs.setBool(PrefsKeys.notifPermissionAsked, true);
+    } catch (e) {
+      debugPrint('NotificationService: permission prompt failed: $e');
+    }
   }
 
   // ── Push master switch ────────────────────────────────────────────────────

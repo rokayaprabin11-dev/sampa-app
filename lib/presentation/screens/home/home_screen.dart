@@ -5,6 +5,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/services/location_service.dart';
+import 'package:sampada/core/services/notification_service.dart';
 import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
@@ -33,6 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<HeritageProvider>().fetchSites();
       context.read<EventProvider>().loadUpcomingEvents();
       _loadFeaturedSites();
+      // Ask for notification permission here — once, in context — rather than
+      // on the splash. No-ops after the first time and if push is off.
+      NotificationService().ensurePermissionPrompt();
     });
   }
 

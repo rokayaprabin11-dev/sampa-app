@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Temple-red brand colour (AppColors.kColorDeep / #5C1A0A). The native
+         launch window uses this so there is no white flash before Flutter's
+         maroon splash draws — the two are the same colour, so the handoff is
+         invisible. -->
+    <color name="splash_bg">#FF5C1A0A</color>
+</resources>

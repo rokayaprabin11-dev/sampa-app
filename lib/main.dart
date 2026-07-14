@@ -90,7 +90,9 @@ void main() async {
     debugPrint('--- Firebase initialization FAILED: $e ---');
   }
 
-  await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
+  // Fire-and-forget: nothing in the first frame depends on perf collection, so
+  // it must not sit on the startup path.
+  unawaited(FirebasePerformance.instance.setPerformanceCollectionEnabled(true));
 
   FirebaseAuth? firebaseAuth;
   try {
@@ -125,16 +127,23 @@ void main() async {
   NearbyService? nearbyService;
 
   if (!kIsWeb) {
-    try {
-      final notificationService = NotificationService();
-      await notificationService.initialize(
-        apiClient: apiClient,
-        dbHelper: dbHelper,
-        navigatorKey: navigatorKey,
-      );
-    } catch (e) {
-      debugPrint('--- Notification Service FAILED: $e ---');
-    }
+    // Do NOT await this. NotificationService.initialize fetches an FCM token
+    // with a retry-and-backoff loop (up to ~18s on a bad network) and touches
+    // several platform channels — awaiting it here held the very first frame
+    // hostage, which is the white screen before the splash. Kicked off
+    // concurrently instead; the token/registration landing a second or two
+    // after the UI is already up is exactly the right trade.
+    unawaited(() async {
+      try {
+        await NotificationService().initialize(
+          apiClient: apiClient,
+          dbHelper: dbHelper,
+          navigatorKey: navigatorKey,
+        );
+      } catch (e) {
+        debugPrint('--- Notification Service FAILED: $e ---');
+      }
+    }());
 
     nearbyService = NearbyService(apiClient: apiClient);
   }
