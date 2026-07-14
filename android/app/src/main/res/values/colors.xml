@@ -5,4 +5,5 @@
          maroon splash draws — the two are the same colour, so the handoff is
          invisible. -->
     <color name="splash_bg">#FF5C1A0A</color>
+	<color name="ic_launcher_background">#5C1A0A</color>
 </resources>

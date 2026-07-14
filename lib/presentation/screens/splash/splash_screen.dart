@@ -169,12 +169,11 @@ class _SplashScreenState extends State<SplashScreen>
     final isTablet = size.shortestSide >= 600;
     final isLargeTablet = size.shortestSide >= 900;
 
-    // Responsive sizing
-    final logoSize = isLargeTablet
-        ? 180.0
-        : isTablet
-        ? 150.0
-        : size.width * 0.5;
+    // The native launch splash renders the emblem at a fixed 135dp on every
+    // device (flutter_native_splash sizes it density-independently). The Flutter
+    // splash must show it at the SAME size, or the logo visibly resizes on the
+    // handoff — so this is a fixed 135, not a screen fraction.
+    const logoSize = 135.0;
     final titleFontSize = isLargeTablet
         ? 56.0
         : isTablet
@@ -267,21 +266,10 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildBackground() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          stops: [0.0, 0.35, 0.65, 1.0],
-          colors: [
-            AppColors.darkBrown,
-            Color(0xFF5C1200),
-            AppColors.brownDark,
-            AppColors.brownAccent,
-          ],
-        ),
-      ),
-    );
+    // Flat temple-red, identical to the native launch window (and to the
+    // Android 12 system splash, which only supports a solid colour). A gradient
+    // here would make the handoff from the native splash visibly change colour.
+    return const ColoredBox(color: AppColors.brownDeep);
   }
 }
 
@@ -294,39 +282,16 @@ class _LogoBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderWidth = size * 0.025;
-    return Container(
+    // The bare emblem, exactly as the native launch splash shows it
+    // (@drawable/splash is the same PNG, centred). No extra gold ring, shadow,
+    // or radial background — those would make the Flutter logo look different
+    // from the native one at the handoff. The emblem already carries its own
+    // gold border in the artwork.
+    return Image.asset(
+      'assets/images/Sampada-logo.png',
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: const Color(0xFFD4A017),
-          width: borderWidth,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD4A017).withValues(alpha: 0.3),
-            blurRadius: size * 0.15,
-            spreadRadius: size * 0.02,
-          ),
-        ],
-      ),
-      // Clip the emblem to a circle that fills exactly inside the gold border,
-      // and cover so it fills the ring with no gap.
-      child: ClipOval(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              colors: [Color(0xFF4A1A00), Color(0xFF1A0500)],
-            ),
-          ),
-          child: Image.asset(
-            'assets/images/Sampada-logo.png',
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
+      fit: BoxFit.contain,
     );
   }
 }

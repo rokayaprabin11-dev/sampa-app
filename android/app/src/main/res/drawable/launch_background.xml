@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Native launch window, shown while the process starts and behind Flutter
-     until its first frame. Maroon brand background + centred logo, matching the
-     Flutter splash exactly, so startup is one continuous screen instead of a
-     white flash. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/splash_bg" />
-
     <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/splash_logo" />
+        <bitmap android:gravity="fill" android:src="@drawable/background"/>
+    </item>
+    <item>
+        <bitmap android:gravity="center" android:src="@drawable/splash"/>
     </item>
 </layer-list>

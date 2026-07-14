@@ -59,6 +59,37 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.8
   freezed: ^3.2.5
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.3
+
+# Native launch splash. Run `dart run flutter_native_splash:create` after
+# changing these. Flat temple-red everywhere (Android 12's system splash only
+# supports a solid colour, so the Flutter splash matches it flat — no gradient),
+# emblem centred. Density buckets are generated correctly, unlike a hand-rolled
+# launch drawable. The Flutter splash draws the same emblem at the same size on
+# the same colour, so the native→Flutter handoff shows no jump.
+flutter_native_splash:
+  color: "#5C1A0A"
+  image: assets/images/Sampada-logo.png
+  android_12:
+    color: "#5C1A0A"
+    image: assets/icons/splash_android12.png
+  android_gravity: center
+  fullscreen: false
+
+# Launcher icon generation. Run `dart run flutter_launcher_icons` after changing
+# the source art. Legacy icon = the full circular emblem; the Android 8+ adaptive
+# icon is the padded emblem on the temple-red brand background, so it survives
+# every launcher mask (circle, squircle, rounded square) without cropping.
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/Sampada-logo.png"
+  adaptive_icon_background: "#5C1A0A"
+  # Full emblem — flutter_launcher_icons applies its own 16% safe-zone inset, so
+  # the foreground must NOT be pre-padded or the emblem ends up tiny.
+  adaptive_icon_foreground: "assets/images/Sampada-logo.png"
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true
