@@ -6,6 +6,7 @@ import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/providers/guide_provider.dart';
+import 'package:sampada/presentation/screens/bookings/live_tracking_screen.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
 import 'package:sampada/presentation/screens/guides/guide_edit_screen.dart';
 import 'package:sampada/presentation/screens/payments/guide_payment_settings_screen.dart';
@@ -326,6 +327,19 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             ),
           ),
           const SizedBox(width: 10),
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => LiveTrackingScreen(
+                    bookingId: id, otherPartyName: name),
+              ),
+            ),
+            icon: const Icon(Icons.my_location, size: 20),
+            tooltip: 'Live location',
+            visualDensity: VisualDensity.compact,
+          ),
+          const SizedBox(width: 4),
           awaitingTourist
               ? Row(
                   mainAxisSize: MainAxisSize.min,

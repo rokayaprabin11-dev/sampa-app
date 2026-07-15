@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
+import 'package:sampada/presentation/screens/bookings/live_tracking_screen.dart';
 import 'package:sampada/presentation/screens/guides/chat_screen.dart';
 import 'package:sampada/presentation/screens/guides/guide_detail_screen.dart';
 import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
@@ -621,6 +622,25 @@ class _GuideHeader extends StatelessWidget {
               ),
             ],
           ),
+          if ((booking['status'] ?? '').toString() == 'confirmed') ...[
+            const SizedBox(height: AppDimensions.sp8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LiveTrackingScreen(
+                      bookingId: booking['id'] as int,
+                      otherPartyName: _guideName,
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.my_location, size: AppDimensions.iconSm),
+                label: const Text('Live Location'),
+              ),
+            ),
+          ],
         ],
       ),
     );
