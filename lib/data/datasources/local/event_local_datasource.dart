@@ -34,6 +34,8 @@ class EventLocalDataSourceImpl implements EventLocalDataSource {
         descriptionNepali: (map['description_ne'] as String?) ?? '',
         startDate: DateTime.parse(map['event_date_ad'] as String),
         endDate: DateTime.parse(map['event_date_ad'] as String),
+        startTime: map['start_time'] as String?,
+        endTime: map['end_time'] as String?,
         latitude: 0.0,
         longitude: 0.0,
         locationName: (map['district'] as String?) ?? '',
@@ -62,6 +64,8 @@ class EventLocalDataSourceImpl implements EventLocalDataSource {
           'event_type': event.eventType,
           'event_date_ad': event.startDate.toIso8601String().split('T')[0],
           'event_date_bs': '',   // set by caller when available
+          'start_time': event.startTime,
+          'end_time': event.endTime,
           'district': event.locationName,
           'cached_at': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         },

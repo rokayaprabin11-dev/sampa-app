@@ -152,6 +152,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   const SizedBox(height: 16),
 
                   _infoRow(context, isDark, Icons.calendar_today_outlined, bsDate, adDate),
+                  if (e.timeLabel != null) ...[
+                    const SizedBox(height: 12),
+                    _infoRow(context, isDark, Icons.schedule_outlined, e.timeLabel!, null),
+                  ],
                   if (e.locationName.isNotEmpty || (e.latitude != 0.0 && e.longitude != 0.0)) ...[
                     const SizedBox(height: 12),
                     _infoRow(

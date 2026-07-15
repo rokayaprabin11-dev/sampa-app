@@ -14,6 +14,10 @@ class CulturalEvent extends Equatable {
   final String color;
   final DateTime startDate;
   final DateTime endDate;
+  /// Local (Asia/Kathmandu) wall-clock times, "HH:MM" or null. Kept as strings
+  /// rather than DateTime because the backend stores a time-of-day with no date.
+  final String? startTime;
+  final String? endTime;
   final double latitude;
   final double longitude;
   final String locationName;
@@ -38,6 +42,8 @@ class CulturalEvent extends Equatable {
     this.color = '',
     required this.startDate,
     required this.endDate,
+    this.startTime,
+    this.endTime,
     required this.latitude,
     required this.longitude,
     required this.locationName,
@@ -48,6 +54,27 @@ class CulturalEvent extends Equatable {
     this.seatsRemaining,
     this.isFull = false,
   });
+
+  /// A human label for the event time, e.g. "10:00 AM – 4:00 PM", "10:00 AM",
+  /// or null when no start time is set (an all-day event).
+  String? get timeLabel {
+    final start = _fmt(startTime);
+    if (start == null) return null;
+    final end = _fmt(endTime);
+    return end == null ? start : '$start – $end';
+  }
+
+  /// "HH:MM[:SS]" (24-h) → "H:MM AM/PM". Returns null for null/blank input.
+  static String? _fmt(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final parts = raw.split(':');
+    final h = int.tryParse(parts[0]);
+    final m = parts.length > 1 ? int.tryParse(parts[1]) : 0;
+    if (h == null || m == null) return null;
+    final period = h < 12 ? 'AM' : 'PM';
+    final h12 = h % 12 == 0 ? 12 : h % 12;
+    return '$h12:${m.toString().padLeft(2, '0')} $period';
+  }
 
   @override
   List<Object?> get props => [
@@ -64,6 +91,8 @@ class CulturalEvent extends Equatable {
         color,
         startDate,
         endDate,
+        startTime,
+        endTime,
         latitude,
         longitude,
         locationName,

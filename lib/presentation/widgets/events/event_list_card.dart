@@ -12,6 +12,9 @@ class EventListCard extends StatelessWidget {
   final String date;
   final String location;
 
+  /// "10:00 AM – 4:00 PM"; null hides the time line (all-day / no start time).
+  final String? time;
+
   /// Compact "1.2 km" chip; null hides it (no GPS fix or event lacks coords).
   final String? distance;
   final String tag;
@@ -24,6 +27,7 @@ class EventListCard extends StatelessWidget {
     required this.title,
     required this.date,
     required this.location,
+    this.time,
     required this.distance,
     required this.tag,
     this.imageUrl = '',
@@ -101,6 +105,28 @@ class EventListCard extends StatelessWidget {
                                 ? AppColors.textSecondary
                                 : AppColors.darkTextSecondary),
                       ),
+                      if (time != null) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(Icons.schedule,
+                                size: 12,
+                                color: isLight
+                                    ? AppColors.brownDark
+                                    : AppColors.goldMain),
+                            const SizedBox(width: 4),
+                            Text(
+                              time!,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isLight
+                                      ? AppColors.brownDark
+                                      : AppColors.goldMain),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (shortDescription.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(

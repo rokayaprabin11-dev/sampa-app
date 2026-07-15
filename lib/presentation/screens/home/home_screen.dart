@@ -410,6 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           title: event.title,
                           date: '${event.startDate.day} ${_getMonthName(event.startDate.month)} ${event.startDate.year}',
                           location: event.locationName,
+                          time: event.timeLabel,
                           distance: km == null ? null : GeoDistance.shortLabel(km),
                           tag: event.eventType,
                           imageUrl: event.imageUrl,

@@ -6,7 +6,9 @@ import 'package:sqflite/sqflite.dart';
 // crash was caught, so tables after the FTS virtual table (local_notifications,
 // sync_queue, …) could be missing. Bumping the version reruns _onCreate via
 // _onUpgrade with the FTS-safe fallback so all tables exist.
-const int _kDbVersion = 8;
+// v9: local_events gains start_time / end_time so offline event cards can show
+// the event time, matching the online cards.
+const int _kDbVersion = 9;
 const String _kDbName = 'sampada.db';
 
 class DatabaseHelper {
@@ -146,6 +148,8 @@ class DatabaseHelper {
         event_type      TEXT,
         event_date_ad   TEXT    NOT NULL,
         event_date_bs   TEXT    NOT NULL,
+        start_time      TEXT,
+        end_time        TEXT,
         is_recurring    INTEGER NOT NULL DEFAULT 0,
         district        TEXT,
         cover_image_url TEXT,

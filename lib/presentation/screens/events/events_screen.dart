@@ -170,6 +170,7 @@ class _EventSection extends StatelessWidget {
                 title: event.title,
                 date: formatDate(event.startDate),
                 location: event.locationName,
+                time: event.timeLabel,
                 distance: km == null ? null : GeoDistance.shortLabel(km),
                 tag: event.eventType,
                 imageUrl: event.imageUrl,
