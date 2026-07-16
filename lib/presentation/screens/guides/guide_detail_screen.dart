@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/providers/auth_provider.dart';
 import 'package:sampada/providers/guide_provider.dart';
@@ -163,11 +164,6 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
     final isSelf = myProfile != null && myProfile['id'] != null && myProfile['id'] == guide['id'];
     final hasPending = guide['id'] is int && gp.hasPendingWith(guide['id'] as int);
 
-    final bgGradient = [
-      isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
-      isDark ? AppColors.brownDark : const Color(0xFF9E3D1A),
-    ];
-
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
@@ -176,19 +172,17 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
-            backgroundColor: bgGradient.first,
+            // Same terracotta gradient as the rest of the app (Settings, About,
+            // Help, guide dashboard) — collapsed bar takes the gradient's deep start.
+            backgroundColor: AppColors.kColorDeep,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: bgGradient,
-                  ),
+                decoration: const BoxDecoration(
+                  gradient: AppTheme.navGradient,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

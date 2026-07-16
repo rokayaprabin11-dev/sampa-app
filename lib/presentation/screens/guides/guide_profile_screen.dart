@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:sampada/presentation/screens/bookings/live_tracking_screen.dart';
@@ -29,6 +30,21 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   bool _bookingNotifications = true;
   bool _autoAccept = false;
   bool _settingsSynced = false;
+
+  // Tour history renders a scrollable window of this many cards; the rest scroll
+  // inside it. Approx card height sizes the window to ~4 cards.
+  static const int _kHistoryVisible = 4;
+  static const double _kHistoryCardApprox = 100;
+
+  // The page's own scroll. Held so the tour-history inner list can hand its
+  // overscroll back to the page when it reaches its top/bottom edge.
+  final ScrollController _pageScroll = ScrollController();
+
+  @override
+  void dispose() {
+    _pageScroll.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -80,6 +96,7 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           else
             Expanded(
               child: SingleChildScrollView(
+                controller: _pageScroll,
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -636,11 +653,41 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                       : const Color(0xFF8C7162)),
             ),
           )
+        else if (history.length <= _kHistoryVisible)
+          // Few enough to show inline — no inner scroll needed.
+          ...history.map((b) => _historyCard(context, isDark, b))
         else
-          ...history.map((b) => _historyCard(context, isDark, b)),
+          // Show a window of ~4 cards and scroll within for the rest, so a long
+          // history doesn't push the settings/earnings sections far down the page.
+          // Once the inner list hits its top/bottom, its overscroll is handed to
+          // the page so one continuous drag keeps scrolling the profile.
+          NotificationListener<OverscrollNotification>(
+            onNotification: _handleHistoryOverscroll,
+            child: SizedBox(
+              height: _kHistoryCardApprox * _kHistoryVisible,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                physics: const ClampingScrollPhysics(),
+                itemCount: history.length,
+                itemBuilder: (_, i) => _historyCard(context, isDark, history[i]),
+              ),
+            ),
+          ),
         const SizedBox(height: 24),
       ],
     );
+  }
+
+  /// Hand the inner history list's edge overscroll to the page: scroll the
+  /// profile by the leftover delta so one continuous drag flows from the list
+  /// into the page once the list can't move further.
+  bool _handleHistoryOverscroll(OverscrollNotification n) {
+    if (!_pageScroll.hasClients) return false;
+    final pos = _pageScroll.position;
+    final target = (_pageScroll.offset + n.overscroll)
+        .clamp(pos.minScrollExtent, pos.maxScrollExtent);
+    if (target != _pageScroll.offset) _pageScroll.jumpTo(target);
+    return true;
   }
 
   Widget _historyCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
@@ -662,7 +709,9 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       if (group > 1) '$group people',
     ].join(' · ');
 
-    return Container(
+    return GestureDetector(
+      onTap: () => _showHistoryDetail(context, isDark, b),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -697,6 +746,9 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                         fontWeight: FontWeight.bold,
                         color: statusFg)),
               ),
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right, size: 16,
+                  color: isDark ? AppColors.darkTextSecondary : const Color(0xFFB0A090)),
             ],
           ),
           const SizedBox(height: 6),
@@ -770,6 +822,246 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           ],
         ],
       ),
+      ),
+    );
+  }
+
+  // ─── Tour detail sheet ────────────────────────────────────────
+
+  /// Full detail of a completed/cancelled tour, opened by tapping a history
+  /// card. Shows everything the summary card omits — exact time, package,
+  /// group size, payment status, receipt, the tourist's review and per-category
+  /// scores, and the guide's own reply.
+  void _showHistoryDetail(BuildContext context, bool isDark, Map<String, dynamic> b) {
+    String t(dynamic v) => (v ?? '').toString().length >= 5
+        ? v.toString().substring(0, 5)
+        : (v ?? '').toString();
+
+    final name = (b['tourist_name'] ?? 'Tourist').toString();
+    final completed = b['status'] == 'completed';
+    final start = t(b['start_time']);
+    final end = t(b['end_time']);
+    final pkg = (b['package_label'] ?? '').toString();
+    final group = int.tryParse('${b['group_size'] ?? 1}') ?? 1;
+    final price = b['total_price'];
+    final payStatus = (b['payment_status'] ?? '').toString();
+    final receipt = (b['receipt_no'] ?? '').toString();
+    final rating = b['review_rating'];
+    final reviewText = (b['review_text'] ?? '').toString();
+    final guideReply = (b['guide_reply'] ?? '').toString();
+    final notes = (b['notes'] ?? '').toString();
+
+    final categories = <String, dynamic>{
+      'Knowledge': b['review_knowledge'],
+      'Communication': b['review_communication'],
+      'Friendliness': b['review_friendliness'],
+      'Punctuality': b['review_punctuality'],
+      'Value': b['review_value'],
+    }..removeWhere((_, v) => v is! num);
+
+    final statusBg = completed
+        ? AppColors.statusInfo.withValues(alpha: 0.12)
+        : AppColors.statusError.withValues(alpha: 0.10);
+    final statusFg = completed ? AppColors.statusInfo : AppColors.statusError;
+    final muted = isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final onSurface = Theme.of(ctx).colorScheme.onSurface;
+        return Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.85),
+          decoration: BoxDecoration(
+            color: Theme.of(ctx).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppDimensions.kRadiusXxl)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 10),
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                    color: muted.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2)),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold, color: onSurface)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                          color: statusBg,
+                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+                      child: Text(completed ? 'Completed' : 'Cancelled',
+                          style: TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.bold, color: statusFg)),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _detailRow(context, isDark, 'Date', '${b['date'] ?? '—'}'),
+                      if (start.isNotEmpty || end.isNotEmpty)
+                        _detailRow(context, isDark, 'Time', '$start – $end'),
+                      _detailRow(context, isDark, 'Package', pkg.isNotEmpty ? pkg : 'Hourly'),
+                      _detailRow(context, isDark, 'Group size',
+                          group > 1 ? '$group people' : '1 person'),
+                      if (price != null)
+                        _detailRow(context, isDark, 'Price', 'NPR $price'),
+                      if (completed && payStatus.isNotEmpty)
+                        _detailRow(context, isDark, 'Payment',
+                            _prettyPayment(payStatus),
+                            valueColor: payStatus == 'paid'
+                                ? AppColors.kColorOfflineText
+                                : AppColors.kColorPendingText),
+                      if (receipt.isNotEmpty)
+                        _detailRow(context, isDark, 'Receipt', receipt),
+                      if (notes.isNotEmpty)
+                        _detailRow(context, isDark, 'Notes', notes),
+
+                      // Review
+                      if (rating is num) ...[
+                        const SizedBox(height: 14),
+                        Text('TOURIST REVIEW',
+                            style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.8,
+                                color: muted)),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            ...List.generate(5, (i) => Icon(
+                                  i < rating.round()
+                                      ? Icons.star_rounded
+                                      : Icons.star_outline_rounded,
+                                  size: 18,
+                                  color: AppColors.kColorAccentLight,
+                                )),
+                            const SizedBox(width: 8),
+                            Text(rating.toStringAsFixed(1),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: onSurface)),
+                          ],
+                        ),
+                        if (reviewText.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(reviewText,
+                              style: TextStyle(fontSize: 13, height: 1.5, color: onSurface)),
+                        ],
+                        if (categories.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          for (final e in categories.entries)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 120,
+                                    child: Text(e.key,
+                                        style: TextStyle(fontSize: 12.5, color: muted)),
+                                  ),
+                                  ...List.generate(5, (i) => Icon(
+                                        i < (e.value as num).round()
+                                            ? Icons.star_rounded
+                                            : Icons.star_outline_rounded,
+                                        size: 13,
+                                        color: AppColors.kColorAccentLight,
+                                      )),
+                                ],
+                              ),
+                            ),
+                        ],
+                        if (guideReply.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkBgCard : const Color(0xFFFBF6EC),
+                              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Your reply',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: muted)),
+                                const SizedBox(height: 4),
+                                Text(guideReply,
+                                    style: TextStyle(fontSize: 13, height: 1.5, color: onSurface)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _prettyPayment(String status) {
+    switch (status) {
+      case 'paid':
+        return 'Paid';
+      case 'due':
+        return 'Due';
+      case 'submitted':
+        return 'Awaiting your confirmation';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return status.isEmpty ? '—' : status[0].toUpperCase() + status.substring(1);
+    }
+  }
+
+  Widget _detailRow(BuildContext context, bool isDark, String label, String value,
+      {Color? valueColor}) {
+    final muted = isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 96,
+            child: Text(label, style: TextStyle(fontSize: 12.5, color: muted)),
+          ),
+          Expanded(
+            child: Text(value,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: valueColor ?? Theme.of(context).colorScheme.onSurface)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -778,16 +1070,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isDark
-              ? const [AppColors.brownDeep, AppColors.brownDark]
-              : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
-          stops: isDark ? null : const [0.0, 0.6, 1.0],
-        ),
-        borderRadius: const BorderRadius.only(
+      decoration: const BoxDecoration(
+        // Same terracotta gradient as Settings/About/Help — the app's signature
+        // header, fixed across light and dark so every screen reads the same.
+        gradient: AppTheme.navGradient,
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
           bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
         ),

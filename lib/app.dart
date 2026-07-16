@@ -15,6 +15,7 @@ import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/register_screen.dart';
 import 'presentation/screens/profile/about_screen.dart';
+import 'presentation/screens/help/help_center_screen.dart';
 import 'presentation/screens/profile/profile_screen.dart';
 import 'presentation/screens/profile/settings_screen.dart';
 import 'presentation/screens/profile/account_settings_screen.dart';
@@ -128,6 +129,7 @@ class SampadaApp extends StatelessWidget {
         AppStrings.myBookingsPath: (context) => const MyBookingsScreen(),
         AppStrings.messagesPath: (context) => const MessagesScreen(),
         AppStrings.aboutPath: (context) => const AboutScreen(),
+        AppStrings.helpCenterPath: (context) => const HelpCenterScreen(),
         ...policyRoutes,
       },
     );
