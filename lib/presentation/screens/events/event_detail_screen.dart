@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
@@ -41,10 +42,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     'बैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'असोज',
     'कार्तिक', 'मंसिर', 'पुष', 'माघ', 'फागुन', 'चैत',
   ];
-  static const _adMonths = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -63,7 +60,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return out;
   }
 
-  String _ad(DateTime d) => '${d.day} ${_adMonths[d.month - 1]} ${d.year}';
+  /// AD date with locale-aware month names — "३० अक्टोबर" in Nepali, not a
+  /// hardcoded English array.
+  String _ad(BuildContext context, DateTime d) =>
+      DateFormat('d MMM yyyy', Localizations.localeOf(context).toString())
+          .format(d);
 
   String _bs(DateTime d) {
     final b = d.toNepaliDateTime();
@@ -74,14 +75,17 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final e = widget.event;
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final np = Localizations.localeOf(context).languageCode == 'ne';
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final catColor = parseHexColor(e.color) ?? accent;
     final images = _images;
 
     final sameDay = e.startDate.year == e.endDate.year &&
         e.startDate.month == e.endDate.month &&
         e.startDate.day == e.endDate.day;
-    final adDate = sameDay ? _ad(e.startDate) : '${_ad(e.startDate)} – ${_ad(e.endDate)}';
+    final adDate = sameDay
+        ? _ad(context, e.startDate)
+        : '${_ad(context, e.startDate)} – ${_ad(context, e.endDate)}';
     final bsDate = sameDay ? _bs(e.startDate) : '${_bs(e.startDate)} – ${_bs(e.endDate)}';
 
     return Scaffold(
@@ -91,7 +95,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           SliverAppBar(
             expandedHeight: 260,
             pinned: true,
-            backgroundColor: isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
+            backgroundColor: isDark ? AppColors.brownDeep : AppColors.kColorDeep,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
@@ -146,12 +150,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   const SizedBox(height: 12),
 
                   Text(
-                    e.title,
+                    e.localizedTitle(np),
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, height: 1.2),
                   ),
                   const SizedBox(height: 16),
 
-                  _infoRow(context, isDark, Icons.calendar_today_outlined, bsDate, adDate),
+                  _dateRow(context, isDark, bsDate, adDate),
                   if (e.timeLabel != null) ...[
                     const SizedBox(height: 12),
                     _infoRow(context, isDark, Icons.schedule_outlined, e.timeLabel!, null),
@@ -171,28 +175,28 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     _viewOnMapButton(context, isDark, accent),
                   ],
 
-                  if (e.shortDescription.isNotEmpty) ...[
+                  if (e.localizedShortDescription(np).isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkBgCard : const Color(0xFFFBF6EC),
+                        color: isDark ? AppColors.darkBgCard : AppColors.kColorSurface,
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
                       ),
                       child: Text(
-                        e.shortDescription,
+                        e.localizedShortDescription(np),
                         style: TextStyle(fontSize: 14, height: 1.5, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface),
                       ),
                     ),
                   ],
 
-                  if (e.description.isNotEmpty) ...[
+                  if (e.localizedDescription(np).isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Text(AppLocalizations.of(context)!.labelAbout, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accent)),
                     const SizedBox(height: 8),
                     Text(
-                      e.description,
+                      e.localizedDescription(np),
                       style: TextStyle(fontSize: 14, height: 1.6, color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                     ),
                   ],
@@ -213,8 +217,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             url: images[i], width: 120, height: 90, fit: BoxFit.cover,
                             errorWidget: Container(
                               width: 120, height: 90,
-                              color: isDark ? AppColors.darkBgCard : const Color(0xFFF0EAE4),
-                              child: Icon(Icons.image_not_supported_outlined, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+                              color: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
+                              child: Icon(Icons.image_not_supported_outlined, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
                             ),
                           ),
                         ),
@@ -236,8 +240,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
-        isDark ? AppColors.brownDark : const Color(0xFF9E3D1A),
+        isDark ? AppColors.brownDeep : AppColors.kColorDeep,
+        isDark ? AppColors.brownDark : AppColors.kColorPrimaryMid,
       ],
     );
     if (images.isEmpty) {
@@ -326,8 +330,75 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
+  /// The dual-calendar row. Each line carries a small वि.सं./ई.सं. tag so
+  /// nobody has to guess which date system they are reading — the stacked
+  /// Devanagari-over-Latin pair alone is opaque to visitors.
+  Widget _dateRow(BuildContext context, bool isDark, String bsDate, String adDate) {
+    final l10n = AppLocalizations.of(context)!;
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
+
+    Widget calTag(String label) => Container(
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: (isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)
+                .withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe,
+            ),
+          ),
+        );
+
+    Widget line(String tag, String value, TextStyle? style) => Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            calTag(tag),
+            Expanded(child: Text(value, style: style)),
+          ],
+        );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.calendar_today_outlined, size: 18, color: accent),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              line(
+                l10n.calendarBsLabel,
+                bsDate,
+                TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface),
+              ),
+              const SizedBox(height: 4),
+              line(
+                l10n.calendarAdLabel,
+                adDate,
+                TextStyle(
+                    fontSize: 12,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _infoRow(BuildContext context, bool isDark, IconData icon, String primary, String? secondary) {
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

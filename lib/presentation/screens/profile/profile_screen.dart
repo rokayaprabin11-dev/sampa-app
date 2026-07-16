@@ -63,9 +63,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0xFF5C1A0A), // header gradient start
-                        Color(0xFFA83210), // header mid
-                        Color(0xFFC8501A), // header end (bright orange)
+                        AppColors.kColorDeep, // header gradient start
+                        AppColors.kColorPrimaryMid, // header mid
+                        AppColors.kColorPrimary, // header end (bright orange)
                       ],
                       stops: [0.0, 0.6, 1.0],
                     ),
@@ -111,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFC89932),
+                      color: AppColors.kColorAccentLight,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
                     ),
@@ -145,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               user?.email ?? 'prabin@example.com',
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary,
+                color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
               ),
             ),
 
@@ -159,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-                  border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
+                  border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
                 ),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 350),
@@ -222,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 alignment: Alignment.center,
                                 child: const Text(
                                   'No visited sites yet',
-                                  style: TextStyle(color: Color(0xFF8C7162), fontSize: 13),
+                                  style: TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
                                 ),
                               )
                             : Column(
@@ -272,7 +272,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(l10n.langEngShort, style: const TextStyle(fontSize: 14, color: Color(0xFF8C7162))),
+                        Text(l10n.langEngShort, style: const TextStyle(fontSize: 14, color: AppColors.kColorTextMuted)),
                         const SizedBox(width: 8),
                         SizedBox(
                           height: 30,
@@ -283,13 +283,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               localeProvider.setLocale(Locale(val ? 'ne' : 'en'));
                             },
                             activeThumbColor: Colors.white,
-                            activeTrackColor: const Color(0xFF3DA35D), // Green from image
+                            activeTrackColor: AppColors.kColorOnlineDot, // Green from image
                             inactiveThumbColor: Colors.white,
                             inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(l10n.langNepShort, style: const TextStyle(fontSize: 14, color: Color(0xFF8C7162))),
+                        Text(l10n.langNepShort, style: const TextStyle(fontSize: 14, color: AppColors.kColorTextMuted)),
                       ],
                     ),
                   ),
@@ -301,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                     icon: Icons.bookmark_border_rounded,
                     title: l10n.bookmarks,
-                    trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
                     onTap: () => Navigator.pushNamed(context, AppStrings.savedSitesPath),
                   ),
 
@@ -315,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context,
                       icon: Icons.event_note_outlined,
                       title: 'My Bookings',
-                      trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
                       onTap: () => Navigator.pushNamed(context, AppStrings.myBookingsPath),
                     ),
                     const SizedBox(height: 12),
@@ -327,7 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context,
                       icon: Icons.receipt_long_outlined,
                       title: 'My Payments',
-                      trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -338,18 +338,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Messages — both sides of a booking talk here, so this tile is
-                  // for everyone; the inbox itself merges the conversations the
-                  // user has as a tourist and as a guide.
-                  _buildAccountTile(
-                    context,
-                    icon: Icons.forum_outlined,
-                    title: 'Messages',
-                    trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
-                    onTap: () => Navigator.pushNamed(context, AppStrings.messagesPath),
-                  ),
-
-                  const SizedBox(height: 12),
+                  // Messages lives in the Guides screen header instead — both
+                  // sides of a booking reach the same inbox from there, so a
+                  // duplicate tile here bought nothing.
 
                   // Be a Guide / Guide Profile Tile — swaps once the guide
                   // application has been approved.
@@ -357,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                     icon: isApprovedGuide ? Icons.badge_outlined : Icons.tour_outlined,
                     title: isApprovedGuide ? 'Guide Profile' : 'Be a Guide',
-                    trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF8C7162)),
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
                     onTap: () => Navigator.pushNamed(
                       context,
                       isApprovedGuide ? AppStrings.guideProfilePath : AppStrings.becomeGuidePath,
@@ -400,7 +391,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary,
+            color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
           ),
         ),
       ],
@@ -421,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
+          border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
         ),
         child: Row(
           children: [
@@ -429,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF3A241C) : AppColors.darkBgCard,
+                color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBrownDarkest : AppColors.darkBgCard,
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? Colors.white : AppColors.goldMain, size: 18),

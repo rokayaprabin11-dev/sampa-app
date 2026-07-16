@@ -13,7 +13,7 @@ class GuideTermsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.brownDeep : const Color(0xFF5D1700),
+        backgroundColor: isDark ? AppColors.brownDeep : AppColors.kColorDeep,
         foregroundColor: Colors.white,
         title: const Text('Guide Terms & Code of Conduct', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         leading: IconButton(
@@ -107,19 +107,19 @@ class GuideTermsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+                color: isDark ? AppColors.darkBgCard : AppColors.kColorBorderCream,
                 borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
                 border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorAccentPale),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 20),
+                  Icon(Icons.info_outline, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Questions? Contact us at guides@sampada.app or through the Help section in your profile.',
-                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : const Color(0xFF7B1E00)),
+                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorDeep),
                     ),
                   ),
                 ],
@@ -135,7 +135,7 @@ class GuideTermsScreen extends StatelessWidget {
 
   Widget _header(bool isDark, String text) => Text(
     text,
-    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
   );
 
   Widget _subtitle(bool isDark, String text) => Padding(
@@ -145,7 +145,7 @@ class GuideTermsScreen extends StatelessWidget {
 
   Widget _section(bool isDark, String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(text, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF5D1700))),
+    child: Text(text, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorDeep)),
   );
 
   Widget _para(ColorScheme cs, String text) => Padding(

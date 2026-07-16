@@ -5,6 +5,7 @@ import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
 import 'package:sampada/core/services/chat_service.dart';
 import 'package:sampada/core/services/secure_screen.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/injection.dart' as di;
 import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -43,7 +44,8 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
 
   /// The title: whatever the caller passed, else whatever the channel told us,
   /// else a neutral placeholder while that is in flight.
-  String get _title => widget.otherPartyName ?? _resolvedName ?? 'Chat';
+  String _title(AppLocalizations l10n) =>
+      widget.otherPartyName ?? _resolvedName ?? l10n.chatTitle;
 
   /// Ring the other party on the number they gave. Guides supply one when they
   /// apply; tourists are never asked for one, so this is often absent — and the
@@ -54,6 +56,7 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
 
     final uri = Uri(scheme: 'tel', path: phone);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
     try {
       final launched = await launchUrl(uri);
       if (!launched) throw Exception('no dialer');
@@ -63,9 +66,9 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Could not open the dialer. $_title: $phone'),
+          content: Text(l10n.couldNotOpenDialer(_title(l10n), phone)),
           action: SnackBarAction(
-            label: 'Copy',
+            label: l10n.btnCopy,
             onPressed: () => Clipboard.setData(ClipboardData(text: phone)),
           ),
         ),
@@ -126,7 +129,10 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
         // Put the text back rather than losing what they typed.
         _composer.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not send: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.couldNotSend('$e')),
+            backgroundColor: AppColors.statusError,
+          ),
         );
       }
     } finally {
@@ -137,17 +143,18 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     final canCall = _channel?.canCall ?? false;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: SampadaAppBar(
-        title: Text(_title),
+        title: Text(_title(l10n)),
         actions: [
           if (canCall)
             IconButton(
-              tooltip: 'Call $_title',
+              tooltip: l10n.callTooltip(_title(l10n)),
               icon: const Icon(Icons.call),
               onPressed: _call,
             ),
@@ -175,10 +182,10 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.lock_outline, size: 56, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+          Icon(Icons.lock_outline, size: 56, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
           const SizedBox(height: 16),
           Text(
-            'Chat opens once the guide accepts your booking.',
+            AppLocalizations.of(context)!.chatOpensOnceAccepted,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -203,8 +210,8 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
         if (messages.isEmpty) {
           return Center(
             child: Text(
-              'Say hello 👋',
-              style: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+              AppLocalizations.of(context)!.sayHello,
+              style: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
             ),
           );
         }
@@ -227,8 +234,9 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
   }
 
   Widget _bubble(BuildContext context, bool isDark, ChatMessage message, {required bool mine}) {
-    final mineBg = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
-    final theirsBg = isDark ? AppColors.darkBgCard : const Color(0xFFF0EAE4);
+    final t = Theme.of(context).textTheme;
+    final mineBg = isDark ? AppColors.goldMain : AppColors.kColorDeep;
+    final theirsBg = isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm;
 
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
@@ -250,7 +258,9 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
           children: [
             Text(
               message.text,
-              style: TextStyle(
+              // Theme style, so chats get Crimson Pro + the Devanagari
+              // fallback — messages are exactly where Nepali shows up.
+              style: t.bodyMedium?.copyWith(
                 fontSize: 14,
                 height: 1.35,
                 color: mine
@@ -263,12 +273,14 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _timeLabel(message),
-                  style: TextStyle(
-                    fontSize: 9,
+                  _timeLabel(context, message),
+                  // Was a raw 9px TextStyle — unreadably small and outside
+                  // the type scale.
+                  style: t.bodySmall?.copyWith(
+                    fontSize: 11,
                     color: mine
                         ? (isDark ? Colors.black54 : Colors.white70)
-                        : (isDark ? AppColors.darkTextTertiary : Colors.grey),
+                        : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
                   ),
                 ),
                 if (mine) ...[
@@ -290,9 +302,10 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
     );
   }
 
-  String _timeLabel(ChatMessage message) {
+  String _timeLabel(BuildContext context, ChatMessage message) {
     final at = message.sentAt;
-    if (at == null) return 'sending…'; // server timestamp not yet resolved
+    // Server timestamp not yet resolved.
+    if (at == null) return AppLocalizations.of(context)!.sendingLabel;
     final local = at.toLocal();
     final h = local.hour.toString().padLeft(2, '0');
     final m = local.minute.toString().padLeft(2, '0');
@@ -307,9 +320,9 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        color: isDark ? AppColors.darkBgCard : const Color(0xFFF0EAE4),
+        color: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
         child: Text(
-          'This conversation is closed.',
+          AppLocalizations.of(context)!.conversationClosed,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
@@ -340,10 +353,10 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
                 textCapitalization: TextCapitalization.sentences,
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
                 decoration: InputDecoration(
-                  hintText: 'Message…',
+                  hintText: AppLocalizations.of(context)!.messageHint,
                   counterText: '',
                   filled: true,
-                  fillColor: isDark ? AppColors.darkBgCard : const Color(0xFFF7F3EF),
+                  fillColor: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
@@ -353,21 +366,21 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
               ),
             ),
             const SizedBox(width: 8),
-            Material(
-              color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
-              shape: const CircleBorder(),
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: _sending ? null : _send,
-                child: SizedBox(
-                  width: 44, height: 44,
-                  child: Icon(
-                    Icons.send,
-                    size: 18,
-                    color: isDark ? Colors.black : Colors.white,
-                  ),
-                ),
+            // IconButton: 48dp target, a tooltip, and a semantics label — the
+            // bare Material/InkWell at 44dp had none of those.
+            IconButton(
+              tooltip: AppLocalizations.of(context)!.sendMessageTooltip,
+              onPressed: _sending ? null : _send,
+              style: IconButton.styleFrom(
+                backgroundColor: isDark ? AppColors.goldMain : AppColors.kColorDeep,
+                disabledBackgroundColor:
+                    (isDark ? AppColors.goldMain : AppColors.kColorDeep)
+                        .withValues(alpha: 0.5),
+                foregroundColor: isDark ? Colors.black : Colors.white,
+                minimumSize: const Size(48, 48),
+                shape: const CircleBorder(),
               ),
+              icon: const Icon(Icons.send, size: 18),
             ),
           ],
         ),

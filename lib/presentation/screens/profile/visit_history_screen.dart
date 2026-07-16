@@ -41,9 +41,9 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF5C1A0A),
-                  Color(0xFFA83210),
-                  Color(0xFFC8501A),
+                  AppColors.kColorDeep,
+                  AppColors.kColorPrimaryMid,
+                  AppColors.kColorPrimary,
                 ],
                 stops: [0.0, 0.6, 1.0],
               ),
@@ -180,7 +180,7 @@ class _VisitHistoryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: Theme.of(context).brightness == Brightness.light
-                ? const Color(0xFFF7EED3)
+                ? AppColors.kColorBorderCream
                 : AppColors.darkBorder,
           ),
         ),
@@ -196,8 +196,8 @@ class _VisitHistoryCard extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF5D1700),
-                    Color(0xFF9E3D1A),
+                    AppColors.kColorDeep,
+                    AppColors.kColorPrimaryMid,
                   ],
                 ),
                 borderRadius: BorderRadius.only(
@@ -237,11 +237,11 @@ class _VisitHistoryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Color(0xFF8C7162)),
+                        const Icon(Icons.location_on, size: 14, color: AppColors.kColorTextMuted),
                         const SizedBox(width: 4),
                         Text(
                           location,
-                          style: const TextStyle(color: Color(0xFF8C7162), fontSize: 13),
+                          style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
                         ),
                       ],
                     ),
@@ -254,13 +254,13 @@ class _VisitHistoryCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFC89932).withValues(alpha: 0.2),
+                  color: AppColors.kColorAccentLight.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                 ),
                 child: Text(
                   category,
                   style: const TextStyle(
-                    color: Color(0xFFC89932),
+                    color: AppColors.kColorAccentLight,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),

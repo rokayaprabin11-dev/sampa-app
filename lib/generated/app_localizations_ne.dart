@@ -1041,4 +1041,401 @@ class AppLocalizationsNe extends AppLocalizations {
 
   @override
   String get joinVerifiedGuides => '२४८ प्रमाणित गाइडहरूमा सामेल हुनुहोस्';
+
+  @override
+  String get homeGreeting => 'नमस्ते! 🙏';
+
+  @override
+  String get searchSitesHint => 'स्थल, जिल्ला खोज्नुहोस्...';
+
+  @override
+  String get nearbyEventsTitle => 'नजिकैका कार्यक्रमहरू 🔔';
+
+  @override
+  String get noDistrictsAvailable => 'कुनै जिल्ला उपलब्ध छैन';
+
+  @override
+  String get noNearbyEvents => 'नजिकै आउँदा कार्यक्रमहरू भेटिएनन्।';
+
+  @override
+  String get pressBackAgainToExit => 'बाहिर निस्कन फेरि ब्याक थिच्नुहोस्';
+
+  @override
+  String get districtsTitle => 'जिल्लाहरू';
+
+  @override
+  String get districtsSubtitle => 'जिल्ला अनुसार हेर्नुहोस्';
+
+  @override
+  String get searchDistrictHint => 'जिल्ला खोज्नुहोस्...';
+
+  @override
+  String get noDistrictsMatchSearch => 'खोजसँग मिल्ने जिल्ला भेटिएन';
+
+  @override
+  String get filterKathmanduValley => 'काठमाडौँ उपत्यका';
+
+  @override
+  String get filterMostSites => 'धेरै स्थल भएका';
+
+  @override
+  String districtCountLabel(int count) {
+    return '$count जिल्ला';
+  }
+
+  @override
+  String siteCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count स्थल',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get updatedRecently => 'भर्खरै अद्यावधिक';
+
+  @override
+  String get myBookingsTitle => 'मेरा बुकिङहरू';
+
+  @override
+  String get tabUpcoming => 'आगामी';
+
+  @override
+  String get tabCompleted => 'सम्पन्न';
+
+  @override
+  String get tabCancelled => 'रद्द';
+
+  @override
+  String get searchBookingsHint => 'गाइड, बुकिङ नं., प्याकेज वा मिति…';
+
+  @override
+  String get tooltipSearchBookings => 'बुकिङ खोज्नुहोस्';
+
+  @override
+  String get tooltipCloseSearch => 'खोज बन्द गर्नुहोस्';
+
+  @override
+  String get tooltipFilterSort => 'फिल्टर र क्रम';
+
+  @override
+  String get offlineShowingSaved => 'अफलाइन — सुरक्षित बुकिङ देखाइँदै';
+
+  @override
+  String get lastSyncedJustNow => 'भर्खरै सिंक भयो';
+
+  @override
+  String lastSyncedMinutes(int minutes) {
+    return '$minutes मिनेट अघि सिंक भयो';
+  }
+
+  @override
+  String lastSyncedHours(int hours) {
+    return '$hours घण्टा अघि सिंक भयो';
+  }
+
+  @override
+  String lastSyncedDays(int days) {
+    return '$days दिन अघि सिंक भयो';
+  }
+
+  @override
+  String get offlineReconnect =>
+      'तपाईं अफलाइन हुनुहुन्छ। इन्टरनेट जोडेर फेरि प्रयास गर्नुहोस्।';
+
+  @override
+  String get somethingWentWrongServer =>
+      'सर्भरमा पुग्न सकिएन। फेरि प्रयास गर्नुहोस्।';
+
+  @override
+  String get nothingMatchesTitle => 'केही मेल खाएन';
+
+  @override
+  String get nothingMatchesBody =>
+      'अर्को खोज प्रयास गर्नुहोस्, वा फिल्टर हटाउनुहोस्।';
+
+  @override
+  String get clearFilters => 'फिल्टर हटाउनुहोस्';
+
+  @override
+  String get noBookingsYetTitle => 'अहिलेसम्म बुकिङ छैन';
+
+  @override
+  String get noBookingsYetBody =>
+      'इजाजतप्राप्त गाइड बुक गर्नुहोस् — तपाईंका सम्पदा भ्रमणहरू यहाँ देखिनेछन्।';
+
+  @override
+  String get exploreHeritageSites => 'सम्पदा स्थलहरू हेर्नुहोस्';
+
+  @override
+  String get noCompletedToursTitle => 'सम्पन्न भ्रमण छैन';
+
+  @override
+  String get noCompletedToursBody => 'सकिएका भ्रमणहरू रसिदसहित यहाँ देखिनेछन्।';
+
+  @override
+  String get noCancelledTitle => 'रद्द भएको बुकिङ छैन';
+
+  @override
+  String get noCancelledBody => 'यहाँ केही छैन — जुन राम्रो कुरा हो।';
+
+  @override
+  String get licensedTourGuide => 'इजाजतप्राप्त गाइड';
+
+  @override
+  String get tourGuide => 'गाइड';
+
+  @override
+  String touristsCount(int count) {
+    return '$count पर्यटक';
+  }
+
+  @override
+  String semanticsTabBookings(String label, int count) {
+    return '$label, $count बुकिङ';
+  }
+
+  @override
+  String get payAgain => 'फेरि तिर्नुहोस्';
+
+  @override
+  String get paymentSent => 'भुक्तानी पठाइयो';
+
+  @override
+  String get confirmDone => 'सम्पन्न पुष्टि गर्नुहोस्';
+
+  @override
+  String get rateGuide => 'गाइडलाई रेट गर्नुहोस्';
+
+  @override
+  String get btnMessage => 'सन्देश';
+
+  @override
+  String get btnDetails => 'विवरण';
+
+  @override
+  String get filterSortTitle => 'फिल्टर र क्रम';
+
+  @override
+  String get btnReset => 'रिसेट';
+
+  @override
+  String get groupStatus => 'स्थिति';
+
+  @override
+  String get groupPayment => 'भुक्तानी';
+
+  @override
+  String get groupPackage => 'प्याकेज';
+
+  @override
+  String get groupTourDate => 'भ्रमण मिति';
+
+  @override
+  String get groupSortBy => 'क्रम';
+
+  @override
+  String get statusPending => 'विचाराधीन';
+
+  @override
+  String get statusConfirmed => 'पुष्टि भएको';
+
+  @override
+  String get payNothingOwed => 'तिर्नु बाँकी छैन';
+
+  @override
+  String get payPaid => 'तिरिएको';
+
+  @override
+  String get windowAnyDate => 'जुनसुकै मिति';
+
+  @override
+  String get windowNext7 => 'आगामी ७ दिन';
+
+  @override
+  String get windowNext30 => 'आगामी ३० दिन';
+
+  @override
+  String get windowPast => 'बितेका भ्रमण';
+
+  @override
+  String get sortNewest => 'नयाँ पहिले';
+
+  @override
+  String get sortOldest => 'पुरानो पहिले';
+
+  @override
+  String get sortSoonestTour => 'नजिकको भ्रमण पहिले';
+
+  @override
+  String get sortHighestPrice => 'बढी मूल्य पहिले';
+
+  @override
+  String get guideReviewsTitle => 'गाइड समीक्षाहरू';
+
+  @override
+  String get searchReviewsHint => 'समीक्षा खोज्नुहोस्…';
+
+  @override
+  String get sortMostRecent => 'पछिल्लो पहिले';
+
+  @override
+  String get sortHighestRated => 'उच्च रेटिङ';
+
+  @override
+  String get sortLowestRated => 'न्यून रेटिङ';
+
+  @override
+  String get verifiedBooking => 'प्रमाणित बुकिङ';
+
+  @override
+  String get guideResponse => 'गाइडको जवाफ';
+
+  @override
+  String get btnReply => 'जवाफ दिनुहोस्';
+
+  @override
+  String replyTo(String name) {
+    return '$nameलाई जवाफ';
+  }
+
+  @override
+  String get replyHint => 'धन्यवाद दिनुहोस्, वा कुरा स्पष्ट पार्नुहोस्…';
+
+  @override
+  String get replyPosted => 'जवाफ पोस्ट भयो।';
+
+  @override
+  String reviewCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count समीक्षा',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String yearsExperienceShort(String years) {
+    return '$years वर्ष अनुभव';
+  }
+
+  @override
+  String peopleCount(int count) {
+    return '$count जना';
+  }
+
+  @override
+  String get noMatchingReviews => 'मिल्ने समीक्षा भेटिएन';
+
+  @override
+  String get noReviewsYet => 'अहिलेसम्म समीक्षा छैन';
+
+  @override
+  String get tryDifferentSearch => 'अर्को खोज प्रयास गर्नुहोस्।';
+
+  @override
+  String get beFirstToReview =>
+      'यो गाइडलाई समीक्षा गर्ने पहिलो यात्री बन्नुहोस्।';
+
+  @override
+  String get unableLoadReviews => 'समीक्षा लोड गर्न सकिएन';
+
+  @override
+  String get checkConnection => 'इन्टरनेट जाँचेर फेरि प्रयास गर्नुहोस्।';
+
+  @override
+  String get timeToday => 'आज';
+
+  @override
+  String get timeYesterday => 'हिजो';
+
+  @override
+  String timeDaysAgo(int days) {
+    return '$days दिन अघि';
+  }
+
+  @override
+  String get chatTitle => 'च्याट';
+
+  @override
+  String get sayHello => 'नमस्ते भन्नुहोस् 👋';
+
+  @override
+  String get messageHint => 'सन्देश…';
+
+  @override
+  String get conversationClosed => 'यो कुराकानी बन्द भइसकेको छ।';
+
+  @override
+  String get chatOpensOnceAccepted =>
+      'गाइडले तपाईंको बुकिङ स्वीकार गरेपछि च्याट खुल्छ।';
+
+  @override
+  String couldNotSend(String error) {
+    return 'पठाउन सकिएन: $error';
+  }
+
+  @override
+  String callTooltip(String name) {
+    return '$nameलाई फोन गर्नुहोस्';
+  }
+
+  @override
+  String couldNotOpenDialer(String name, String phone) {
+    return 'डायलर खोल्न सकिएन। $name: $phone';
+  }
+
+  @override
+  String get btnCopy => 'कपी गर्नुहोस्';
+
+  @override
+  String get sendMessageTooltip => 'सन्देश पठाउनुहोस्';
+
+  @override
+  String get sendingLabel => 'पठाइँदै…';
+
+  @override
+  String get sectionGeneral => 'सामान्य';
+
+  @override
+  String get accountSettings => 'खाता सेटिङ';
+
+  @override
+  String get dataStorage => 'डाटा र भण्डारण';
+
+  @override
+  String get sectionLegal => 'कानुनी';
+
+  @override
+  String get customerSupport => 'ग्राहक सहायता';
+
+  @override
+  String get themeLight => 'उज्यालो';
+
+  @override
+  String get themeDark => 'अँध्यारो';
+
+  @override
+  String get privacyPolicy => 'गोपनीयता नीति';
+
+  @override
+  String get termsConditions => 'सेवा सर्तहरू';
+
+  @override
+  String get communityGuidelines => 'समुदाय दिशानिर्देशहरू';
+
+  @override
+  String get disclaimerTitle => 'अस्वीकरण';
+
+  @override
+  String get copyrightPolicy => 'प्रतिलिपि अधिकार नीति';
+
+  @override
+  String get calendarBsLabel => 'वि.सं.';
+
+  @override
+  String get calendarAdLabel => 'ई.सं.';
 }

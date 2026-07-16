@@ -7,6 +7,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/theme/app_theme.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/screens/bookings/booking_detail_screen.dart';
 import 'package:sampada/presentation/screens/bookings/booking_widgets.dart';
 import 'package:sampada/presentation/screens/guides/chat_screen.dart';
@@ -19,10 +20,10 @@ import 'package:sampada/providers/guide_provider.dart';
 enum BookingTab { upcoming, completed, cancelled }
 
 extension BookingTabLabel on BookingTab {
-  String get label => switch (this) {
-        BookingTab.upcoming => 'Upcoming',
-        BookingTab.completed => 'Completed',
-        BookingTab.cancelled => 'Cancelled',
+  String label(AppLocalizations l10n) => switch (this) {
+        BookingTab.upcoming => l10n.tabUpcoming,
+        BookingTab.completed => l10n.tabCompleted,
+        BookingTab.cancelled => l10n.tabCancelled,
       };
 }
 
@@ -35,11 +36,11 @@ BookingTab bookingTabOf(Map<String, dynamic> b) => switch (b['status']) {
 enum BookingSort { newest, oldest, tourDate, priceHigh }
 
 extension on BookingSort {
-  String get label => switch (this) {
-        BookingSort.newest => 'Newest first',
-        BookingSort.oldest => 'Oldest first',
-        BookingSort.tourDate => 'Soonest tour',
-        BookingSort.priceHigh => 'Highest price',
+  String label(AppLocalizations l10n) => switch (this) {
+        BookingSort.newest => l10n.sortNewest,
+        BookingSort.oldest => l10n.sortOldest,
+        BookingSort.tourDate => l10n.sortSoonestTour,
+        BookingSort.priceHigh => l10n.sortHighestPrice,
       };
 }
 
@@ -47,11 +48,11 @@ extension on BookingSort {
 enum BookingWindow { any, next7, next30, past }
 
 extension on BookingWindow {
-  String get label => switch (this) {
-        BookingWindow.any => 'Any date',
-        BookingWindow.next7 => 'Next 7 days',
-        BookingWindow.next30 => 'Next 30 days',
-        BookingWindow.past => 'Past tours',
+  String label(AppLocalizations l10n) => switch (this) {
+        BookingWindow.any => l10n.windowAnyDate,
+        BookingWindow.next7 => l10n.windowNext7,
+        BookingWindow.next30 => l10n.windowNext30,
+        BookingWindow.past => l10n.windowPast,
       };
 }
 
@@ -266,6 +267,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   PreferredSizeWidget _appBar(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
     const onHeader = AppColors.kColorTextOnHeader;
     return SampadaAppBar(
       title: _searching
@@ -281,15 +283,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
-                hintText: 'Guide, booking ref, package or date…',
+                hintText: l10n.searchBookingsHint,
                 hintStyle: t.bodyMedium
                     ?.copyWith(color: onHeader.withValues(alpha: 0.7)),
               ),
             )
-          : const Text('My Bookings'),
+          : Text(l10n.myBookingsTitle),
       actions: [
         IconButton(
-          tooltip: _searching ? 'Close search' : 'Search bookings',
+          tooltip: _searching ? l10n.tooltipCloseSearch : l10n.tooltipSearchBookings,
           icon: Icon(_searching ? Icons.close : Icons.search, color: onHeader),
           onPressed: () => setState(() {
             _searching = !_searching;
@@ -301,7 +303,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         ),
         if (!_searching) ...[
           IconButton(
-            tooltip: 'Filter and sort',
+            tooltip: l10n.tooltipFilterSort,
             icon: Badge(
               isLabelVisible: !_filters.isDefault,
               backgroundColor: AppColors.kColorAccentLight,
@@ -311,7 +313,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             onPressed: _openFilterSheet,
           ),
           IconButton(
-            tooltip: 'Notifications',
+            tooltip: l10n.navNotifications,
             icon: const Icon(Icons.notifications_none, color: onHeader),
             onPressed: () =>
                 Navigator.pushNamed(context, AppStrings.notificationsPath),
@@ -341,10 +343,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     // Failed and nothing cached to fall back on → retry. With a cached list we
     // keep showing it (offline-first) and only surface the offline banner.
     if (gp.bookingsError != null && all.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       return BookingErrorView(
-        message: _offline
-            ? 'You appear to be offline. Reconnect and try again.'
-            : 'Something went wrong reaching the server.',
+        message: _offline ? l10n.offlineReconnect : l10n.somethingWentWrongServer,
         onRetry: _retry,
       );
     }
@@ -397,13 +398,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _emptyFor(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final narrowed = _query.isNotEmpty || _filters.isNarrowing;
     if (narrowed) {
       return BookingEmptyView(
         icon: Icons.search_off_rounded,
-        title: 'Nothing matches',
-        message: 'Try a different search, or clear your filters.',
-        actionLabel: 'Clear filters',
+        title: l10n.nothingMatchesTitle,
+        message: l10n.nothingMatchesBody,
+        actionLabel: l10n.clearFilters,
         actionIcon: Icons.filter_alt_off_outlined,
         onAction: () => setState(() {
           _filters = const BookingFilters();
@@ -415,22 +417,21 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     return switch (_tab) {
       BookingTab.upcoming => BookingEmptyView(
           icon: Icons.temple_hindu_outlined,
-          title: 'No bookings yet',
-          message:
-              'Book a licensed guide and your heritage tours will show up here.',
-          actionLabel: 'Explore Heritage Sites',
+          title: l10n.noBookingsYetTitle,
+          message: l10n.noBookingsYetBody,
+          actionLabel: l10n.exploreHeritageSites,
           actionIcon: Icons.explore_outlined,
           onAction: () => Navigator.pushNamed(context, AppStrings.searchPath),
         ),
-      BookingTab.completed => const BookingEmptyView(
+      BookingTab.completed => BookingEmptyView(
           icon: Icons.check_circle_outline,
-          title: 'No completed tours yet',
-          message: 'Tours you finish will be listed here with their receipts.',
+          title: l10n.noCompletedToursTitle,
+          message: l10n.noCompletedToursBody,
         ),
-      BookingTab.cancelled => const BookingEmptyView(
+      BookingTab.cancelled => BookingEmptyView(
           icon: Icons.event_busy_outlined,
-          title: 'No cancelled bookings',
-          message: 'Nothing here — which is a good thing.',
+          title: l10n.noCancelledTitle,
+          message: l10n.noCancelledBody,
         ),
     };
   }
@@ -470,22 +471,23 @@ class _OfflineBanner extends StatelessWidget {
   final DateTime? syncedAt;
   const _OfflineBanner({this.syncedAt});
 
-  String? get _lastSync {
+  String? _lastSync(AppLocalizations l10n) {
     if (syncedAt == null) return null;
     final mins = DateTime.now().difference(syncedAt!).inMinutes;
-    if (mins < 1) return 'Last synced just now';
-    if (mins < 60) return 'Last synced $mins min ago';
+    if (mins < 1) return l10n.lastSyncedJustNow;
+    if (mins < 60) return l10n.lastSyncedMinutes(mins);
     final hours = mins ~/ 60;
-    if (hours < 24) return 'Last synced $hours hr ago';
-    return 'Last synced ${hours ~/ 24} d ago';
+    if (hours < 24) return l10n.lastSyncedHours(hours);
+    return l10n.lastSyncedDays(hours ~/ 24);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return BookingBanner(
       icon: Icons.cloud_off_rounded,
-      title: 'Offline — showing saved bookings',
-      message: _lastSync,
+      title: l10n.offlineShowingSaved,
+      message: _lastSync(l10n),
       bg: AppColors.kColorBgMuted,
       fg: AppColors.kColorTextSecondary,
     );
@@ -505,6 +507,7 @@ class _TabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(AppDimensions.sp16, AppDimensions.sp12,
@@ -522,7 +525,7 @@ class _TabBar extends StatelessWidget {
             child: Semantics(
               button: true,
               selected: selected,
-              label: '${tab.label}, $count bookings',
+              label: l10n.semanticsTabBookings(tab.label(l10n), count),
               child: GestureDetector(
                 onTap: () => onChanged(tab),
                 behavior: HitTestBehavior.opaque,
@@ -546,7 +549,7 @@ class _TabBar extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      '${tab.label} ($count)',
+                      '${tab.label(l10n)} ($count)',
                       maxLines: 1,
                       softWrap: false,
                       style: t.bodyMedium?.copyWith(
@@ -591,6 +594,7 @@ class BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
     final onSurface = Theme.of(context).colorScheme.onSurface;
     final rating = asDoubleOrNull(guide?['rating_avg']);
     final verified = guide?['is_verified'] == true;
@@ -619,7 +623,7 @@ class BookingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      (booking['guide_name'] ?? 'Guide').toString(),
+                      (booking['guide_name'] ?? l10n.tourGuide).toString(),
                       style: t.titleSmall?.copyWith(
                           color: onSurface, fontWeight: FontWeight.w700),
                       maxLines: 1,
@@ -630,7 +634,7 @@ class BookingCard extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            verified ? 'Licensed Tour Guide' : 'Tour Guide',
+                            verified ? l10n.licensedTourGuide : l10n.tourGuide,
                             style: t.bodySmall
                                 ?.copyWith(color: bookingMuted(context)),
                             maxLines: 1,
@@ -687,7 +691,7 @@ class BookingCard extends StatelessWidget {
               if (group > 1)
                 _Meta(
                     icon: Icons.groups_outlined,
-                    text: '$group tourists'),
+                    text: l10n.touristsCount(group)),
             ],
           ),
           if (bookingPackageLabel(booking).isNotEmpty || price != null) ...[
@@ -704,7 +708,7 @@ class BookingCard extends StatelessWidget {
                   const Spacer(),
                 if (price != null)
                   Text(
-                    'NPR ${money(price)}',
+                    l10n.nprAmount(money(price)),
                     style: t.titleSmall?.copyWith(
                         color: onSurface, fontWeight: FontWeight.w700),
                   ),
@@ -760,12 +764,15 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final actions = <Widget>[];
 
     if (BookingActions.paymentDue(booking)) {
       actions.add(_FilledAction(
         icon: Icons.payments_outlined,
-        label: booking['payment_status'] == 'rejected' ? 'Pay Again' : 'Pay Now',
+        label: booking['payment_status'] == 'rejected'
+            ? l10n.payAgain
+            : l10n.btnPayNow,
         onTap: () => BookingActions.openPayment(context, booking),
       ));
     }
@@ -774,7 +781,7 @@ class _QuickActions extends StatelessWidget {
     if (BookingActions.paymentAwaitingGuide(booking)) {
       actions.add(_FilledAction(
         icon: Icons.hourglass_top,
-        label: 'Payment Sent',
+        label: l10n.paymentSent,
         color: AppColors.statusInfo,
         onTap: () => BookingActions.openPayment(context, booking),
       ));
@@ -782,7 +789,7 @@ class _QuickActions extends StatelessWidget {
     if (BookingActions.awaitingConfirm(booking)) {
       actions.add(_FilledAction(
         icon: Icons.task_alt,
-        label: 'Confirm Done',
+        label: l10n.confirmDone,
         color: AppColors.statusSuccess,
         onTap: () => BookingActions.completeTour(context, booking),
       ));
@@ -790,20 +797,20 @@ class _QuickActions extends StatelessWidget {
     if (BookingActions.canReview(booking)) {
       actions.add(_FilledAction(
         icon: Icons.star_outline,
-        label: 'Rate Guide',
+        label: l10n.rateGuide,
         onTap: () => BookingActions.openReviewDialog(context, booking),
       ));
     }
     if (BookingActions.canChat(booking)) {
       actions.add(_OutlineAction(
         icon: Icons.chat_bubble_outline,
-        label: 'Message',
+        label: l10n.btnMessage,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => ChatScreen(
               bookingId: booking['id'] as int,
-              otherPartyName: (booking['guide_name'] ?? 'Guide').toString(),
+              otherPartyName: (booking['guide_name'] ?? l10n.tourGuide).toString(),
             ),
           ),
         ),
@@ -811,13 +818,13 @@ class _QuickActions extends StatelessWidget {
     }
     actions.add(_OutlineAction(
       icon: Icons.receipt_long_outlined,
-      label: 'Details',
+      label: l10n.btnDetails,
       onTap: onDetails,
     ));
     if (BookingActions.canCancel(booking)) {
       actions.add(_OutlineAction(
         icon: Icons.close,
-        label: 'Cancel',
+        label: l10n.btnCancel,
         color: AppColors.statusError,
         onTap: () => BookingActions.confirmCancel(context, booking),
       ));
@@ -898,19 +905,6 @@ class _FilterSheet extends StatefulWidget {
 class _FilterSheetState extends State<_FilterSheet> {
   late BookingFilters _draft = widget.initial;
 
-  static const _statusOptions = {
-    'pending': 'Pending',
-    'confirmed': 'Confirmed',
-    'completed': 'Completed',
-    'cancelled': 'Cancelled',
-  };
-
-  static const _paymentOptions = {
-    'none': 'Nothing owed',
-    'due': 'Payment due',
-    'paid': 'Paid',
-  };
-
   Set<String> _toggle(Set<String> set, String value) {
     final next = {...set};
     next.contains(value) ? next.remove(value) : next.add(value);
@@ -920,7 +914,21 @@ class _FilterSheetState extends State<_FilterSheet> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
     final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    final statusOptions = {
+      'pending': l10n.statusPending,
+      'confirmed': l10n.statusConfirmed,
+      'completed': l10n.tabCompleted,
+      'cancelled': l10n.tabCancelled,
+    };
+
+    final paymentOptions = {
+      'none': l10n.payNothingOwed,
+      'due': l10n.payDueTitle,
+      'paid': l10n.payPaid,
+    };
 
     return SafeArea(
       child: Padding(
@@ -945,23 +953,23 @@ class _FilterSheetState extends State<_FilterSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Filter & Sort',
+                    child: Text(l10n.filterSortTitle,
                         style: t.titleMedium?.copyWith(color: onSurface)),
                   ),
                   TextButton(
                     onPressed: () =>
                         setState(() => _draft = const BookingFilters()),
-                    child: const Text('Reset'),
+                    child: Text(l10n.btnReset),
                   ),
                 ],
               ),
               const SizedBox(height: AppDimensions.sp8),
 
-              _group(context, 'Status'),
+              _group(context, l10n.groupStatus),
               Wrap(
                 spacing: AppDimensions.sp8,
                 runSpacing: AppDimensions.sp8,
-                children: _statusOptions.entries
+                children: statusOptions.entries
                     .map((e) => _choice(
                           label: e.value,
                           selected: _draft.statuses.contains(e.key),
@@ -971,11 +979,11 @@ class _FilterSheetState extends State<_FilterSheet> {
                     .toList(),
               ),
 
-              _group(context, 'Payment'),
+              _group(context, l10n.groupPayment),
               Wrap(
                 spacing: AppDimensions.sp8,
                 runSpacing: AppDimensions.sp8,
-                children: _paymentOptions.entries
+                children: paymentOptions.entries
                     .map((e) => _choice(
                           label: e.value,
                           selected: _draft.payments.contains(e.key),
@@ -986,7 +994,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               ),
 
               if (widget.availablePackages.isNotEmpty) ...[
-                _group(context, 'Package'),
+                _group(context, l10n.groupPackage),
                 Wrap(
                   spacing: AppDimensions.sp8,
                   runSpacing: AppDimensions.sp8,
@@ -1001,13 +1009,13 @@ class _FilterSheetState extends State<_FilterSheet> {
                 ),
               ],
 
-              _group(context, 'Tour date'),
+              _group(context, l10n.groupTourDate),
               Wrap(
                 spacing: AppDimensions.sp8,
                 runSpacing: AppDimensions.sp8,
                 children: BookingWindow.values
                     .map((w) => _choice(
-                          label: w.label,
+                          label: w.label(l10n),
                           selected: _draft.window == w,
                           onTap: () =>
                               setState(() => _draft = _draft.copyWith(window: w)),
@@ -1015,13 +1023,13 @@ class _FilterSheetState extends State<_FilterSheet> {
                     .toList(),
               ),
 
-              _group(context, 'Sort by'),
+              _group(context, l10n.groupSortBy),
               Wrap(
                 spacing: AppDimensions.sp8,
                 runSpacing: AppDimensions.sp8,
                 children: BookingSort.values
                     .map((s) => _choice(
-                          label: s.label,
+                          label: s.label(l10n),
                           selected: _draft.sort == s,
                           onTap: () =>
                               setState(() => _draft = _draft.copyWith(sort: s)),
@@ -1034,7 +1042,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context, _draft),
-                  child: const Text('Apply'),
+                  child: Text(l10n.btnApply),
                 ),
               ),
             ],

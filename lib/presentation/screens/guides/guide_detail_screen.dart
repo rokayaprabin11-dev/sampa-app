@@ -193,7 +193,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                       children: [
                         CircleAvatar(
                           radius: 48,
-                          backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFF3A241C),
+                          backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBrownDarkest,
                           child: (photoUrl != null && photoUrl.isNotEmpty)
                               ? ClipOval(
                                   child: AppNetworkImage(url: photoUrl, width: 96, height: 96, cloudinaryWidth: 96),
@@ -248,14 +248,14 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                       if (_priceHeadline(rate) != null) ...[
                         Text(
                           _priceHeadline(rate)!,
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
                         ),
                         const Spacer(),
                       ],
                       if (isVerified)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(color: const Color(0xFFF7EED3), borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm)),
+                          decoration: BoxDecoration(color: AppColors.kColorBorderCream, borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm)),
                           child: const Text('✓ VERIFIED', style: TextStyle(color: AppColors.kColorAccentSafe, fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
                     ],
@@ -297,13 +297,13 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
+                        color: isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-                        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+                        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.person_outline, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 20),
+                          Icon(Icons.person_outline, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -318,18 +318,18 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFDF3DC),
+                        color: AppColors.kColorPendingBg,
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-                        border: Border.all(color: const Color(0xFFEAD9A8)),
+                        border: Border.all(color: AppColors.kColorPendingBorder),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.hourglass_top, color: Color(0xFF9A6200), size: 20),
+                          const Icon(Icons.hourglass_top, color: AppColors.kColorPendingText, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               AppLocalizations.of(context)!.hirePendingBanner,
-                              style: const TextStyle(color: Color(0xFF9A6200), fontSize: 13.5, fontWeight: FontWeight.w500),
+                              style: const TextStyle(color: AppColors.kColorPendingText, fontSize: 13.5, fontWeight: FontWeight.w500),
                             ),
                           ),
                         ],
@@ -354,7 +354,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                                   Navigator.pop(context);
                                   Navigator.pushNamed(context, AppStrings.loginPath);
                                 },
-                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7B1E00)),
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.kColorDeep),
                                 child: Text(l10n.login, style: const TextStyle(color: Colors.white)),
                               ),
                             ],
@@ -368,8 +368,8 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(colors: [
-                          isDark ? const Color(0xFF2A1A0A) : const Color(0xFF3A241C),
-                          isDark ? const Color(0xFF3A2010) : const Color(0xFF7B1E00),
+                          isDark ? const Color(0xFF2A1A0A) : AppColors.kColorBrownDarkest,
+                          isDark ? const Color(0xFF3A2010) : AppColors.kColorDeep,
                         ]),
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                       ),
@@ -404,7 +404,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
   Widget _buildBookingForm(BuildContext context, bool isDark) {
     final l10n = AppLocalizations.of(context)!;
     final cardColor = isDark ? AppColors.darkBgCard : Colors.white;
-    final borderColor = isDark ? AppColors.darkBorder : const Color(0xFFF7EED3);
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.kColorBorderCream;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -430,7 +430,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                 builder: (context, child) => Theme(
                   data: Theme.of(context).copyWith(
                     datePickerTheme: DatePickerThemeData(
-                      headerBackgroundColor: const Color(0xFF7B1E00),
+                      headerBackgroundColor: AppColors.kColorDeep,
                       headerForegroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
                     ),
@@ -443,7 +443,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
                 borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
               ),
               child: Row(
@@ -530,9 +530,9 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
               hintText: l10n.specialRequestsHint,
               hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 13),
               contentPadding: const EdgeInsets.all(12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: const BorderSide(color: Color(0xFF7B1E00))),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd), borderSide: const BorderSide(color: AppColors.kColorDeep)),
             ),
           ),
 
@@ -541,9 +541,9 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkBgSurface : const Color(0xFFFDF3DC),
+                color: isDark ? AppColors.darkBgSurface : AppColors.kColorPendingBg,
                 borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-                border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFEAD9A8)),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorPendingBorder),
               ),
               child: Row(
                 children: [
@@ -570,7 +570,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+                      color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
                     ),
                   ),
                 ],
@@ -585,7 +585,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
             child: ElevatedButton(
               onPressed: _submitting ? null : _submitBooking,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? AppColors.goldMain : const Color(0xFF3A241C),
+                backgroundColor: isDark ? AppColors.goldMain : AppColors.kColorBrownDarkest,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
               ),
@@ -635,13 +635,13 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
             color: selected
                 ? (isDark
                     ? AppColors.goldMain.withValues(alpha: 0.10)
-                    : const Color(0xFF7B1E00).withValues(alpha: 0.06))
+                    : AppColors.kColorDeep.withValues(alpha: 0.06))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
             border: Border.all(
               color: selected
-                  ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
-                  : (isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
+                  ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
+                  : (isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
               width: selected ? 1.6 : 1,
             ),
           ),
@@ -651,7 +651,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
                 selected ? Icons.radio_button_checked : Icons.radio_button_off,
                 size: 18,
                 color: selected
-                    ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
+                    ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
                     : AppColors.kColorTextMuted,
               ),
               const SizedBox(width: 10),
@@ -682,7 +682,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
       ),
       child: Row(
@@ -710,12 +710,12 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
           IconButton(
             onPressed: _groupSize > 1 ? () => setState(() => _groupSize--) : null,
             icon: const Icon(Icons.remove_circle_outline),
-            color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+            color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
           ),
           IconButton(
             onPressed: _groupSize < _maxGroupSize ? () => setState(() => _groupSize++) : null,
             icon: const Icon(Icons.add_circle_outline),
-            color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+            color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
           ),
         ],
       ),
@@ -736,7 +736,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             decoration: BoxDecoration(
-              border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE5DDD8)),
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             ),
             child: Row(
@@ -759,7 +759,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       title,
-      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: isDark ? AppColors.goldMain : const Color(0xFF4A342B)),
+      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: isDark ? AppColors.goldMain : AppColors.kColorTextHeading),
     );
   }
 
@@ -772,7 +772,7 @@ class _GuideDetailScreenState extends State<GuideDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
+        color: isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
       ),

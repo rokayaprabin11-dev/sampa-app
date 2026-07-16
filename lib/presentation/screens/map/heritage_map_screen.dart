@@ -24,6 +24,15 @@ import 'package:sampada/providers/heritage_provider.dart';
 
 const _nepalCenter = LatLng(28.3949, 84.1240);
 const _defaultZoom = 7.0;
+
+// Camera zoom limits. Mirrored into MapOptions, but also needed by _flyTo:
+// every camera move funnels through it, and a non-finite zoom must be clamped
+// *before* it reaches a Tween. `Tween.lerp` is `begin + (end - begin) * t`, so
+// an infinite `end` yields `Infinity * 0` = NaN on the very first frame — and
+// `NaN.clamp()` is still NaN, so MapOptions' own limits can't catch it. A NaN
+// zoom then blows up TileLayer's tile-range maths ("Infinity or NaN toInt").
+const _minZoom = 5.0;
+const _maxZoom = 18.0;
 const _siteZoom = 15.5;
 const _userZoom = 13.0;
 
@@ -69,7 +78,13 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
   AnimationController? _flyController;
+
+  /// While the search field has focus the bottom nearby panel collapses, giving
+  /// the map (and the suggestion dropdown) the room instead. Existing unfocus
+  /// calls — tapping the map, picking a suggestion — bring it back for free.
+  bool _searchFocused = false;
 
   Position? _userPosition;
   _MapItem? _selected;
@@ -89,6 +104,10 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   @override
   void initState() {
     super.initState();
+    _searchFocus.addListener(() {
+      if (!mounted || _searchFocused == _searchFocus.hasFocus) return;
+      setState(() => _searchFocused = _searchFocus.hasFocus);
+    });
     _bounceController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     // One up-and-down hop for the selected marker when the camera arrives.
@@ -145,6 +164,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     _bounceController.dispose();
     _flyController?.dispose();
     _searchController.dispose();
+    _searchFocus.dispose();
     _mapController.dispose();
     super.dispose();
   }
@@ -156,12 +176,21 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   /// level first, then dive back in, so the ride reads as one smooth arc.
   void _flyTo(LatLng dest, double destZoom,
       {Duration? duration, bool bounceOnArrival = false}) {
+    // Sanitise before anything reaches a Tween or the camera. A non-finite
+    // value here (a CameraFit over degenerate bounds, or over a map that has
+    // not been laid out, returns an infinite zoom) becomes NaN once tweened,
+    // and a NaN camera crashes TileLayer rather than just looking wrong.
+    if (!dest.latitude.isFinite || !dest.longitude.isFinite) return;
+
     final camera = _mapController.camera;
     final start = camera.center;
-    final startZoom = camera.zoom;
+    final startZoom = camera.zoom.isFinite ? camera.zoom : _defaultZoom;
+    final endZoom =
+        destZoom.isFinite ? destZoom.clamp(_minZoom, _maxZoom) : startZoom;
 
-    final distKm = GeoDistance.haversineKm(
+    final rawDistKm = GeoDistance.haversineKm(
         start.latitude, start.longitude, dest.latitude, dest.longitude);
+    final distKm = rawDistKm.isFinite ? rawDistKm : 0.0;
     final flight = duration ??
         Duration(milliseconds: (600 + distKm * 3).clamp(600, 1600).round());
 
@@ -175,15 +204,15 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
 
     Animation<double> zoom;
     if (distKm > 50) {
-      final midZoom = math.max(5.0, math.min(startZoom, destZoom) - 2.0);
+      final midZoom = math.max(_minZoom, math.min(startZoom, endZoom) - 2.0);
       zoom = TweenSequence<double>([
         TweenSequenceItem(
             tween: Tween(begin: startZoom, end: midZoom), weight: 45),
         TweenSequenceItem(
-            tween: Tween(begin: midZoom, end: destZoom), weight: 55),
+            tween: Tween(begin: midZoom, end: endZoom), weight: 55),
       ]).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
     } else {
-      zoom = Tween<double>(begin: startZoom, end: destZoom)
+      zoom = Tween<double>(begin: startZoom, end: endZoom)
           .animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
     }
 
@@ -202,7 +231,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
 
   void _zoomBy(double delta) {
     final camera = _mapController.camera;
-    final target = (camera.zoom + delta).clamp(5.0, 18.0);
+    final target = (camera.zoom + delta).clamp(_minZoom, _maxZoom);
     _flyTo(camera.center, target,
         duration: const Duration(milliseconds: 250));
   }
@@ -280,6 +309,10 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   }
 
   void _fitRoute(List<LatLng> points) {
+    // LatLngBounds.fromPoints throws on an empty list, and a fit over
+    // zero-span bounds (every point in the same spot) returns an infinite
+    // zoom — _flyTo clamps that, but there is nothing to frame either way.
+    if (points.isEmpty) return;
     final fitted = CameraFit.bounds(
       bounds: LatLngBounds.fromPoints(points),
       padding: const EdgeInsets.fromLTRB(48, 48, 48, 64),
@@ -535,7 +568,16 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
               ],
             ),
           ),
-          _buildNearbyPanel(),
+          // Collapses while searching so the map and the suggestion list get
+          // the space; animated rather than snapping in and out.
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            alignment: Alignment.topCenter,
+            child: _searchFocused
+                ? const SizedBox(width: double.infinity)
+                : _buildNearbyPanel(),
+          ),
         ],
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 1),
@@ -600,6 +642,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
       ),
       child: TextField(
         controller: _searchController,
+        focusNode: _searchFocus,
         textInputAction: TextInputAction.search,
         onChanged: _onSearchChanged,
         onSubmitted: _onSearch,
@@ -642,8 +685,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
           options: MapOptions(
             initialCenter: _nepalCenter,
             initialZoom: _defaultZoom,
-            minZoom: 5.0,
-            maxZoom: 18.0,
+            minZoom: _minZoom,
+            maxZoom: _maxZoom,
             backgroundColor: AppColors.kColorMapSurface,
             onTap: (_, __) {
               FocusScope.of(context).unfocus();

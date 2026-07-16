@@ -48,7 +48,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           () => pushHelp(context, const HelpArticleScreen(articleKey: 'offline'))),
       _Topic('Notifications', Icons.notifications_none,
           () => pushHelp(context, const HelpArticleScreen(articleKey: 'notif'))),
-      _Topic('Payments', Icons.credit_card, null, badge: 'SOON'),
+      _Topic('Payments', Icons.credit_card,
+          () => pushHelp(context, HelpInfoScreen(
+              title: 'Payments', subtitle: 'Paying your guide',
+              eyebrow: 'Direct guide payment', points: helpTopicInfo['payments']!))),
     ];
 
     // Get support.
@@ -56,7 +59,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       _Entry('Contact Support', 'Submit a new request', Icons.chat_bubble_outline,
           () => pushHelp(context, const HelpContactSupportScreen())),
       _Entry('My Support Requests', 'Track your requests', Icons.receipt_long_outlined,
-          () => pushHelp(context, const _HelpRequestsScreen())),
+          () => pushHelp(context, const HelpMyRequestsScreen())),
       _Entry('Live Chat', 'Usually replies in minutes', Icons.forum_outlined,
           () => pushHelp(context, const HelpLiveChatScreen())),
       _Entry('Report a Problem', 'Guide, user, event, site or bug', Icons.flag_outlined,
@@ -79,7 +82,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           () => pushHelp(context, const HelpFeedbackScreen())),
       _Entry('Contact Information', 'Email, phone, office hours', Icons.mail_outline,
           () => pushHelp(context, const HelpContactInfoScreen())),
-      _Entry('About the App', helpAppVersion, Icons.info_outline,
+      _Entry('About the App', 'Version, legal & licences', Icons.info_outline,
           () => openAbout(context)),
     ];
 
@@ -119,12 +122,12 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
-              childAspectRatio: 0.92,
+              // >1 → wider than tall. 0.92 made the cells taller than they were
+              // wide, which is what left them looking oversized.
+              childAspectRatio: 1.15,
               children: [
                 for (final t in filteredTopics)
-                  HelpTopicTile(
-                    icon: t.icon, label: t.label, badge: t.badge,
-                    disabled: t.onTap == null, onTap: t.onTap),
+                  HelpTopicTile(icon: t.icon, label: t.label, onTap: t.onTap),
               ],
             ),
           ],
@@ -158,9 +161,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 class _Topic {
   final String label;
   final IconData icon;
-  final VoidCallback? onTap;
-  final String? badge;
-  const _Topic(this.label, this.icon, this.onTap, {this.badge});
+  final VoidCallback onTap;
+  const _Topic(this.label, this.icon, this.onTap);
 }
 
 class _Entry {
@@ -169,39 +171,4 @@ class _Entry {
   final IconData icon;
   final VoidCallback onTap;
   const _Entry(this.title, this.subtitle, this.icon, this.onTap);
-}
-
-/// My Support Requests — honest empty state (no ticket backend yet). Sending a
-/// request routes to Contact Support, which emails the team.
-class _HelpRequestsScreen extends StatelessWidget {
-  const _HelpRequestsScreen();
-  @override
-  Widget build(BuildContext context) {
-    final p = HelpPalette.of(context);
-    return HelpScaffold(
-      title: 'My Support Requests',
-      subtitle: 'Track your requests',
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.inbox_outlined, size: 48, color: p.faint),
-              const SizedBox(height: 16),
-              Text('No requests yet', style: helpSerif(size: 16, color: p.ink)),
-              const SizedBox(height: 6),
-              Text('When you contact support, your conversation will appear here.',
-                  textAlign: TextAlign.center, style: TextStyle(fontSize: 12.5, height: 1.5, color: p.muted)),
-              const SizedBox(height: 20),
-              HelpPrimaryButton(
-                label: 'Contact Support', icon: Icons.chat_bubble_outline,
-                onTap: () => pushHelp(context, const HelpContactSupportScreen()),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

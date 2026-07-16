@@ -2035,6 +2035,708 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Join 248 verified guides'**
   String get joinVerifiedGuides;
+
+  /// No description provided for @homeGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Namaste! 🙏'**
+  String get homeGreeting;
+
+  /// No description provided for @searchSitesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search sites, districts...'**
+  String get searchSitesHint;
+
+  /// No description provided for @nearbyEventsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby Events 🔔'**
+  String get nearbyEventsTitle;
+
+  /// No description provided for @noDistrictsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No districts available'**
+  String get noDistrictsAvailable;
+
+  /// No description provided for @noNearbyEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming nearby events found.'**
+  String get noNearbyEvents;
+
+  /// No description provided for @pressBackAgainToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Press back again to exit'**
+  String get pressBackAgainToExit;
+
+  /// No description provided for @districtsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Districts'**
+  String get districtsTitle;
+
+  /// No description provided for @districtsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse by district'**
+  String get districtsSubtitle;
+
+  /// No description provided for @searchDistrictHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a district...'**
+  String get searchDistrictHint;
+
+  /// No description provided for @noDistrictsMatchSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'No districts match this search'**
+  String get noDistrictsMatchSearch;
+
+  /// No description provided for @filterKathmanduValley.
+  ///
+  /// In en, this message translates to:
+  /// **'Kathmandu Valley'**
+  String get filterKathmanduValley;
+
+  /// No description provided for @filterMostSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Sites'**
+  String get filterMostSites;
+
+  /// No description provided for @districtCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} districts'**
+  String districtCountLabel(int count);
+
+  /// No description provided for @siteCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site} other{{count} sites}}'**
+  String siteCountLabel(int count);
+
+  /// No description provided for @updatedRecently.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated recently'**
+  String get updatedRecently;
+
+  /// No description provided for @myBookingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Bookings'**
+  String get myBookingsTitle;
+
+  /// No description provided for @tabUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get tabUpcoming;
+
+  /// No description provided for @tabCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get tabCompleted;
+
+  /// No description provided for @tabCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get tabCancelled;
+
+  /// No description provided for @searchBookingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide, booking ref, package or date…'**
+  String get searchBookingsHint;
+
+  /// No description provided for @tooltipSearchBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Search bookings'**
+  String get tooltipSearchBookings;
+
+  /// No description provided for @tooltipCloseSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get tooltipCloseSearch;
+
+  /// No description provided for @tooltipFilterSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter and sort'**
+  String get tooltipFilterSort;
+
+  /// No description provided for @offlineShowingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline — showing saved bookings'**
+  String get offlineShowingSaved;
+
+  /// No description provided for @lastSyncedJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced just now'**
+  String get lastSyncedJustNow;
+
+  /// No description provided for @lastSyncedMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced {minutes} min ago'**
+  String lastSyncedMinutes(int minutes);
+
+  /// No description provided for @lastSyncedHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced {hours} hr ago'**
+  String lastSyncedHours(int hours);
+
+  /// No description provided for @lastSyncedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced {days} d ago'**
+  String lastSyncedDays(int days);
+
+  /// No description provided for @offlineReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'You appear to be offline. Reconnect and try again.'**
+  String get offlineReconnect;
+
+  /// No description provided for @somethingWentWrongServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong reaching the server.'**
+  String get somethingWentWrongServer;
+
+  /// No description provided for @nothingMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches'**
+  String get nothingMatchesTitle;
+
+  /// No description provided for @nothingMatchesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search, or clear your filters.'**
+  String get nothingMatchesBody;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get clearFilters;
+
+  /// No description provided for @noBookingsYetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookings yet'**
+  String get noBookingsYetTitle;
+
+  /// No description provided for @noBookingsYetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Book a licensed guide and your heritage tours will show up here.'**
+  String get noBookingsYetBody;
+
+  /// No description provided for @exploreHeritageSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore Heritage Sites'**
+  String get exploreHeritageSites;
+
+  /// No description provided for @noCompletedToursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No completed tours yet'**
+  String get noCompletedToursTitle;
+
+  /// No description provided for @noCompletedToursBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tours you finish will be listed here with their receipts.'**
+  String get noCompletedToursBody;
+
+  /// No description provided for @noCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No cancelled bookings'**
+  String get noCancelledTitle;
+
+  /// No description provided for @noCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here — which is a good thing.'**
+  String get noCancelledBody;
+
+  /// No description provided for @licensedTourGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Licensed Tour Guide'**
+  String get licensedTourGuide;
+
+  /// No description provided for @tourGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Tour Guide'**
+  String get tourGuide;
+
+  /// No description provided for @touristsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tourists'**
+  String touristsCount(int count);
+
+  /// No description provided for @semanticsTabBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {count} bookings'**
+  String semanticsTabBookings(String label, int count);
+
+  /// No description provided for @payAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Again'**
+  String get payAgain;
+
+  /// No description provided for @paymentSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Sent'**
+  String get paymentSent;
+
+  /// No description provided for @confirmDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Done'**
+  String get confirmDone;
+
+  /// No description provided for @rateGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Guide'**
+  String get rateGuide;
+
+  /// No description provided for @btnMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get btnMessage;
+
+  /// No description provided for @btnDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get btnDetails;
+
+  /// No description provided for @filterSortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter & Sort'**
+  String get filterSortTitle;
+
+  /// No description provided for @btnReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get btnReset;
+
+  /// No description provided for @groupStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get groupStatus;
+
+  /// No description provided for @groupPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get groupPayment;
+
+  /// No description provided for @groupPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Package'**
+  String get groupPackage;
+
+  /// No description provided for @groupTourDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tour date'**
+  String get groupTourDate;
+
+  /// No description provided for @groupSortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get groupSortBy;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get statusConfirmed;
+
+  /// No description provided for @payNothingOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing owed'**
+  String get payNothingOwed;
+
+  /// No description provided for @payPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get payPaid;
+
+  /// No description provided for @windowAnyDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Any date'**
+  String get windowAnyDate;
+
+  /// No description provided for @windowNext7.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 7 days'**
+  String get windowNext7;
+
+  /// No description provided for @windowNext30.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 30 days'**
+  String get windowNext30;
+
+  /// No description provided for @windowPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Past tours'**
+  String get windowPast;
+
+  /// No description provided for @sortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get sortNewest;
+
+  /// No description provided for @sortOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get sortOldest;
+
+  /// No description provided for @sortSoonestTour.
+  ///
+  /// In en, this message translates to:
+  /// **'Soonest tour'**
+  String get sortSoonestTour;
+
+  /// No description provided for @sortHighestPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest price'**
+  String get sortHighestPrice;
+
+  /// No description provided for @guideReviewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide Reviews'**
+  String get guideReviewsTitle;
+
+  /// No description provided for @searchReviewsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search reviews…'**
+  String get searchReviewsHint;
+
+  /// No description provided for @sortMostRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Most recent'**
+  String get sortMostRecent;
+
+  /// No description provided for @sortHighestRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest rated'**
+  String get sortHighestRated;
+
+  /// No description provided for @sortLowestRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest rated'**
+  String get sortLowestRated;
+
+  /// No description provided for @verifiedBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified booking'**
+  String get verifiedBooking;
+
+  /// No description provided for @guideResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide response'**
+  String get guideResponse;
+
+  /// No description provided for @btnReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get btnReply;
+
+  /// No description provided for @replyTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to {name}'**
+  String replyTo(String name);
+
+  /// No description provided for @replyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank them, or set the record straight…'**
+  String get replyHint;
+
+  /// No description provided for @replyPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply posted.'**
+  String get replyPosted;
+
+  /// No description provided for @reviewCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 review} other{{count} reviews}}'**
+  String reviewCountLabel(int count);
+
+  /// No description provided for @yearsExperienceShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} yr experience'**
+  String yearsExperienceShort(String years);
+
+  /// No description provided for @peopleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} people'**
+  String peopleCount(int count);
+
+  /// No description provided for @noMatchingReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching reviews'**
+  String get noMatchingReviews;
+
+  /// No description provided for @noReviewsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get noReviewsYet;
+
+  /// No description provided for @tryDifferentSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search.'**
+  String get tryDifferentSearch;
+
+  /// No description provided for @beFirstToReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first traveller to review this guide.'**
+  String get beFirstToReview;
+
+  /// No description provided for @unableLoadReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load reviews'**
+  String get unableLoadReviews;
+
+  /// No description provided for @checkConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get checkConnection;
+
+  /// No description provided for @timeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get timeToday;
+
+  /// No description provided for @timeYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get timeYesterday;
+
+  /// No description provided for @timeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days ago'**
+  String timeDaysAgo(int days);
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chatTitle;
+
+  /// No description provided for @sayHello.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hello 👋'**
+  String get sayHello;
+
+  /// No description provided for @messageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message…'**
+  String get messageHint;
+
+  /// No description provided for @conversationClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation is closed.'**
+  String get conversationClosed;
+
+  /// No description provided for @chatOpensOnceAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat opens once the guide accepts your booking.'**
+  String get chatOpensOnceAccepted;
+
+  /// No description provided for @couldNotSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send: {error}'**
+  String couldNotSend(String error);
+
+  /// No description provided for @callTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {name}'**
+  String callTooltip(String name);
+
+  /// No description provided for @couldNotOpenDialer.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the dialer. {name}: {phone}'**
+  String couldNotOpenDialer(String name, String phone);
+
+  /// No description provided for @btnCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get btnCopy;
+
+  /// No description provided for @sendMessageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Send message'**
+  String get sendMessageTooltip;
+
+  /// No description provided for @sendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'sending…'**
+  String get sendingLabel;
+
+  /// No description provided for @sectionGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get sectionGeneral;
+
+  /// No description provided for @accountSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Settings'**
+  String get accountSettings;
+
+  /// No description provided for @dataStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & Storage'**
+  String get dataStorage;
+
+  /// No description provided for @sectionLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get sectionLegal;
+
+  /// No description provided for @customerSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Support'**
+  String get customerSupport;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @termsConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Conditions'**
+  String get termsConditions;
+
+  /// No description provided for @communityGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Guidelines'**
+  String get communityGuidelines;
+
+  /// No description provided for @disclaimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disclaimer'**
+  String get disclaimerTitle;
+
+  /// No description provided for @copyrightPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copyright Policy'**
+  String get copyrightPolicy;
+
+  /// No description provided for @calendarBsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BS'**
+  String get calendarBsLabel;
+
+  /// No description provided for @calendarAdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AD'**
+  String get calendarAdLabel;
 }
 
 class _AppLocalizationsDelegate

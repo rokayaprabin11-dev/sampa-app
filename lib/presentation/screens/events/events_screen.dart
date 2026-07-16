@@ -166,15 +166,16 @@ class _EventSection extends StatelessWidget {
             itemBuilder: (context, index) {
               final event = events[index];
               final km = eventProvider.distanceKmOf(event);
+              final np = Localizations.localeOf(context).languageCode == 'ne';
               return EventListCard(
-                title: event.title,
+                title: event.localizedTitle(np),
                 date: formatDate(event.startDate),
                 location: event.locationName,
                 time: event.timeLabel,
                 distance: km == null ? null : GeoDistance.shortLabel(km),
                 tag: event.eventType,
                 imageUrl: event.imageUrl,
-                shortDescription: event.shortDescription,
+                shortDescription: event.localizedShortDescription(np),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)),
@@ -200,8 +201,8 @@ class _Header extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: isDark
-              ? const [AppColors.brownDeep, Color(0xFF9E3D1A)]
-              : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+              ? const [AppColors.brownDeep, AppColors.kColorPrimaryMid]
+              : const [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
           stops: isDark ? null : const [0.0, 0.6, 1.0],
         ),
         borderRadius: const BorderRadius.only(
@@ -525,7 +526,7 @@ void showDayEventsPopover(BuildContext cellContext, List<CulturalEvent> events) 
   final size = box.size;
   final screen = overlayBox.size;
   final isDark = Theme.of(cellContext).brightness == Brightness.dark;
-  final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+  final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
 
   const popWidth = 250.0;
   final centerX = topLeft.dx + size.width / 2;

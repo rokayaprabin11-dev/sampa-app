@@ -54,9 +54,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF5C1A0A),
-                  Color(0xFFA83210),
-                  Color(0xFFC8501A),
+                  AppColors.kColorDeep,
+                  AppColors.kColorPrimaryMid,
+                  AppColors.kColorPrimary,
                 ],
                 stops: [0.0, 0.6, 1.0],
               ),
@@ -80,9 +80,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       splashColor: Colors.white.withValues(alpha: 0.2),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
-                      'Settings',
-                      style: TextStyle(
+                    Text(
+                      l10n.settingsTitle,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -93,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.support_agent, color: Colors.white, size: 24),
-                      tooltip: 'Customer Support',
+                      tooltip: l10n.customerSupport,
                       onPressed: () => Navigator.pushNamed(context, AppStrings.helpCenterPath),
                       hoverColor: Colors.white.withValues(alpha: 0.1),
                       splashColor: Colors.white.withValues(alpha: 0.2),
@@ -112,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // --- General ---
-                  _buildSectionTitle(context, 'General'),
+                  _buildSectionTitle(context, l10n.sectionGeneral),
                   SettingsSwitchTile(
                     title: l10n.language,
                     icon: Icons.language,
@@ -120,8 +120,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (val) {
                       localeProvider.setLocale(Locale(val ? 'ne' : 'en'));
                     },
-                    leftLabel: 'Eng',
-                    rightLabel: 'Nep',
+                    leftLabel: l10n.langEngShort,
+                    rightLabel: l10n.langNepShort,
                   ),
                   SettingsSwitchTile(
                     title: l10n.theme,
@@ -130,8 +130,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (val) {
                       themeProvider.toggleTheme(val);
                     },
-                    leftLabel: 'Light',
-                    rightLabel: 'Dark',
+                    leftLabel: l10n.themeLight,
+                    rightLabel: l10n.themeDark,
                   ),
                   SettingsNavigationTile(
                     title: l10n.textSize,
@@ -143,9 +143,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   const SizedBox(height: 16),
                   // --- Account Settings ---
-                  _buildSectionTitle(context, 'Account Settings'),
+                  _buildSectionTitle(context, l10n.accountSettings),
                   SettingsNavigationTile(
-                    title: 'Settings',
+                    title: l10n.settingsTitle,
                     icon: Icons.manage_accounts_outlined,
                     onTap: () {
                       Navigator.pushNamed(context, AppStrings.accountSettingsPath);
@@ -154,9 +154,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   const SizedBox(height: 16),
                   // --- Notifications ---
-                  _buildSectionTitle(context, 'Notifications'),
+                  _buildSectionTitle(context, l10n.settingsNotificationsSection),
                   SettingsSwitchTile(
-                    title: 'Push Notifications',
+                    title: l10n.settingsPushNotifications,
                     icon: Icons.notifications_none,
                     value: notificationPrefs.pushEnabled,
                     // Persisted, then applied to the FCM topic subscriptions —
@@ -167,7 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   SettingsSwitchTile(
-                    title: 'Nearby Site Alerts',
+                    title: l10n.settingsNearbySiteAlerts,
                     icon: Icons.location_on_outlined,
                     value: notificationPrefs.nearbyAlertsEnabled,
                     // Persisted, then starts/stops the native heritage geofences.
@@ -176,7 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   const SizedBox(height: 16),
                   // --- Data & Storage ---
-                  _buildSectionTitle(context, 'Data & Storage'),
+                  _buildSectionTitle(context, l10n.dataStorage),
                   SettingsNavigationTile(
                     title: l10n.autoSync,
                     icon: Icons.sync,
@@ -196,29 +196,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
 
                   const SizedBox(height: 24),
-                  _buildSectionTitle(context, 'Legal'),
+                  _buildSectionTitle(context, l10n.sectionLegal),
                   SettingsNavigationTile(
-                    title: 'Privacy Policy',
+                    title: l10n.privacyPolicy,
                     icon: Icons.privacy_tip_outlined,
                     onTap: () => Navigator.pushNamed(context, AppStrings.privacyPolicyPath),
                   ),
                   SettingsNavigationTile(
-                    title: 'Terms & Conditions',
+                    title: l10n.termsConditions,
                     icon: Icons.description_outlined,
                     onTap: () => Navigator.pushNamed(context, AppStrings.termsPath),
                   ),
                   SettingsNavigationTile(
-                    title: 'Community Guidelines',
+                    title: l10n.communityGuidelines,
                     icon: Icons.people_outline,
                     onTap: () => Navigator.pushNamed(context, AppStrings.communityPolicyPath),
                   ),
                   SettingsNavigationTile(
-                    title: 'Disclaimer',
+                    title: l10n.disclaimerTitle,
                     icon: Icons.warning_amber_outlined,
                     onTap: () => Navigator.pushNamed(context, AppStrings.disclaimerPath),
                   ),
                   SettingsNavigationTile(
-                    title: 'Copyright Policy',
+                    title: l10n.copyrightPolicy,
                     icon: Icons.copyright_outlined,
                     onTap: () => Navigator.pushNamed(context, AppStrings.copyrightPolicyPath),
                   ),
@@ -242,7 +242,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain,
+          color: Theme.of(context).brightness == Brightness.light
+              ? AppColors.kColorTextHeading
+              : AppColors.goldMain,
         ),
       ),
     );

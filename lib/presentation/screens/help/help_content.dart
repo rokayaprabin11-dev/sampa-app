@@ -5,7 +5,6 @@
 const String helpSupportEmail = 'rokayaprabin11@gmail.com';
 const String helpSupportPhone = '+977 9800000000';
 const String helpOfficeHours = 'Sun–Fri, 10:00 AM – 5:00 PM (NPT)';
-const String helpAppVersion = 'v2.4.0';
 
 class HelpFaq {
   final String question;
@@ -201,6 +200,22 @@ const helpTopicInfo = <String, List<HelpTopicInfo>>{
     HelpTopicInfo('Offline access',
         'Download sites before you travel so browsing and search keep working without '
             'a connection.'),
+  ],
+  'payments': [
+    HelpTopicInfo('You pay the guide directly',
+        'Sampada is not a payment processor and never holds your money. After the '
+            'tour, you pay the guide through their own eSewa, Khalti or Fonepay '
+            'account — or in cash.'),
+    HelpTopicInfo('Submitting proof',
+        'Open the booking once the tour is marked complete, choose the method you '
+            'paid with, enter the transaction reference (not needed for cash) and '
+            'submit. The guide then confirms they received it.'),
+    HelpTopicInfo('Your receipt',
+        'When the guide confirms the payment, a receipt is issued and you can '
+            'download it as a PDF from the booking.'),
+    HelpTopicInfo('If the guide rejects a payment',
+        'They must give a reason. Check the details, correct anything wrong and '
+            'resubmit. Contact support if you cannot agree.'),
   ],
 };
 

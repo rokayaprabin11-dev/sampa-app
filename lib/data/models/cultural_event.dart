@@ -9,6 +9,7 @@ class CulturalEvent extends Equatable {
   final String description;
   final String descriptionNepali;
   final String shortDescription;
+  final String shortDescriptionNepali;
   final String imageUrl;
   final List<String> gallery;
   final String color;
@@ -37,6 +38,7 @@ class CulturalEvent extends Equatable {
     required this.description,
     required this.descriptionNepali,
     this.shortDescription = '',
+    this.shortDescriptionNepali = '',
     this.imageUrl = '',
     this.gallery = const [],
     this.color = '',
@@ -54,6 +56,16 @@ class CulturalEvent extends Equatable {
     this.seatsRemaining,
     this.isFull = false,
   });
+
+  /// Locale-aware content: return the Nepali field when the user's language is
+  /// Nepali and that field is non-empty; otherwise fall back to English so a
+  /// half-translated record still reads.
+  String localizedTitle(bool np) =>
+      np && titleNepali.trim().isNotEmpty ? titleNepali : title;
+  String localizedShortDescription(bool np) =>
+      np && shortDescriptionNepali.trim().isNotEmpty ? shortDescriptionNepali : shortDescription;
+  String localizedDescription(bool np) =>
+      np && descriptionNepali.trim().isNotEmpty ? descriptionNepali : description;
 
   /// A human label for the event time, e.g. "10:00 AM – 4:00 PM", "10:00 AM",
   /// or null when no start time is set (an all-day event).
@@ -86,6 +98,7 @@ class CulturalEvent extends Equatable {
         description,
         descriptionNepali,
         shortDescription,
+        shortDescriptionNepali,
         imageUrl,
         gallery,
         color,

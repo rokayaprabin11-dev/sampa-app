@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/theme/app_theme.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/data/models/district_model.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/heritage_widgets.dart';
@@ -89,11 +92,11 @@ class _DistrictListScreenState extends State<DistrictListScreen> {
                       ),
                     ),
                     if (visible.isEmpty)
-                      const SliverFillRemaining(
+                      SliverFillRemaining(
                         hasScrollBody: false,
                         child: Center(
-                          child: Text('No districts match this search',
-                            style: TextStyle(color: AppColors.kColorTextMuted, fontSize: 14)),
+                          child: Text(AppLocalizations.of(context)!.noDistrictsMatchSearch,
+                            style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14)),
                         ),
                       )
                     else
@@ -170,6 +173,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -189,28 +193,35 @@ class _Header extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
               child: Row(
                 children: [
-                  _CircleIconButton(icon: Icons.arrow_back_ios_new, onTap: onBack),
+                  _CircleIconButton(
+                    icon: Icons.arrow_back_ios_new,
+                    label: MaterialLocalizations.of(context).backButtonTooltip,
+                    onTap: onBack,
+                  ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('DISTRICTS',
-                          style: TextStyle(
+                        Text(l10n.districtsTitle.toUpperCase(),
+                          // Cinzel — the display face — not the platform serif.
+                          style: GoogleFonts.cinzel(
                             color: AppColors.kColorTextOnHeader,
-                            fontFamily: 'serif',
                             fontSize: 22,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w700,
                             letterSpacing: 1.5,
+                          ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback)),
+                        const SizedBox(height: 4),
+                        Text(l10n.districtsSubtitle,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: const Color(0xB3FFFFFF),
                           )),
-                        SizedBox(height: 4),
-                        Text('जिल्ला अनुसार हेर्नुहोस्',
-                          style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13)),
                       ],
                     ),
                   ),
                   _CircleIconButton(
                     icon: Icons.notifications,
+                    label: l10n.navNotifications,
                     onTap: () => Navigator.pushNamed(context, AppStrings.notificationsPath),
                   ),
                 ],
@@ -247,15 +258,15 @@ class _SearchBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.search, color: Color(0xFF7B1E00), size: 20),
+          const Icon(Icons.search, color: AppColors.kColorDeep, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
               onChanged: onChanged,
-              style: const TextStyle(color: Color(0xFF4A342B), fontSize: 14),
-              decoration: const InputDecoration(
-                hintText: 'Search a district...',
-                hintStyle: TextStyle(color: Color(0xFF8C7162), fontSize: 14),
+              style: const TextStyle(color: AppColors.kColorTextBody, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchDistrictHint,
+                hintStyle: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
                 border: InputBorder.none,
                 isCollapsed: true,
               ),
@@ -270,21 +281,45 @@ class _SearchBar extends StatelessWidget {
 class _CircleIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _CircleIconButton({required this.icon, required this.onTap});
+
+  /// What a screen reader announces — a bare icon says nothing.
+  final String label;
+
+  const _CircleIconButton({
+    required this.icon,
+    required this.onTap,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+    // Visual stays the 38dp chip; the tappable surface is the full 48dp
+    // accessibility minimum around it.
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                ),
+                child: Icon(icon, color: Colors.white, size: 17),
+              ),
+            ),
+          ),
         ),
-        child: Icon(icon, color: Colors.white, size: 17),
       ),
     );
   }
@@ -297,21 +332,30 @@ class _CountLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    // Cinzel (not platform serif), and the phrases come whole from l10n so
+    // word order survives translation.
+    final base = GoogleFonts.cinzel(fontSize: 14, fontWeight: FontWeight.w700)
+        .copyWith(fontFamilyFallback: AppTheme.devanagariFallback);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         RichText(
           text: TextSpan(
-            style: const TextStyle(fontFamily: 'serif', fontSize: 16, fontWeight: FontWeight.w700),
+            style: base,
             children: [
-              TextSpan(text: '$districtCount', style: const TextStyle(color: AppColors.kColorAccentSafe)),
-              const TextSpan(text: ' districts · ', style: TextStyle(color: AppColors.kColorTextHeading)),
-              TextSpan(text: '$siteTotal', style: const TextStyle(color: AppColors.kColorAccentSafe)),
-              const TextSpan(text: ' sites', style: TextStyle(color: AppColors.kColorTextHeading)),
+              TextSpan(
+                  text: l10n.districtCountLabel(districtCount),
+                  style: const TextStyle(color: AppColors.kColorAccentSafe)),
+              const TextSpan(text: ' · ', style: TextStyle(color: AppColors.kColorTextHeading)),
+              TextSpan(
+                  text: l10n.siteCountLabel(siteTotal),
+                  style: const TextStyle(color: AppColors.kColorAccentSafe)),
             ],
           ),
         ),
-        const Text('Updated recently', style: TextStyle(fontSize: 12, color: AppColors.kColorTextMuted)),
+        Text(l10n.updatedRecently,
+            style: const TextStyle(fontSize: 12, color: AppColors.kColorTextMuted)),
       ],
     );
   }
@@ -324,10 +368,11 @@ class _FilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = {
-      _DistrictFilter.all: 'All',
-      _DistrictFilter.valley: 'Kathmandu Valley',
-      _DistrictFilter.mostSites: 'Most Sites',
+    final l10n = AppLocalizations.of(context)!;
+    final items = {
+      _DistrictFilter.all: l10n.all,
+      _DistrictFilter.valley: l10n.filterKathmanduValley,
+      _DistrictFilter.mostSites: l10n.filterMostSites,
     };
     return SizedBox(
       height: 60,

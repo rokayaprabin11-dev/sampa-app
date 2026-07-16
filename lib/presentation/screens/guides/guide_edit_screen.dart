@@ -174,7 +174,7 @@ class _GuideEditScreenState extends State<GuideEditScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
 
     return Scaffold(
       appBar: SampadaAppBar(title: Text(l10n.btnEditProfile)),

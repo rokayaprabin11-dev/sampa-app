@@ -61,7 +61,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+                colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
                 stops: [0.0, 0.6, 1.0],
               ),
               borderRadius: BorderRadius.only(
@@ -95,7 +95,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           onPressed: () => context.read<NotificationProvider>().markAllRead(),
                           child: Text(
                             l10n.notifMarkAllRead,
-                            style: const TextStyle(color: Color(0xFFC89932), fontSize: 14),
+                            style: const TextStyle(color: AppColors.kColorAccentLight, fontSize: 14),
                           ),
                         ),
                       ],
@@ -264,7 +264,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFC89932) : Colors.transparent,
+          color: isSelected ? AppColors.kColorAccentLight : Colors.transparent,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         ),
         child: Text(
@@ -291,7 +291,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             AppLocalizations.of(context)!.emptyNotifications,
             style: TextStyle(
               fontSize: 16,
-              color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),
+              color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted,
             ),
           ),
         ],
@@ -333,11 +333,11 @@ class _NotificationCard extends StatelessWidget {
   Widget _iconBox(bool isDark) => Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkBgCard : const Color(0xFFF5EFEC),
+          color: isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
         ),
         child: Icon(_icon,
-            color: isDark ? AppColors.goldMain : const Color(0xFF4A342B),
+            color: isDark ? AppColors.goldMain : AppColors.kColorTextHeading,
             size: 26),
       );
 
@@ -354,11 +354,11 @@ class _NotificationCard extends StatelessWidget {
   Color get _accent => switch (notificationKind(notification)) {
         'event' || 'event_reminder' => Colors.orange,
         'geofence' => Colors.teal,
-        'heritage' => const Color(0xFF9E3D1A),
+        'heritage' => AppColors.kColorPrimaryMid,
         'review' => Colors.amber,
-        'booking' => const Color(0xFF2E7D32),
+        'booking' => AppColors.statusSuccess,
         'chat' => AppColors.kColorPrimary,
-        _ => const Color(0xFF9E3D1A),
+        _ => AppColors.kColorPrimaryMid,
       };
 
   String get _subtitle {
@@ -390,7 +390,7 @@ class _NotificationCard extends StatelessWidget {
                   : const Color(0xFFFFF8EE)),
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
-            color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3),
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream,
           ),
         ),
         child: IntrinsicHeight(
@@ -437,7 +437,7 @@ class _NotificationCard extends StatelessWidget {
                                 fontSize: 12,
                                 color: isDark
                                     ? AppColors.darkTextSecondary
-                                    : const Color(0xFF8C7162),
+                                    : AppColors.kColorTextMuted,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -459,7 +459,7 @@ class _NotificationCard extends StatelessWidget {
                           height: 8,
                           margin: const EdgeInsets.only(left: 8),
                           decoration: const BoxDecoration(
-                            color: Color(0xFFC89932),
+                            color: AppColors.kColorAccentLight,
                             shape: BoxShape.circle,
                           ),
                         ),

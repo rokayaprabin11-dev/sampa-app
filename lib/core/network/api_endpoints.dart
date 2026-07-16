@@ -123,6 +123,10 @@ class ApiEndpoints {
   static String bookingReview(int id) => '/guides/bookings/$id/review/';
   static String bookingReviewReply(int id) => '/guides/bookings/$id/reply/';
 
+  // --- Customer support (Help Center) ---
+  static const String supportTickets = '/support/tickets/';
+  static String supportTicket(int id) => '/support/tickets/$id/';
+
   // --- Offline Downloads ---
   static const String downloads = '/users/me/downloads/';
 

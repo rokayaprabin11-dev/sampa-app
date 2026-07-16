@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/network/api_client.dart';
+import 'package:sampada/core/services/support_service.dart';
+import 'package:sampada/injection.dart' as di;
 import 'package:sampada/presentation/screens/help/help_content.dart';
 import 'package:sampada/presentation/screens/help/help_widgets.dart';
 
@@ -32,6 +36,7 @@ class _HelpContactSupportScreenState extends State<HelpContactSupportScreen> {
     'Technical Issue', 'Bug Report', 'Other',
   ];
   int _category = 0;
+  bool _sending = false;
   final _subject = TextEditingController();
   final _description = TextEditingController();
 
@@ -47,15 +52,26 @@ class _HelpContactSupportScreenState extends State<HelpContactSupportScreen> {
       showHelpToast(context, 'Add a short subject first', icon: Icons.info_outline);
       return;
     }
-    final subject = '[${_categories[_category]}] ${_subject.text.trim()}';
-    final body = '${_description.text.trim()}\n\n---\nSampada $helpAppVersion';
-    await _launch(
-      context,
-      Uri.parse('mailto:$helpSupportEmail'
-          '?subject=${Uri.encodeComponent(subject)}'
-          '&body=${Uri.encodeComponent(body)}'),
-      'No mail app found. Write to $helpSupportEmail',
+    if (_description.text.trim().isEmpty) {
+      showHelpToast(context, 'Describe the issue first', icon: Icons.info_outline);
+      return;
+    }
+    setState(() => _sending = true);
+    final ticket = await SupportService(apiClient: di.sl<ApiClient>()).submit(
+      kind: 'support',
+      category: _categories[_category],
+      subject: _subject.text.trim(),
+      message: _description.text.trim(),
     );
+    if (!mounted) return;
+    setState(() => _sending = false);
+    if (ticket != null) {
+      showHelpToast(context, 'Request sent — we\'ll reply in the app');
+      Navigator.pop(context);
+    } else {
+      showHelpToast(context, 'Couldn\'t send. Check your connection.',
+          icon: Icons.error_outline);
+    }
   }
 
   @override
@@ -91,9 +107,12 @@ class _HelpContactSupportScreenState extends State<HelpContactSupportScreen> {
           const SizedBox(height: 16),
           const _AttachmentRow(),
           const SizedBox(height: 20),
-          HelpPrimaryButton(label: 'Submit via Email', icon: Icons.send, onTap: _submit),
+          HelpPrimaryButton(
+              label: _sending ? 'Sending…' : 'Submit Request',
+              icon: Icons.send,
+              onTap: _sending ? null : _submit),
           const SizedBox(height: 10),
-          Center(child: Text('Opens your mail app addressed to our team',
+          Center(child: Text('We\'ll reply inside the app under "My Support Requests"',
               style: TextStyle(fontSize: 11, color: HelpPalette.of(context).faint))),
         ],
       ),
@@ -476,6 +495,7 @@ class HelpFeedbackScreen extends StatefulWidget {
 
 class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
   int _rating = 0;
+  bool _sending = false;
   final _comment = TextEditingController();
 
   @override
@@ -489,14 +509,24 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
       showHelpToast(context, 'Tap a star to rate first', icon: Icons.info_outline);
       return;
     }
-    final subject = 'App feedback — $_rating/5 stars';
-    final body = '${_comment.text.trim()}\n\n---\nSampada $helpAppVersion';
-    await _launch(
-      context,
-      Uri.parse('mailto:$helpSupportEmail'
-          '?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}'),
-      'No mail app found. Write to $helpSupportEmail',
+    setState(() => _sending = true);
+    final comment = _comment.text.trim();
+    final ticket = await SupportService(apiClient: di.sl<ApiClient>()).submit(
+      kind: 'feedback',
+      category: 'App rating',
+      subject: '$_rating/5 stars',
+      message: comment.isEmpty ? '($_rating stars, no comment)' : comment,
+      rating: _rating,
     );
+    if (!mounted) return;
+    setState(() => _sending = false);
+    if (ticket != null) {
+      showHelpToast(context, 'Thanks for the feedback!');
+      Navigator.pop(context);
+    } else {
+      showHelpToast(context, 'Couldn\'t send. Check your connection.',
+          icon: Icons.error_outline);
+    }
   }
 
   @override
@@ -537,7 +567,10 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
             controller: _comment,
           ),
           const SizedBox(height: 20),
-          HelpPrimaryButton(label: 'Send Feedback', icon: Icons.send, onTap: _submit),
+          HelpPrimaryButton(
+              label: _sending ? 'Sending…' : 'Send Feedback',
+              icon: Icons.send,
+              onTap: _sending ? null : _submit),
         ],
       ),
     );
@@ -589,6 +622,7 @@ class HelpReportFormScreen extends StatefulWidget {
 class _HelpReportFormScreenState extends State<HelpReportFormScreen> {
   static const _reasons = ['Behavior', 'Safety concern', 'Incorrect info', 'Other'];
   int _reason = 0;
+  bool _sending = false;
   final _details = TextEditingController();
 
   @override
@@ -597,21 +631,38 @@ class _HelpReportFormScreenState extends State<HelpReportFormScreen> {
     super.dispose();
   }
 
+  String _targetType() {
+    final k = widget.kind.toLowerCase();
+    if (k.contains('guide')) return 'guide';
+    if (k.contains('user')) return 'user';
+    if (k.contains('event')) return 'event';
+    if (k.contains('site') || k.contains('heritage')) return 'site';
+    if (k.contains('bug')) return 'bug';
+    return 'other';
+  }
+
   Future<void> _submit() async {
     if (_details.text.trim().isEmpty) {
       showHelpToast(context, 'Add some detail so we can look into it', icon: Icons.info_outline);
       return;
     }
-    final subject = '[${widget.kind}] ${_reasons[_reason]}';
-    final body = '${_details.text.trim()}\n\n---\nSampada $helpAppVersion';
-    final nav = Navigator.of(context);
-    await _launch(
-      context,
-      Uri.parse('mailto:$helpSupportEmail'
-          '?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}'),
-      'No mail app found. Write to $helpSupportEmail',
+    setState(() => _sending = true);
+    final ticket = await SupportService(apiClient: di.sl<ApiClient>()).submit(
+      kind: 'report',
+      category: _reasons[_reason],
+      subject: widget.kind,
+      message: _details.text.trim(),
+      targetType: _targetType(),
     );
-    if (mounted) nav.pop();
+    if (!mounted) return;
+    setState(() => _sending = false);
+    if (ticket != null) {
+      showHelpToast(context, 'Report submitted — our team will review it');
+      Navigator.pop(context);
+    } else {
+      showHelpToast(context, 'Couldn\'t submit. Check your connection.',
+          icon: Icons.error_outline);
+    }
   }
 
   @override
@@ -640,7 +691,10 @@ class _HelpReportFormScreenState extends State<HelpReportFormScreen> {
           const SizedBox(height: 16),
           const _AttachmentRow(),
           const SizedBox(height: 20),
-          HelpPrimaryButton(label: 'Submit Report', icon: Icons.flag_outlined, onTap: _submit),
+          HelpPrimaryButton(
+              label: _sending ? 'Submitting…' : 'Submit Report',
+              icon: Icons.flag_outlined,
+              onTap: _sending ? null : _submit),
         ],
       ),
     );
@@ -820,6 +874,222 @@ class _HelpLiveChatScreenState extends State<HelpLiveChatScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// My Support Requests  (real tickets + the admin's reply)
+// ─────────────────────────────────────────────────────────────────────────────
+({Color bg, Color fg, String label}) ticketStatusStyle(String s) {
+  switch (s) {
+    case 'resolved':
+      return (bg: const Color(0xFFEAF4EC), fg: const Color(0xFF2D7A3A), label: 'Resolved');
+    case 'in_progress':
+      return (bg: const Color(0xFFE8F0FB), fg: const Color(0xFF1B5FA8), label: 'In progress');
+    case 'closed':
+      return (bg: const Color(0xFFEAE4DC), fg: const Color(0xFF6B5F57), label: 'Closed');
+    default:
+      return (bg: AppColors.kColorPendingBg, fg: AppColors.kColorPendingText, label: 'Open');
+  }
+}
+
+class HelpMyRequestsScreen extends StatefulWidget {
+  const HelpMyRequestsScreen({super.key});
+  @override
+  State<HelpMyRequestsScreen> createState() => _HelpMyRequestsScreenState();
+}
+
+class _HelpMyRequestsScreenState extends State<HelpMyRequestsScreen> {
+  late final SupportService _svc = SupportService(apiClient: di.sl<ApiClient>());
+  List<SupportTicket>? _tickets;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final t = await _svc.myTickets();
+      if (mounted) setState(() { _tickets = t; _error = false; });
+    } catch (_) {
+      if (mounted) setState(() { _error = true; _tickets = const []; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = HelpPalette.of(context);
+    final tickets = _tickets;
+    return HelpScaffold(
+      title: 'My Support Requests',
+      subtitle: 'Track your requests and replies',
+      body: tickets == null
+          ? const Center(child: CircularProgressIndicator())
+          : _error
+              ? _message(p, 'Couldn\'t load your requests.\nPull to try again.')
+              : tickets.isEmpty
+                  ? _empty(context, p)
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(18),
+                        itemCount: tickets.length,
+                        itemBuilder: (_, i) => _ticketCard(context, p, tickets[i]),
+                      ),
+                    ),
+    );
+  }
+
+  Widget _message(HelpPalette p, String text) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Text(text, textAlign: TextAlign.center, style: TextStyle(color: p.muted)),
+        ),
+      );
+
+  Widget _empty(BuildContext context, HelpPalette p) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.inbox_outlined, size: 48, color: p.faint),
+              const SizedBox(height: 16),
+              Text('No requests yet', style: helpSerif(size: 16, color: p.ink)),
+              const SizedBox(height: 6),
+              Text('When you contact support or report a problem, it appears here with our reply.',
+                  textAlign: TextAlign.center, style: TextStyle(fontSize: 12.5, height: 1.5, color: p.muted)),
+              const SizedBox(height: 20),
+              HelpPrimaryButton(
+                label: 'Contact Support', icon: Icons.chat_bubble_outline,
+                onTap: () => pushHelp(context, const HelpContactSupportScreen()),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _ticketCard(BuildContext context, HelpPalette p, SupportTicket t) {
+    final st = ticketStatusStyle(t.status);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: HelpCard(
+        onTap: () => _showTicket(context, t),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    t.subject.isNotEmpty ? t.subject : (t.category.isNotEmpty ? t.category : 'Request'),
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: p.ink),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(color: st.bg, borderRadius: BorderRadius.circular(20)),
+                  child: Text(st.label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: st.fg)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(t.message, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12.5, height: 1.4, color: p.muted)),
+            if (t.hasReply) ...[
+              const SizedBox(height: 8),
+              Row(children: [
+                const Icon(Icons.mark_chat_read_outlined, size: 14, color: HelpColors.sage),
+                const SizedBox(width: 6),
+                Text('Support replied', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: HelpColors.sage)),
+              ]),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTicket(BuildContext context, SupportTicket t) {
+    final p = HelpPalette.of(context);
+    final st = ticketStatusStyle(t.status);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+        decoration: BoxDecoration(
+          color: p.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(margin: const EdgeInsets.only(top: 10), width: 40, height: 4,
+                decoration: BoxDecoration(color: p.faint.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(2))),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Expanded(child: Text(
+                        t.subject.isNotEmpty ? t.subject : (t.category.isNotEmpty ? t.category : 'Request'),
+                        style: helpSerif(size: 17, color: p.ink))),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: st.bg, borderRadius: BorderRadius.circular(20)),
+                        child: Text(st.label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: st.fg)),
+                      ),
+                    ]),
+                    const SizedBox(height: 14),
+                    const HelpEyebrow('Your message'),
+                    const SizedBox(height: 4),
+                    Text(t.message, style: TextStyle(fontSize: 13.5, height: 1.55, color: p.ink)),
+                    if (t.hasReply) ...[
+                      const SizedBox(height: 18),
+                      const HelpEyebrow('Support reply'),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: p.isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFEAF4EC),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: p.isDark ? p.line : const Color(0xFFCFE6D3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (t.respondedByName.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Text(t.respondedByName,
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: HelpColors.sage)),
+                              ),
+                            Text(t.adminResponse, style: TextStyle(fontSize: 13.5, height: 1.55, color: p.ink)),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      const SizedBox(height: 18),
+                      Text('No reply yet — we\'ll notify you when support responds.',
+                          style: TextStyle(fontSize: 12.5, color: p.muted)),
+                    ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

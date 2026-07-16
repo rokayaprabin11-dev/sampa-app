@@ -93,6 +93,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       out.add(_Conversation(
         bookingId: b['id'] as int,
         otherName: (b['tourist_name'] ?? 'Tourist').toString(),
+        otherPhoto: b['tourist_photo']?.toString(),
         otherRole: 'Tourist',
         date: '${b['date'] ?? ''}',
         isPast: b['status'] == 'completed',

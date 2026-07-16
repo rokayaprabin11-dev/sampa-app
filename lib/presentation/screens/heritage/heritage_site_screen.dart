@@ -199,7 +199,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _site!.name.toUpperCase(),
+                            _site!.localizedName(Localizations.localeOf(context).languageCode == 'ne').toUpperCase(),
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
@@ -240,15 +240,17 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 12),
                                 child: Center(child: SizedBox(width: 20, height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF9E3D1A)))),
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.kColorPrimaryMid))),
                               )
                             else
                             LayoutBuilder(
                               builder: (context, constraints) {
                                 final bodyColor = cs.onSurface.withValues(alpha: 0.75);
                                 final style = TextStyle(color: bodyColor, fontSize: 14, height: 1.65);
-                                final desc = _site!.description.isNotEmpty
-                                    ? _site!.description
+                                final np = Localizations.localeOf(context).languageCode == 'ne';
+                                final localizedDesc = _site!.localizedDescription(np);
+                                final desc = localizedDesc.isNotEmpty
+                                    ? localizedDesc
                                     : 'No description available.';
                                 final tp = TextPainter(
                                   text: TextSpan(text: desc, style: style),
@@ -276,7 +278,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
                                           child: Text(
                                             _descExpanded ? l10n.btnShowLess : l10n.btnLearnMore,
                                             style: const TextStyle(
-                                                color: Color(0xFFD4520A),
+                                                color: AppColors.kColorPrimary,
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w600),
                                           ),
@@ -436,7 +438,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     decoration: const BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topCenter, end: Alignment.bottomCenter,
-        colors: [Color(0xFF3A0A00), Color(0xFF7B1E00)],
+        colors: [AppColors.kColorDeepShade, AppColors.kColorDeep],
       ),
     ),
     child: Center(child: Icon(
@@ -469,7 +471,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
       border: Border.all(color: cs.outline),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      const Icon(Icons.emoji_events, color: Color(0xFFD4520A), size: 13),
+      const Icon(Icons.emoji_events, color: AppColors.kColorPrimary, size: 13),
       const SizedBox(width: 5),
       Text(unescoLabel,
           style: const TextStyle(color: AppColors.goldDark, fontWeight: FontWeight.bold, fontSize: 11)),
@@ -524,7 +526,7 @@ class _SubHeritageScreen extends StatelessWidget {
     final cs    = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF7B1E00),
+      backgroundColor: AppColors.kColorDeep,
       body: Column(
         children: [
           SizedBox(
@@ -535,7 +537,7 @@ class _SubHeritageScreen extends StatelessWidget {
                 errorWidget: Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                        colors: [Color(0xFF3A0A00), Color(0xFF7B1E00)]),
+                        colors: [AppColors.kColorDeepShade, AppColors.kColorDeep]),
                   ),
                   child: const Center(child: Icon(Icons.image_not_supported, size: 72, color: Colors.white30)),
                 ),

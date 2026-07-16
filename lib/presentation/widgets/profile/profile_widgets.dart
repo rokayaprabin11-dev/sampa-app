@@ -483,7 +483,7 @@ class SettingsSwitchTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF3A241C) : AppColors.darkBgCard,
+              color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBrownDarkest : AppColors.darkBgCard,
               shape: BoxShape.circle,
             ),
             child: imagePath != null
@@ -510,7 +510,7 @@ class SettingsSwitchTile extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: Colors.white,
-            activeTrackColor: const Color(0xFF3DA35D),
+            activeTrackColor: AppColors.kColorOnlineDot,
             inactiveThumbColor: Colors.white,
             inactiveTrackColor: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8B2C1F) : Colors.grey.withValues(alpha: 0.3),
           ),
@@ -562,7 +562,7 @@ class SettingsNavigationTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF3A241C) : AppColors.darkBgCard,
+                color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBrownDarkest : AppColors.darkBgCard,
                 shape: BoxShape.circle,
               ),
               child: imagePath != null
@@ -585,10 +585,10 @@ class SettingsNavigationTile extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 8),
                 child: Text(
                   trailingText!,
-                  style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary, fontSize: 14),
+                  style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary, fontSize: 14),
                 ),
               ),
-            Icon(Icons.chevron_right, size: 20, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextTertiary),
+            Icon(Icons.chevron_right, size: 20, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextTertiary),
           ],
         ),
       ),

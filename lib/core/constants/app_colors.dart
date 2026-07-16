@@ -7,6 +7,7 @@ class AppColors {
 
   // ── Primary · Temple Red ─────────────────────────────────────────────────
   static const Color kColorDeep         = Color(0xFF5C1A0A); // header gradient start
+  static const Color kColorDeepShade    = Color(0xFF3A0A00); // gradient anchor below kColorDeep
   static const Color kColorPrimaryDark  = Color(0xFFA83210); // pressed / primaryContainer
   static const Color kColorPrimary      = Color(0xFFC8501A); // buttons, nav active, FAB, CTAs
   static const Color kColorPrimaryMid   = Color(0xFFA83210); // header gradient mid
@@ -55,6 +56,7 @@ class AppColors {
   static const Color kColorBorderMid    = Color(0xFFE8D5B7); // icon boxes, district cards (sand)
   static const Color kColorBorderSubtle = Color(0xFFE8D5B7); // card outlines, dividers
   static const Color kColorBorderFaint  = Color(0xFFF2E6D2); // very subtle separators
+  static const Color kColorBorderCream  = Color(0xFFF7EED3); // pale cream border on cream cards/chips
 
   // ── Focus ring (WCAG-patched: 4.52:1) ───────────────────────────────────
   static const Color kFocusRing = Color(0xFFA36336);

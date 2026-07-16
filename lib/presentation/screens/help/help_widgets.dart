@@ -293,33 +293,38 @@ class HelpTopicTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: disabled ? null : onTap,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(8, 14, 8, 12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           decoration: BoxDecoration(
             color: p.card,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: p.line),
           ),
+          // Centred: the Column is the only unpositioned child, so the Stack's
+          // alignment is what actually centres it — without this it pins to the
+          // top-left and leaves dead space under the label.
           child: Stack(
             clipBehavior: Clip.none,
+            alignment: Alignment.center,
             children: [
               Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 40, height: 40,
+                    width: 36, height: 36,
                     decoration: BoxDecoration(
                       color: HelpColors.terracotta.withValues(alpha: p.isDark ? 0.18 : 0.12),
                       borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12), bottom: Radius.circular(4)),
+                          top: Radius.circular(11), bottom: Radius.circular(4)),
                     ),
-                    child: Icon(icon, size: 18, color: HelpColors.terracottaDeep),
+                    child: Icon(icon, size: 17, color: HelpColors.terracottaDeep),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(label,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: p.ink, height: 1.2)),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: p.ink, height: 1.2)),
                 ],
               ),
               if (badge != null)

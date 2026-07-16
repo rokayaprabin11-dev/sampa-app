@@ -462,7 +462,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                     child: ElevatedButton(
                       onPressed: gp.isLoading || _isUploading ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+                        backgroundColor: isDark ? AppColors.goldMain : AppColors.kColorDeep,
                         foregroundColor: isDark ? Colors.black : Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
                       ),
@@ -497,7 +497,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   // exists. Blocks re-submission until admin approves/rejects/revokes.
   Widget _buildSubmittedScreen(BuildContext context, bool isDark) {
     final l10n = AppLocalizations.of(context)!;
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
@@ -513,7 +513,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                     Container(
                       width: 96, height: 96,
                       decoration: BoxDecoration(
-                        color: (isDark ? AppColors.goldMain : const Color(0xFF7B1E00)).withValues(alpha: 0.10),
+                        color: (isDark ? AppColors.goldMain : AppColors.kColorDeep).withValues(alpha: 0.10),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.check_circle, size: 56, color: accent),
@@ -528,12 +528,12 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFDF3DC),
+                        color: AppColors.kColorPendingBg,
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                       ),
                       child: Text(
                         l10n.pendingReview,
-                        style: const TextStyle(color: Color(0xFF9A6200), fontWeight: FontWeight.bold, fontSize: 12),
+                        style: const TextStyle(color: AppColors.kColorPendingText, fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -581,7 +581,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           end: Alignment.bottomCenter,
           colors: isDark
               ? const [AppColors.brownDeep, AppColors.brownDark]
-              : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+              : const [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
           stops: isDark ? null : const [0.0, 0.6, 1.0],
         ),
         borderRadius: const BorderRadius.only(
@@ -617,8 +617,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
   Widget _buildStepIndicator(BuildContext context, bool isDark) {
     const steps = ['Profile', 'Expertise', 'Verify', 'Payment'];
-    final activeColor = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
-    final inactiveColor = isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC);
+    final activeColor = isDark ? AppColors.goldMain : AppColors.kColorDeep;
+    final inactiveColor = isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -692,7 +692,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
               children: [
                 CircleAvatar(
                   radius: 48,
-                  backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFFF0EAE4),
+                  backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
                   backgroundImage: _pickedProfilePhoto != null
                       ? FileImage(File(_pickedProfilePhoto!.path))
                       : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
@@ -705,7 +705,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00),
+                      color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.camera_alt, size: 16, color: isDark ? Colors.black : Colors.white),
@@ -798,7 +798,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.star_outline, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 22),
+            Icon(Icons.star_outline, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 22),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -887,7 +887,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.shield_outlined, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 22),
+            Icon(Icons.shield_outlined, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 22),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -922,7 +922,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Center(
           child: CircleAvatar(
             radius: 48,
-            backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFFF0EAE4),
+            backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
             backgroundImage: _pickedProfilePhoto != null
                 ? FileImage(File(_pickedProfilePhoto!.path))
                 : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
@@ -969,11 +969,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                   borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                   border: Border.all(
                     color: _confirmedAccuracy
-                        ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
+                        ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
                         : (isDark ? AppColors.darkBorder : Colors.grey),
                   ),
                   color: _confirmedAccuracy
-                      ? (isDark ? AppColors.goldMain : const Color(0xFF7B1E00))
+                      ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
                       : Colors.transparent,
                 ),
                 child: _confirmedAccuracy
@@ -1002,7 +1002,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   /// payment themselves before a booking counts as settled.
   Widget _buildStep4(BuildContext context, bool isDark) {
     final muted = isDark ? AppColors.darkTextTertiary : Colors.grey;
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final filled = _paymentMethodsFilled;
 
     return Column(
@@ -1077,7 +1077,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+            color: isDark ? AppColors.darkBgCard : AppColors.kColorBorderCream,
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
           ),
           child: Row(
@@ -1111,8 +1111,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
-              child: Icon(Icons.people_outline, size: 16, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+              backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBorderCream,
+              child: Icon(Icons.people_outline, size: 16, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
             ),
             const SizedBox(width: 8),
             Column(
@@ -1127,13 +1127,13 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+            color: isDark ? AppColors.darkBgCard : AppColors.kColorBorderCream,
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
             border: isDark ? Border.all(color: AppColors.darkBorder) : null,
           ),
           child: Text(
             'NPR 2,500 / day avg',
-            style: TextStyle(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(color: isDark ? AppColors.goldMain : AppColors.kColorDeep, fontWeight: FontWeight.bold, fontSize: 11),
           ),
         ),
       ],
@@ -1150,13 +1150,13 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBgCard : const Color(0xFFF7EED3),
+        color: isDark ? AppColors.darkBgCard : AppColors.kColorBorderCream,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         border: isDark ? Border.all(color: AppColors.darkBorder) : null,
       ),
       child: Row(
         children: [
-          Icon(icon, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00), size: 28),
+          Icon(icon, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1175,7 +1175,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   Widget _secHeader(BuildContext context, bool isDark, String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+        Icon(icon, size: 18, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
         const SizedBox(width: 8),
         Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
       ],
@@ -1221,7 +1221,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
           decoration: BoxDecoration(
-            border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
             color: isDark ? AppColors.darkBgCard : Colors.transparent,
           ),
@@ -1250,7 +1250,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         color: isDark ? AppColors.darkBgCard : Colors.transparent,
       ),
@@ -1278,7 +1278,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3)),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         color: isDark ? AppColors.darkBgCard : Colors.transparent,
       ),
@@ -1295,7 +1295,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
             child: Row(
               children: [
                 if (prefixIcon != null) ...[
-                  Icon(prefixIcon, size: 16, color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00)),
+                  Icon(prefixIcon, size: 16, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
                   const SizedBox(width: 8),
                 ],
                 Text(e),
@@ -1309,7 +1309,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   }
 
   Widget _chip(BuildContext context, bool isDark, String label, bool selected, VoidCallback onTap, {bool showCheck = false}) {
-    final activeBg   = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final activeBg   = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final inactiveBg = isDark ? AppColors.darkBgCard : Colors.white;
     return GestureDetector(
       onTap: onTap,
@@ -1318,7 +1318,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         decoration: BoxDecoration(
           color: selected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC))),
+          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1341,7 +1341,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   }
 
   Widget _iconChip(BuildContext context, bool isDark, String label, IconData icon, bool selected, VoidCallback onTap) {
-    final activeBg   = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final activeBg   = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final inactiveBg = isDark ? AppColors.darkBgCard : Colors.white;
     return GestureDetector(
       onTap: onTap,
@@ -1350,7 +1350,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         decoration: BoxDecoration(
           color: selected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC))),
+          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1387,7 +1387,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkBgCard : Colors.white,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: isDark ? AppColors.darkBorder : const Color(0xFFE0D5CC)),
+          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
         ),
         child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey[600])),
       ),
@@ -1395,7 +1395,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   }
 
   Widget _uploadBox(BuildContext context, bool isDark, String label, IconData icon, bool uploaded, VoidCallback onTap) {
-    final accentColor = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accentColor = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1435,9 +1435,9 @@ InputDecoration _guideInputDecor(bool isDark, String hint) {
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     filled: isDark,
     fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
-    border:        OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : const Color(0xFFF7EED3))),
-    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.goldMain : const Color(0xFF7B1E00))),
+    border:        OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream)),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream)),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.goldMain : AppColors.kColorDeep)),
   );
 }
 
@@ -1480,7 +1480,7 @@ class _AddLanguageDialogState extends State<_AddLanguageDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
-    final accent = isDark ? AppColors.goldMain : const Color(0xFF7B1E00);
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
 
     return AlertDialog(
       backgroundColor: isDark ? AppColors.darkBgCard : Colors.white,

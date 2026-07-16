@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/network/api_client.dart';
+import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/core/services/route_service.dart';
 import 'package:sampada/core/services/tracking_service.dart';
 import 'package:sampada/injection.dart' as di;
@@ -35,6 +36,11 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
   static const _nepalCenter = LatLng(28.3949, 84.1240);
   static const _pushMinInterval = Duration(seconds: 5);
   static const _routeMinInterval = Duration(seconds: 12);
+
+  /// Worst accuracy we'll plot or broadcast. Looser than the 30 m geofence gate
+  /// (a frozen marker helps nobody mid-tour) but tight enough to reject
+  /// cell/wifi fixes, which land hundreds of metres to kilometres out.
+  static const _kMaxAccuracyM = 100.0;
   static const _distance = Distance();
 
   final MapController _map = MapController();
@@ -119,9 +125,17 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
       return;
     }
 
+    // Seed from the app's accuracy-gated fix (Kalman-smoothed, confidence- and
+    // mock-checked, cached 5 min) — the same one every other "nearby" surface
+    // uses. The raw stream's first emission is usually a coarse last-known or
+    // cell-tower fix, and plotting *that* as the live position is what put both
+    // parties in the wrong place.
+    final (seed, _) = await LocationService().getFixWithQuality();
+    if (seed != null && mounted) _onMyFix(channel, seed);
+
     _geoSub = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
+        accuracy: LocationAccuracy.bestForNavigation,
         distanceFilter: 10, // metres — don't spam on a stationary phone
       ),
     ).listen((pos) => _onMyFix(channel, pos));
@@ -129,6 +143,11 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
 
   void _onMyFix(TrackChannel channel, Position pos) {
     if (!mounted || _ended) return;
+    // Hold a shared position to the same standard the backend holds a guide's
+    // live location to: never plot or broadcast a mocked fix, and drop
+    // cell/wifi-grade fixes (hundreds of metres out) that would otherwise show
+    // someone on the wrong street.
+    if (pos.isMocked || pos.accuracy > _kMaxAccuracyM) return;
     setState(() => _myPos = LatLng(pos.latitude, pos.longitude));
     _maybeFit();
     _maybeRefreshRoute();
@@ -179,7 +198,12 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         bounds: LatLngBounds.fromPoints([_myPos!, _peerPos!]),
         padding: const EdgeInsets.all(64),
       ).fit(_map.camera);
-      _map.move(fit.center, fit.zoom);
+      // When the two parties are standing in the same spot — the normal end of
+      // a tour — the bounds have zero span and the fit returns an infinite
+      // zoom. Feeding that to the camera crashes TileLayer's tile-range maths
+      // ("Infinity or NaN toInt"), so fall back to a close-up instead.
+      final zoom = fit.zoom.isFinite ? fit.zoom.clamp(3.0, 18.0) : 16.0;
+      _map.move(fit.center, zoom);
     });
   }
 

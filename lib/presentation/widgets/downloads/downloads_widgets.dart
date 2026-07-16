@@ -23,7 +23,7 @@ class StorageStatusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +40,7 @@ class StorageStatusCard extends StatelessWidget {
           Text(
             '${usedMB.toInt()} MB of $totalGB GB',
             style: TextStyle(
-              color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary,
+              color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
               fontSize: 14,
             ),
           ),
@@ -49,7 +49,7 @@ class StorageStatusCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: const Color(0xFFDCA73A).withValues(alpha: 0.2),
+              backgroundColor: AppColors.kColorAccentLight.withValues(alpha: 0.2),
               color: const Color(0xFF8B2C1F),
               minHeight: 8,
             ),
@@ -90,7 +90,7 @@ class DownloadItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -122,18 +122,18 @@ class DownloadItemCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.location_on, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain, size: 14),
+                    Icon(Icons.location_on, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : AppColors.goldMain, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       '$sitesCount sites',
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary, fontSize: 13),
+                      style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary, fontSize: 13),
                     ),
                     const SizedBox(width: 12),
-                    Icon(Icons.save, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain, size: 14),
+                    Icon(Icons.save, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : AppColors.goldMain, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       size,
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary, fontSize: 13),
+                      style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary, fontSize: 13),
                     ),
                   ],
                 ),
@@ -144,12 +144,12 @@ class DownloadItemCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
-                      border: Border.all(color: const Color(0xFF3DA35D)),
+                      border: Border.all(color: AppColors.kColorOnlineDot),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.check, color: Color(0xFF3DA35D), size: 14),
+                        const Icon(Icons.check, color: AppColors.kColorOnlineDot, size: 14),
                         const SizedBox(width: 4),
                         Text(
                           'Ready',
@@ -164,17 +164,17 @@ class DownloadItemCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFC89932),
+                        color: AppColors.kColorAccentLight,
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.download, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : Colors.black, size: 14),
+                          Icon(Icons.download, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : Colors.black, size: 14),
                           const SizedBox(width: 4),
                           Text(
                             'Download',
-                            style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -204,8 +204,8 @@ class DownloadItemCard extends StatelessWidget {
   }
 
   Widget _iconFallback(BuildContext context) => Container(
-    color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF5EFEC) : AppColors.darkBgCard,
-    child: Center(child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF4A342B) : AppColors.goldMain, size: 32)),
+    color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTagBg : AppColors.darkBgCard,
+    child: Center(child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : AppColors.goldMain, size: 32)),
   );
 }
 
@@ -219,7 +219,7 @@ class TipCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBgCard,
+        color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBgCard,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Theme.of(context).brightness == Brightness.dark ? Border.all(color: AppColors.darkBorder) : null,
       ),
@@ -245,7 +245,7 @@ class TipCard extends StatelessWidget {
             text,
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : AppColors.darkTextSecondary,
+              color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
             ),
           ),
         ],

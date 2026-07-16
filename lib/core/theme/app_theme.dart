@@ -7,6 +7,18 @@ import '../constants/app_dimensions.dart';
 class AppTheme {
   AppTheme._();
 
+  /// Cinzel and Crimson Pro carry no Devanagari glyphs. Without this fallback
+  /// every Nepali string that flows through the theme drops to an arbitrary
+  /// system font — wrong weight, wrong baseline next to Latin text. Calling
+  /// [GoogleFonts.notoSerifDevanagari] here also registers the font with the
+  /// loader, so the fallback actually resolves at runtime.
+  static final List<String> devanagariFallback = [
+    GoogleFonts.notoSerifDevanagari().fontFamily!,
+  ];
+
+  static TextStyle _dv(TextStyle style) =>
+      style.copyWith(fontFamilyFallback: devanagariFallback);
+
   static ThemeData get light => _buildLight();
   static ThemeData get dark  => _buildDark();
 
@@ -41,7 +53,7 @@ class AppTheme {
         bodySmall:     GoogleFonts.crimsonPro(fontSize: 13, color: AppColors.kColorTextSecondary),
         labelLarge:    GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.kColorTextOnPrimary),
         labelSmall:    GoogleFonts.cinzel(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: AppColors.kColorTextSecondary),
-      ),
+      ).apply(fontFamilyFallback: devanagariFallback),
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -51,12 +63,12 @@ class AppTheme {
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
         ),
-        titleTextStyle: GoogleFonts.cinzel(
+        titleTextStyle: _dv(GoogleFonts.cinzel(
           fontSize: 18,
           fontWeight: FontWeight.w500,
           color: AppColors.kColorTextOnHeader,
           letterSpacing: 0.5,
-        ),
+        )),
         iconTheme: const IconThemeData(color: AppColors.kColorTextOnHeader),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -69,7 +81,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
           ),
-          textStyle: GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.3),
+          textStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.3)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -80,13 +92,13 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
           ),
-          textStyle: GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3),
+          textStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.kColorPrimary,
-          textStyle: GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w500),
+          textStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w500)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -109,13 +121,13 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
           borderSide: const BorderSide(color: Color(0xFFC62828)),
         ),
-        hintStyle: GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextMuted),
-        labelStyle: GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextSecondary),
+        hintStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextMuted)),
+        labelStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextSecondary)),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.kColorBgMuted,
         selectedColor: AppColors.kColorPrimary,
-        labelStyle: GoogleFonts.crimsonPro(fontSize: 12, color: AppColors.kColorTextSecondary),
+        labelStyle: _dv(GoogleFonts.crimsonPro(fontSize: 12, color: AppColors.kColorTextSecondary)),
         side: const BorderSide(color: AppColors.kColorBorderMid),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
@@ -152,7 +164,7 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.kColorTextHeading,
-        contentTextStyle: GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextOnPrimary),
+        contentTextStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextOnPrimary)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
         behavior: SnackBarBehavior.floating,
       ),
@@ -172,7 +184,8 @@ class AppTheme {
         outline:   AppColors.kDarkBorder,
         error:     Color(0xFFEF5350),
       ),
-      textTheme: GoogleFonts.crimsonProTextTheme(base.textTheme),
+      textTheme: GoogleFonts.crimsonProTextTheme(base.textTheme)
+          .apply(fontFamilyFallback: devanagariFallback),
       cardTheme: CardThemeData(
         color: AppColors.kDarkBgCard,
         shape: RoundedRectangleBorder(

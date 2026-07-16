@@ -49,9 +49,9 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF5C1A0A),
-                  Color(0xFFA83210),
-                  Color(0xFFC8501A),
+                  AppColors.kColorDeep,
+                  AppColors.kColorPrimaryMid,
+                  AppColors.kColorPrimary,
                 ],
                 stops: [0.0, 0.6, 1.0],
               ),
@@ -174,9 +174,9 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFC89932) : (Theme.of(context).brightness == Brightness.light ? const Color(0xFF3A0A00) : AppColors.darkBgSurface),
+          color: isSelected ? AppColors.kColorAccentLight : (Theme.of(context).brightness == Brightness.light ? AppColors.kColorDeepShade : AppColors.darkBgSurface),
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-          border: Border.all(color: isSelected ? const Color(0xFFC89932) : (Theme.of(context).brightness == Brightness.light ? const Color(0xFF3A0A00) : AppColors.darkBorder)),
+          border: Border.all(color: isSelected ? AppColors.kColorAccentLight : (Theme.of(context).brightness == Brightness.light ? AppColors.kColorDeepShade : AppColors.darkBorder)),
         ),
         child: Text(
           label,
@@ -218,7 +218,7 @@ class _SavedSiteCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: Theme.of(context).brightness == Brightness.light ? const Color(0xFFF7EED3) : AppColors.darkBorder),
+          border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
         ),
         child: Row(
           children: [
@@ -259,17 +259,17 @@ class _SavedSiteCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const Icon(Icons.bookmark, color: Color(0xFFC89932), size: 24),
+                        const Icon(Icons.bookmark, color: AppColors.kColorAccentLight, size: 24),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Color(0xFF8C7162)),
+                        const Icon(Icons.location_on, size: 14, color: AppColors.kColorTextMuted),
                         const SizedBox(width: 4),
                         Text(
                           location,
-                          style: const TextStyle(color: Color(0xFF8C7162), fontSize: 13),
+                          style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
                         ),
                       ],
                     ),
@@ -277,13 +277,13 @@ class _SavedSiteCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFC89932),
+                        color: AppColors.kColorAccentLight,
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                       ),
                       child: Text(
                         type,
                         style: const TextStyle(
-                          color: Color(0xFF331609),
+                          color: AppColors.kColorTextHeading,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -300,7 +300,7 @@ class _SavedSiteCard extends StatelessWidget {
   }
 
   Widget _iconFallback(IconData icon) => Container(
-    color: const Color(0xFF5D1700),
+    color: AppColors.kColorDeep,
     child: Center(child: Icon(icon, color: Colors.white38, size: 40)),
   );
 }

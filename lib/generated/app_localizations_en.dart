@@ -1029,4 +1029,403 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get joinVerifiedGuides => 'Join 248 verified guides';
+
+  @override
+  String get homeGreeting => 'Namaste! 🙏';
+
+  @override
+  String get searchSitesHint => 'Search sites, districts...';
+
+  @override
+  String get nearbyEventsTitle => 'Nearby Events 🔔';
+
+  @override
+  String get noDistrictsAvailable => 'No districts available';
+
+  @override
+  String get noNearbyEvents => 'No upcoming nearby events found.';
+
+  @override
+  String get pressBackAgainToExit => 'Press back again to exit';
+
+  @override
+  String get districtsTitle => 'Districts';
+
+  @override
+  String get districtsSubtitle => 'Browse by district';
+
+  @override
+  String get searchDistrictHint => 'Search a district...';
+
+  @override
+  String get noDistrictsMatchSearch => 'No districts match this search';
+
+  @override
+  String get filterKathmanduValley => 'Kathmandu Valley';
+
+  @override
+  String get filterMostSites => 'Most Sites';
+
+  @override
+  String districtCountLabel(int count) {
+    return '$count districts';
+  }
+
+  @override
+  String siteCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '1 site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get updatedRecently => 'Updated recently';
+
+  @override
+  String get myBookingsTitle => 'My Bookings';
+
+  @override
+  String get tabUpcoming => 'Upcoming';
+
+  @override
+  String get tabCompleted => 'Completed';
+
+  @override
+  String get tabCancelled => 'Cancelled';
+
+  @override
+  String get searchBookingsHint => 'Guide, booking ref, package or date…';
+
+  @override
+  String get tooltipSearchBookings => 'Search bookings';
+
+  @override
+  String get tooltipCloseSearch => 'Close search';
+
+  @override
+  String get tooltipFilterSort => 'Filter and sort';
+
+  @override
+  String get offlineShowingSaved => 'Offline — showing saved bookings';
+
+  @override
+  String get lastSyncedJustNow => 'Last synced just now';
+
+  @override
+  String lastSyncedMinutes(int minutes) {
+    return 'Last synced $minutes min ago';
+  }
+
+  @override
+  String lastSyncedHours(int hours) {
+    return 'Last synced $hours hr ago';
+  }
+
+  @override
+  String lastSyncedDays(int days) {
+    return 'Last synced $days d ago';
+  }
+
+  @override
+  String get offlineReconnect =>
+      'You appear to be offline. Reconnect and try again.';
+
+  @override
+  String get somethingWentWrongServer =>
+      'Something went wrong reaching the server.';
+
+  @override
+  String get nothingMatchesTitle => 'Nothing matches';
+
+  @override
+  String get nothingMatchesBody =>
+      'Try a different search, or clear your filters.';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get noBookingsYetTitle => 'No bookings yet';
+
+  @override
+  String get noBookingsYetBody =>
+      'Book a licensed guide and your heritage tours will show up here.';
+
+  @override
+  String get exploreHeritageSites => 'Explore Heritage Sites';
+
+  @override
+  String get noCompletedToursTitle => 'No completed tours yet';
+
+  @override
+  String get noCompletedToursBody =>
+      'Tours you finish will be listed here with their receipts.';
+
+  @override
+  String get noCancelledTitle => 'No cancelled bookings';
+
+  @override
+  String get noCancelledBody => 'Nothing here — which is a good thing.';
+
+  @override
+  String get licensedTourGuide => 'Licensed Tour Guide';
+
+  @override
+  String get tourGuide => 'Tour Guide';
+
+  @override
+  String touristsCount(int count) {
+    return '$count tourists';
+  }
+
+  @override
+  String semanticsTabBookings(String label, int count) {
+    return '$label, $count bookings';
+  }
+
+  @override
+  String get payAgain => 'Pay Again';
+
+  @override
+  String get paymentSent => 'Payment Sent';
+
+  @override
+  String get confirmDone => 'Confirm Done';
+
+  @override
+  String get rateGuide => 'Rate Guide';
+
+  @override
+  String get btnMessage => 'Message';
+
+  @override
+  String get btnDetails => 'Details';
+
+  @override
+  String get filterSortTitle => 'Filter & Sort';
+
+  @override
+  String get btnReset => 'Reset';
+
+  @override
+  String get groupStatus => 'Status';
+
+  @override
+  String get groupPayment => 'Payment';
+
+  @override
+  String get groupPackage => 'Package';
+
+  @override
+  String get groupTourDate => 'Tour date';
+
+  @override
+  String get groupSortBy => 'Sort by';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusConfirmed => 'Confirmed';
+
+  @override
+  String get payNothingOwed => 'Nothing owed';
+
+  @override
+  String get payPaid => 'Paid';
+
+  @override
+  String get windowAnyDate => 'Any date';
+
+  @override
+  String get windowNext7 => 'Next 7 days';
+
+  @override
+  String get windowNext30 => 'Next 30 days';
+
+  @override
+  String get windowPast => 'Past tours';
+
+  @override
+  String get sortNewest => 'Newest first';
+
+  @override
+  String get sortOldest => 'Oldest first';
+
+  @override
+  String get sortSoonestTour => 'Soonest tour';
+
+  @override
+  String get sortHighestPrice => 'Highest price';
+
+  @override
+  String get guideReviewsTitle => 'Guide Reviews';
+
+  @override
+  String get searchReviewsHint => 'Search reviews…';
+
+  @override
+  String get sortMostRecent => 'Most recent';
+
+  @override
+  String get sortHighestRated => 'Highest rated';
+
+  @override
+  String get sortLowestRated => 'Lowest rated';
+
+  @override
+  String get verifiedBooking => 'Verified booking';
+
+  @override
+  String get guideResponse => 'Guide response';
+
+  @override
+  String get btnReply => 'Reply';
+
+  @override
+  String replyTo(String name) {
+    return 'Reply to $name';
+  }
+
+  @override
+  String get replyHint => 'Thank them, or set the record straight…';
+
+  @override
+  String get replyPosted => 'Reply posted.';
+
+  @override
+  String reviewCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reviews',
+      one: '1 review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String yearsExperienceShort(String years) {
+    return '$years yr experience';
+  }
+
+  @override
+  String peopleCount(int count) {
+    return '$count people';
+  }
+
+  @override
+  String get noMatchingReviews => 'No matching reviews';
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get tryDifferentSearch => 'Try a different search.';
+
+  @override
+  String get beFirstToReview => 'Be the first traveller to review this guide.';
+
+  @override
+  String get unableLoadReviews => 'Unable to load reviews';
+
+  @override
+  String get checkConnection => 'Check your connection and try again.';
+
+  @override
+  String get timeToday => 'Today';
+
+  @override
+  String get timeYesterday => 'Yesterday';
+
+  @override
+  String timeDaysAgo(int days) {
+    return '$days days ago';
+  }
+
+  @override
+  String get chatTitle => 'Chat';
+
+  @override
+  String get sayHello => 'Say hello 👋';
+
+  @override
+  String get messageHint => 'Message…';
+
+  @override
+  String get conversationClosed => 'This conversation is closed.';
+
+  @override
+  String get chatOpensOnceAccepted =>
+      'Chat opens once the guide accepts your booking.';
+
+  @override
+  String couldNotSend(String error) {
+    return 'Could not send: $error';
+  }
+
+  @override
+  String callTooltip(String name) {
+    return 'Call $name';
+  }
+
+  @override
+  String couldNotOpenDialer(String name, String phone) {
+    return 'Could not open the dialer. $name: $phone';
+  }
+
+  @override
+  String get btnCopy => 'Copy';
+
+  @override
+  String get sendMessageTooltip => 'Send message';
+
+  @override
+  String get sendingLabel => 'sending…';
+
+  @override
+  String get sectionGeneral => 'General';
+
+  @override
+  String get accountSettings => 'Account Settings';
+
+  @override
+  String get dataStorage => 'Data & Storage';
+
+  @override
+  String get sectionLegal => 'Legal';
+
+  @override
+  String get customerSupport => 'Customer Support';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get termsConditions => 'Terms & Conditions';
+
+  @override
+  String get communityGuidelines => 'Community Guidelines';
+
+  @override
+  String get disclaimerTitle => 'Disclaimer';
+
+  @override
+  String get copyrightPolicy => 'Copyright Policy';
+
+  @override
+  String get calendarBsLabel => 'BS';
+
+  @override
+  String get calendarAdLabel => 'AD';
 }

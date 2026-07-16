@@ -5,6 +5,7 @@ import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
@@ -368,7 +369,7 @@ class _GuideScreenState extends State<GuideScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: paymentDue
                   ? AppColors.kColorPrimary
-                  : const Color(0xFF2E7D32),
+                  : AppColors.statusSuccess,
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -522,7 +523,7 @@ class _GuideScreenState extends State<GuideScreen> {
               // Figma header combo: #5C1A0A → #A83210 → #C8501A (stops 0/.6/1).
               colors: isDark
                   ? [AppColors.brownDeep, AppColors.brownDark]
-                  : const [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+                  : const [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
               stops: isDark ? null : const [0.0, 0.6, 1.0],
             ),
             borderRadius: const BorderRadius.only(
@@ -542,7 +543,17 @@ class _GuideScreenState extends State<GuideScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const SizedBox(width: 44),
+                      // Messages — the same inbox as the Profile screen's
+                      // Messages tile. Hidden for guests (the inbox is
+                      // per-user); the 44px spacer then keeps the wordmark
+                      // centred against the refresh button opposite it.
+                      if (context.watch<AuthProvider>().isAuthenticated)
+                        _headerCircle(
+                          onTap: () => Navigator.pushNamed(context, AppStrings.messagesPath),
+                          child: const Icon(Icons.forum_outlined, color: Colors.white70, size: 18),
+                        )
+                      else
+                        const SizedBox(width: 44),
                       const Text(
                         'SAMPADA • सम्पदा',
                         style: TextStyle(color: AppColors.kColorBgWarm, fontWeight: FontWeight.bold, letterSpacing: 1.2, fontSize: 14),

@@ -40,9 +40,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF5C1A0A),
-                  Color(0xFFA83210),
-                  Color(0xFFC8501A),
+                  AppColors.kColorDeep,
+                  AppColors.kColorPrimaryMid,
+                  AppColors.kColorPrimary,
                 ],
                 stops: [0.0, 0.6, 1.0],
               ),
@@ -112,7 +112,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF6B5041) : AppColors.goldMain,
+                      color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextSecondary : AppColors.goldMain,
                     ),
                   ),
                   const SizedBox(height: 16),

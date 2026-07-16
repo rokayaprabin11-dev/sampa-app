@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -19,10 +20,10 @@ extension on _Sort {
         _Sort.highest => 'highest',
         _Sort.lowest => 'lowest',
       };
-  String get label => switch (this) {
-        _Sort.recent => 'Most recent',
-        _Sort.highest => 'Highest rated',
-        _Sort.lowest => 'Lowest rated',
+  String label(AppLocalizations l10n) => switch (this) {
+        _Sort.recent => l10n.sortMostRecent,
+        _Sort.highest => l10n.sortHighestRated,
+        _Sort.lowest => l10n.sortLowestRated,
       };
 }
 
@@ -63,7 +64,10 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
 
   String get _guideName {
     final user = widget.guide['user'] as Map<String, dynamic>? ?? {};
-    return (user['full_name'] ?? user['username'] ?? 'Guide').toString();
+    return (user['full_name'] ??
+            user['username'] ??
+            AppLocalizations.of(context)!.tourGuide)
+        .toString();
   }
 
   /// The viewer is this guide — they read their reviews and may reply, but
@@ -204,6 +208,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
   Future<void> _reply(Map<String, dynamic> review) async {
     final gp = context.read<GuideProvider>();
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
 
     final text = await showDialog<String>(
@@ -212,7 +217,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
         backgroundColor: Theme.of(ctx).colorScheme.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-        title: Text('Reply to ${review['reviewer_name']}',
+        title: Text(l10n.replyTo('${review['reviewer_name']}'),
             style: Theme.of(ctx)
                 .textTheme
                 .titleMedium
@@ -223,8 +228,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
           maxLines: 4,
           maxLength: 1000,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-              hintText: 'Thank them, or set the record straight…'),
+          decoration: InputDecoration(hintText: l10n.replyHint),
         ),
         actions: [
           TextButton(
@@ -243,7 +247,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
     final err = await gp.replyToReview(review['id'] as int, text);
     if (!mounted) return;
     messenger.showSnackBar(
-        SnackBar(content: Text(err ?? 'Reply posted.')));
+        SnackBar(content: Text(err ?? l10n.replyPosted)));
     if (err == null) _load();
   }
 
@@ -336,7 +340,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
             style: t.bodyMedium
                 ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
             decoration: InputDecoration(
-              hintText: 'Search reviews…',
+              hintText: AppLocalizations.of(context)!.searchReviewsHint,
               prefixIcon: const Icon(Icons.search,
                   size: AppDimensions.iconMd, color: AppColors.kColorPrimary),
               suffixIcon: _query.isEmpty
@@ -377,7 +381,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(right: AppDimensions.sp8),
                   child: ChoiceChip(
-                    label: Text(s.label),
+                    label: Text(s.label(AppLocalizations.of(context)!)),
                     selected: selected,
                     showCheckmark: false,
                     onSelected: (_) {
@@ -423,8 +427,10 @@ class _GuideHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
     final user = guide['user'] as Map<String, dynamic>? ?? {};
-    final name = (user['full_name'] ?? user['username'] ?? 'Guide').toString();
+    final name =
+        (user['full_name'] ?? user['username'] ?? l10n.tourGuide).toString();
     final photo = guide['photo_url'] as String?;
     final verified = guide['is_verified'] == true;
     final languages =
@@ -443,7 +449,7 @@ class _GuideHeader extends StatelessWidget {
       pinned: true,
       backgroundColor: AppColors.kColorDeep,
       foregroundColor: AppColors.kColorTextOnHeader,
-      title: Text('Guide Reviews',
+      title: Text(l10n.guideReviewsTitle,
           style: t.titleLarge?.copyWith(color: AppColors.kColorTextOnHeader)),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -502,8 +508,10 @@ class _GuideHeader extends StatelessWidget {
                         ),
                         if (total != null)
                           Text(
-                            '$total ${total == 1 ? 'review' : 'reviews'}'
-                            '${years != null && years.isNotEmpty ? ' · $years yr experience' : ''}',
+                            l10n.reviewCountLabel((total as num).toInt()) +
+                                (years != null && years.isNotEmpty
+                                    ? ' · ${l10n.yearsExperienceShort(years)}'
+                                    : ''),
                             style: t.bodySmall?.copyWith(
                                 color: AppColors.kColorBgWarm),
                           ),
@@ -603,7 +611,7 @@ class _RatingOverview extends StatelessWidget {
                             fontWeight: FontWeight.w700)),
                     _Stars(rating: avg, size: 14),
                     const SizedBox(height: AppDimensions.sp4),
-                    Text('$total ${total == 1 ? 'review' : 'reviews'}',
+                    Text(AppLocalizations.of(context)!.reviewCountLabel(total),
                         style: t.bodySmall?.copyWith(color: muted)),
                   ],
                 ),
@@ -789,30 +797,30 @@ class _ReviewCard extends StatefulWidget {
 class _ReviewCardState extends State<_ReviewCard> {
   bool _expanded = false;
 
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
+  /// Relative labels from l10n, absolute dates from intl — both follow the
+  /// active locale instead of a hardcoded English month array.
   String _when(String? iso) {
     final dt = DateTime.tryParse('$iso')?.toLocal();
     if (dt == null) return '';
+    final l10n = AppLocalizations.of(context)!;
     final days = DateTime.now().difference(dt).inDays;
-    if (days < 1) return 'Today';
-    if (days == 1) return 'Yesterday';
-    if (days < 7) return '$days days ago';
-    return '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
+    if (days < 1) return l10n.timeToday;
+    if (days == 1) return l10n.timeYesterday;
+    if (days < 7) return l10n.timeDaysAgo(days);
+    return DateFormat('d MMM yyyy', Localizations.localeOf(context).toString())
+        .format(dt);
   }
 
   @override
   Widget build(BuildContext context) {
     final r = widget.review;
     final t = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
     final muted = isDark ? AppColors.kDarkTextMuted : AppColors.kColorTextMuted;
 
-    final name = (r['reviewer_name'] ?? 'Traveller').toString();
+    final name = (r['reviewer_name'] ?? '—').toString();
     final avatar = r['reviewer_avatar']?.toString();
     final rating = (r['review_rating'] as num?)?.toDouble() ?? 0;
     final text = (r['review_text'] ?? '').toString();
@@ -883,7 +891,7 @@ class _ReviewCardState extends State<_ReviewCard> {
                         const Icon(Icons.verified_user_outlined,
                             size: 12, color: AppColors.kColorOfflineText),
                         const SizedBox(width: AppDimensions.sp4),
-                        Text('Verified booking',
+                        Text(l10n.verifiedBooking,
                             style: t.bodySmall?.copyWith(
                                 color: AppColors.kColorOfflineText,
                                 fontWeight: FontWeight.w600)),
@@ -904,7 +912,7 @@ class _ReviewCardState extends State<_ReviewCard> {
                 const SizedBox(width: AppDimensions.sp8),
                 Flexible(
                   child: Text(
-                    '· $package${group > 1 ? ' · $group people' : ''}',
+                    '· $package${group > 1 ? ' · ${l10n.peopleCount(group)}' : ''}',
                     style: t.bodySmall?.copyWith(color: muted),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -930,7 +938,7 @@ class _ReviewCardState extends State<_ReviewCard> {
                 onTap: () => setState(() => _expanded = !_expanded),
                 child: Padding(
                   padding: const EdgeInsets.only(top: AppDimensions.sp4),
-                  child: Text(_expanded ? 'Read less' : 'Read more',
+                  child: Text(_expanded ? l10n.btnShowLess : l10n.btnReadMore,
                       style: t.bodySmall?.copyWith(
                           color: AppColors.kColorPrimary,
                           fontWeight: FontWeight.w700)),
@@ -973,7 +981,7 @@ class _ReviewCardState extends State<_ReviewCard> {
               child: TextButton.icon(
                 onPressed: widget.onReply,
                 icon: const Icon(Icons.reply, size: AppDimensions.iconSm),
-                label: const Text('Reply'),
+                label: Text(l10n.btnReply),
               ),
             ),
           ],
@@ -1026,7 +1034,7 @@ class _GuideReply extends StatelessWidget {
               const Icon(Icons.reply,
                   size: 14, color: AppColors.kColorPrimary),
               const SizedBox(width: AppDimensions.sp6),
-              Text('Guide response',
+              Text(AppLocalizations.of(context)!.guideResponse,
                   style: t.bodySmall?.copyWith(
                       color: AppColors.kColorPrimary,
                       fontWeight: FontWeight.w700)),
@@ -1085,7 +1093,7 @@ class _WriteReviewButton extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: onTap,
           icon: const Icon(Icons.star_outline, size: AppDimensions.iconMd),
-          label: const Text('Write a Review'),
+          label: Text(AppLocalizations.of(context)!.btnWriteReview),
           style: ElevatedButton.styleFrom(
             elevation: 4,
             shadowColor: AppColors.kShadowColor,
@@ -1154,6 +1162,7 @@ class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? AppColors.kDarkTextMuted : AppColors.kColorTextMuted;
 
@@ -1180,15 +1189,13 @@ class _EmptyView extends StatelessWidget {
                       : AppColors.kColorAccent),
             ),
             const SizedBox(height: AppDimensions.sp20),
-            Text(filtered ? 'No matching reviews' : 'No reviews yet',
+            Text(filtered ? l10n.noMatchingReviews : l10n.noReviewsYet,
                 textAlign: TextAlign.center,
                 style: t.titleMedium
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: AppDimensions.sp8),
             Text(
-              filtered
-                  ? 'Try a different search.'
-                  : 'Be the first traveller to review this guide.',
+              filtered ? l10n.tryDifferentSearch : l10n.beFirstToReview,
               textAlign: TextAlign.center,
               style: t.bodySmall?.copyWith(color: muted),
             ),
@@ -1197,7 +1204,7 @@ class _EmptyView extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onWrite,
                 icon: const Icon(Icons.star_outline, size: AppDimensions.iconSm),
-                label: const Text('Write a Review'),
+                label: Text(l10n.btnWriteReview),
               ),
             ],
           ],
@@ -1234,18 +1241,18 @@ class _ErrorView extends StatelessWidget {
                   size: 44, color: AppColors.statusError),
             ),
             const SizedBox(height: AppDimensions.sp20),
-            Text('Unable to load reviews',
+            Text(AppLocalizations.of(context)!.unableLoadReviews,
                 style: t.titleMedium
                     ?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: AppDimensions.sp8),
-            Text('Check your connection and try again.',
+            Text(AppLocalizations.of(context)!.checkConnection,
                 textAlign: TextAlign.center,
                 style: t.bodySmall?.copyWith(color: muted)),
             const SizedBox(height: AppDimensions.sp20),
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh, size: AppDimensions.iconSm),
-              label: const Text('Try Again'),
+              label: Text(AppLocalizations.of(context)!.btnTryAgain),
             ),
           ],
         ),

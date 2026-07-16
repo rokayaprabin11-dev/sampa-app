@@ -184,7 +184,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF5C1A0A), Color(0xFFA83210), Color(0xFFC8501A)],
+          colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
           stops: [0.0, 0.6, 1.0],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -223,18 +223,18 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               textInputAction: TextInputAction.search,
               maxLength: 100,
               buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
-              style: const TextStyle(fontSize: 15, color: Color(0xFF331609)),
+              style: const TextStyle(fontSize: 15, color: AppColors.kColorTextHeading),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
                 hintText: AppLocalizations.of(context)!.searchHeritageHint,
                 hintStyle: const TextStyle(color: Color(0xFFB08060), fontSize: 14),
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF8C7162), size: 22),
+                prefixIcon: const Icon(Icons.search, color: AppColors.kColorTextMuted, size: 22),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? GestureDetector(
                         onTap: _onClearSearch,
-                        child: const Icon(Icons.close, color: Color(0xFF8C7162), size: 20),
+                        child: const Icon(Icons.close, color: AppColors.kColorTextMuted, size: 20),
                       )
                     : null,
                 border: OutlineInputBorder(
@@ -303,21 +303,21 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             width: 90,
             height: 90,
             decoration: const BoxDecoration(
-              color: Color(0xFFF7EED3),
+              color: AppColors.kColorBorderCream,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.travel_explore_rounded, size: 46, color: Color(0xFFD4520A)),
+            child: const Icon(Icons.travel_explore_rounded, size: 46, color: AppColors.kColorPrimary),
           ),
           const SizedBox(height: 20),
           Text(
             AppLocalizations.of(context)!.searchHeritageEmptyTitle,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF331609)),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.kColorTextHeading),
           ),
           const SizedBox(height: 8),
           Text(
             AppLocalizations.of(context)!.searchHeritageEmptyBody,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF8C7162), height: 1.5),
+            style: const TextStyle(fontSize: 14, color: AppColors.kColorTextMuted, height: 1.5),
           ),
         ],
       ),
@@ -340,11 +340,11 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(AppLocalizations.of(context)!.recentSearches,
-                      style: const TextStyle(color: Color(0xFF8C7162), fontSize: 13, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13, fontWeight: FontWeight.w600)),
                   GestureDetector(
                     onTap: provider.clearRecentSearches,
                     child: Text(AppLocalizations.of(context)!.btnClear,
-                        style: const TextStyle(color: Color(0xFFD4520A), fontSize: 12, fontWeight: FontWeight.w600)),
+                        style: const TextStyle(color: AppColors.kColorPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -357,16 +357,16 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7EED3),
+                      color: AppColors.kColorBorderCream,
                       borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                       border: Border.all(color: const Color(0xFFE3D2A8)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.history, size: 15, color: Color(0xFF8C7162)),
+                        const Icon(Icons.history, size: 15, color: AppColors.kColorTextMuted),
                         const SizedBox(width: 6),
-                        Text(q, style: const TextStyle(color: Color(0xFF331609), fontSize: 13)),
+                        Text(q, style: const TextStyle(color: AppColors.kColorTextHeading, fontSize: 13)),
                       ],
                     ),
                   ),
@@ -413,7 +413,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
             child: Text(
               '${_visibleSites(provider).length} results found',
               style: const TextStyle(
-                color: Color(0xFF8C7162),
+                color: AppColors.kColorTextMuted,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -498,13 +498,13 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: const Color(0xFFF7EED3),
+                color: AppColors.kColorBorderCream,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.search_off_rounded,
                 size: 48,
-                color: Color(0xFFD4520A),
+                color: AppColors.kColorPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -513,7 +513,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF331609),
+                color: AppColors.kColorTextHeading,
               ),
             ),
             const SizedBox(height: 8),
@@ -522,7 +522,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF8C7162),
+                color: AppColors.kColorTextMuted,
                 height: 1.5,
               ),
             ),
@@ -596,10 +596,10 @@ class _CategoryPill extends StatelessWidget {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFD4520A) : Colors.white.withValues(alpha: 0.15),
+          color: isSelected ? AppColors.kColorPrimary : Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
-            color: isSelected ? const Color(0xFFD4520A) : Colors.white38,
+            color: isSelected ? AppColors.kColorPrimary : Colors.white38,
             width: 1.4,
           ),
         ),

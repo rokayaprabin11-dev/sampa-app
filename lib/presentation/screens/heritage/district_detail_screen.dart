@@ -72,7 +72,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [const Color(0xFF5D1700), const Color(0xFF9E3D1A)],
+                          colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid],
                         ),
                       ),
                       child: const Center(child: Text('🏛️', style: TextStyle(fontSize: 64))),
@@ -86,7 +86,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                         end: Alignment.bottomCenter,
                         colors: isDark
                             ? [AppColors.brownDeep, const Color(0xFF3B1A0A)]
-                            : [const Color(0xFF5D1700), const Color(0xFF9E3D1A)],
+                            : [AppColors.kColorDeep, AppColors.kColorPrimaryMid],
                       ),
                     ),
                     child: const Center(child: Text('🏛️', style: TextStyle(fontSize: 64))),
@@ -192,12 +192,12 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                       '${d.sitesCount} Heritage Sites  •  ${d.unescoCount} UNESCO Sites',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted,
                       ),
                     ),
 
                     const SizedBox(height: 16),
-                    Divider(color: isDark ? AppColors.darkBorder : const Color(0xFFF0E6D3)),
+                    Divider(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderFaint),
                     const SizedBox(height: 16),
 
                     // About
@@ -228,7 +228,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                         color: isDark ? AppColors.darkBgPage : const Color(0xFFFAF5EF),
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
                         border: Border.all(
-                          color: isDark ? AppColors.darkBorder : const Color(0xFFF0E6D3),
+                          color: isDark ? AppColors.darkBorder : AppColors.kColorBorderFaint,
                         ),
                       ),
                       child: Row(
@@ -267,7 +267,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
                         child: Text(
                           AppLocalizations.of(context)!.noPublishedSites,
                           style: TextStyle(
-                            color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted,
                             fontSize: 14,
                           ),
                         ),
@@ -300,7 +300,7 @@ class _DistrictDetailScreenState extends State<DistrictDetailScreen> {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: isDark ? AppColors.darkTextSecondary : const Color(0xFF8C7162),
+            color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted,
           ),
         ),
       ],
@@ -355,7 +355,7 @@ class _SiteListTile extends StatelessWidget {
   Widget _iconPlaceholder(bool isDark) => Container(
     width: 56,
     height: 56,
-    color: isDark ? AppColors.darkBgPage : const Color(0xFFF5EFEC),
+    color: isDark ? AppColors.darkBgPage : AppColors.kColorTagBg,
     child: Icon(_icon(site.category),
         color: isDark ? AppColors.goldMain : const Color(0xFF5C4033), size: 22),
   );
@@ -378,7 +378,7 @@ class _SiteListTile extends StatelessWidget {
           color: cs.surface,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
           border: Border.all(
-            color: isDark ? AppColors.darkBorder : const Color(0xFFF0E6D3),
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderFaint,
           ),
           boxShadow: [
             BoxShadow(
@@ -419,14 +419,14 @@ class _SiteListTile extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.location_on, size: 12,
-                          color: isDark ? AppColors.darkTextTertiary : const Color(0xFF8C7162)),
+                          color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
                       const SizedBox(width: 2),
                       Expanded(
                         child: Text(
                           site.location.isNotEmpty ? site.location : site.category,
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppColors.darkTextTertiary : const Color(0xFF8C7162),
+                            color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -437,7 +437,7 @@ class _SiteListTile extends StatelessWidget {
               ),
             ),
             Icon(Icons.chevron_right,
-                color: isDark ? AppColors.darkTextTertiary : const Color(0xFF8C7162)),
+                color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
           ],
         ),
       ),

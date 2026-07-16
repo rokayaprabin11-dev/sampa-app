@@ -211,9 +211,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF5C1A0A),
-                  Color(0xFFA83210),
-                  Color(0xFFC8501A),
+                  AppColors.kColorDeep,
+                  AppColors.kColorPrimaryMid,
+                  AppColors.kColorPrimary,
                 ],
                 stops: [0.0, 0.6, 1.0],
               ),
@@ -286,9 +286,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                 width: 100,
                                 height: 100,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF7B1E00),
+                                  color: AppColors.kColorDeep,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFF7EED3), width: 2),
+                                  border: Border.all(color: AppColors.kColorBorderCream, width: 2),
                                 ),
                                 child: ClipOval(
                                   child: _uploadingPhoto
@@ -315,7 +315,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFFC89932),
+                                  color: AppColors.kColorAccentLight,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
@@ -449,7 +449,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         child: Text(
                           l10n.btnForgotPassword,
                           style: const TextStyle(
-                            color: Color(0xFFC89932),
+                            color: AppColors.kColorAccentLight,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -482,7 +482,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           const SizedBox(height: 4),
                           Text(
                             _strengthText,
-                            style: const TextStyle(fontSize: 10, color: Color(0xFF8C7162)),
+                            style: const TextStyle(fontSize: 10, color: AppColors.kColorTextMuted),
                           ),
                         ],
                       ),
@@ -500,18 +500,18 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7EED3).withValues(alpha: isDark ? 0.1 : 0.5),
+                        color: AppColors.kColorBorderCream.withValues(alpha: isDark ? 0.1 : 0.5),
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-                        border: Border.all(color: const Color(0xFFF7EED3).withValues(alpha: 0.5)),
+                        border: Border.all(color: AppColors.kColorBorderCream.withValues(alpha: 0.5)),
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.lightbulb_outline, color: Color(0xFFC89932), size: 16),
+                          Icon(Icons.lightbulb_outline, color: AppColors.kColorAccentLight, size: 16),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Use 8+ characters with a mix of letters, numbers & symbols.',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF8C7162)),
+                              style: TextStyle(fontSize: 11, color: AppColors.kColorTextMuted),
                             ),
                           ),
                         ],
@@ -536,8 +536,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       }
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF7B1E00),
-                      side: const BorderSide(color: Color(0xFFF7EED3)),
+                      foregroundColor: AppColors.kColorDeep,
+                      side: const BorderSide(color: AppColors.kColorBorderCream),
                       minimumSize: const Size(double.infinity, 56),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
                     ),
@@ -545,7 +545,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7B1E00)),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.kColorDeep),
                           )
                         : Text(l10n.btnSignOut, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
@@ -653,12 +653,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF8C7162) : const Color(0xFFC89932),
+            color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.kColorAccentLight,
             letterSpacing: 0.5,
           ),
         ),
         const SizedBox(width: 16),
-        const Expanded(child: Divider(color: Color(0xFFF7EED3))),
+        const Expanded(child: Divider(color: AppColors.kColorBorderCream)),
       ],
     );
   }
@@ -687,7 +687,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         onPressed: onToggleVisibility,
       );
     } else if (icon != null) {
-      suffixIcon = Icon(icon, color: const Color(0xFF9E3D1A), size: 18);
+      suffixIcon = Icon(icon, color: AppColors.kColorPrimaryMid, size: 18);
     }
 
     return Column(
@@ -727,15 +727,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 : Theme.of(context).colorScheme.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-              borderSide: const BorderSide(color: Color(0xFFF7EED3)),
+              borderSide: const BorderSide(color: AppColors.kColorBorderCream),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-              borderSide: const BorderSide(color: Color(0xFFF7EED3)),
+              borderSide: const BorderSide(color: AppColors.kColorBorderCream),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-              borderSide: const BorderSide(color: Color(0xFF7B1E00), width: 1.5),
+              borderSide: const BorderSide(color: AppColors.kColorDeep, width: 1.5),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             suffixIcon: suffixIcon,
@@ -749,7 +749,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF7B1E00),
+        backgroundColor: AppColors.kColorDeep,
         foregroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),

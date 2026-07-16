@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/core/services/notification_service.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
@@ -25,6 +29,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'All';
+
+  /// Root tab: back doesn't pop, but it shouldn't be a dead key either.
+  /// First press warns, second within the window exits.
+  DateTime? _lastBackPress;
 
   @override
   void initState() {
@@ -58,6 +66,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return PopScope(
       canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        final now = DateTime.now();
+        if (_lastBackPress != null &&
+            now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+          SystemNavigator.pop();
+          return;
+        }
+        _lastBackPress = now;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.pressBackAgainToExit),
+          duration: const Duration(seconds: 2),
+        ));
+      },
       child: Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
@@ -77,9 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0xFF5C1A0A),
-                        Color(0xFFA83210),
-                        Color(0xFFC8501A),
+                        AppColors.kColorDeep,
+                        AppColors.kColorPrimaryMid,
+                        AppColors.kColorPrimary,
                       ],
                       stops: [0.0, 0.6, 1.0],
                     ),
@@ -96,25 +118,21 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Namaste! 🙏',
+                                l10n.homeGreeting,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
                                 ),
                               ),
-                              Material(
-                                color: Colors.transparent,
-                                shape: const CircleBorder(),
-                                clipBehavior: Clip.antiAlias,
-                                child: InkWell(
-                                  onTap: () => Navigator.pushNamed(context, AppStrings.notificationsPath),
-                                  splashColor: Colors.white24,
-                                  highlightColor: Colors.white10,
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: Icon(Icons.notifications, color: AppColors.kColorBgWarm, size: 22),
-                                  ),
-                                ),
+                              // IconButton reserves the 48dp target and gives
+                              // the screen reader a label — the bare InkWell
+                              // did neither.
+                              IconButton(
+                                tooltip: l10n.navNotifications,
+                                onPressed: () => Navigator.pushNamed(context, AppStrings.notificationsPath),
+                                splashColor: Colors.white24,
+                                highlightColor: Colors.white10,
+                                icon: const Icon(Icons.notifications, color: AppColors.kColorBgWarm, size: 22),
                               ),
                             ],
                           ),
@@ -122,15 +140,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
-                            child: const Text(
-                              'EXPLORE HERITAGE',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.exploreHeritage.toUpperCase(),
+                              // Cinzel, not the platform 'serif' — this is the
+                              // app's display face everywhere else.
+                              style: GoogleFonts.cinzel(
                                 color: Colors.white,
                                 fontSize: 28,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: FontWeight.w700,
                                 letterSpacing: 1.5,
-                                fontFamily: 'serif',
-                              ),
+                              ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
                             ),
                           ),
                         ],
@@ -161,13 +180,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.search, color: Color(0xFF7B1E00), size: 20),
-                          SizedBox(width: 12),
+                          const Icon(Icons.search, color: AppColors.kColorDeep, size: 20),
+                          const SizedBox(width: 12),
                           Text(
-                            'Search sites, districts...',
-                            style: TextStyle(color: Color(0xFF8C7162), fontSize: 14),
+                            l10n.searchSitesHint,
+                            style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
                           ),
                         ],
                       ),
@@ -231,8 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Row(
                       children: [
-                        Text(l10n.seeAll, style: const TextStyle(color: Color(0xFFD4520A))),
-                        const Icon(Icons.arrow_forward, size: 16, color: Color(0xFFD4520A)),
+                        Text(l10n.seeAll, style: const TextStyle(color: AppColors.kColorPrimary)),
+                        const Icon(Icons.arrow_forward, size: 16, color: AppColors.kColorPrimary),
                       ],
                     ),
                   ),
@@ -264,8 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () => Navigator.pushNamed(context, AppStrings.districtListPath),
                             child: Row(
                               children: [
-                                Text(l10n.seeAll, style: const TextStyle(color: Color(0xFFD4520A))),
-                                const Icon(Icons.arrow_forward, size: 16, color: Color(0xFFD4520A)),
+                                Text(l10n.seeAll, style: const TextStyle(color: AppColors.kColorPrimary)),
+                                const Icon(Icons.arrow_forward, size: 16, color: AppColors.kColorPrimary),
                               ],
                             ),
                           )
@@ -304,12 +323,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 } else if (visible.isEmpty) {
-                  content = const Padding(
-                    key: ValueKey('districts-empty'),
-                    padding: EdgeInsets.symmetric(horizontal: 24.0),
+                  content = Padding(
+                    key: const ValueKey('districts-empty'),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
-                      'No districts available',
-                      style: TextStyle(color: Color(0xFF8C7162), fontSize: 14),
+                      l10n.noDistrictsAvailable,
+                      style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
                     ),
                   );
                 } else {
@@ -366,7 +385,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Nearby Events 🔔',
+                    l10n.nearbyEventsTitle,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -391,12 +410,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 } else if (nearbyEvents.isEmpty) {
-                  content = const Padding(
-                    key: ValueKey('events-empty'),
-                    padding: EdgeInsets.symmetric(horizontal: 24.0),
+                  content = Padding(
+                    key: const ValueKey('events-empty'),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Text(
-                      'No upcoming nearby events found.',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                      l10n.noNearbyEvents,
+                      style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
                     ),
                   );
                 } else {
@@ -406,15 +425,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: nearbyEvents.take(2).map((event) {
                         final km = eventProvider.distanceKmOf(event);
+                        final np = Localizations.localeOf(context).languageCode == 'ne';
                         return EventListCard(
-                          title: event.title,
-                          date: '${event.startDate.day} ${_getMonthName(event.startDate.month)} ${event.startDate.year}',
+                          title: event.localizedTitle(np),
+                          // Locale-aware month names — "३० अक्टोबर" for ne, not
+                          // a hardcoded English array.
+                          date: DateFormat('d MMM yyyy',
+                                  Localizations.localeOf(context).toString())
+                              .format(event.startDate),
                           location: event.locationName,
                           time: event.timeLabel,
                           distance: km == null ? null : GeoDistance.shortLabel(km),
                           tag: event.eventType,
                           imageUrl: event.imageUrl,
-                          shortDescription: event.shortDescription,
+                          shortDescription: event.localizedShortDescription(np),
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -443,12 +467,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     );
   }
-
-  String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[month - 1];
-  }
-
 }
 
 class DynamicFeaturedCarousel extends StatefulWidget {
@@ -473,8 +491,12 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
 
   void _startAutoScroll() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
+    // 5s, not 2s — WCAG 2.2.2 wants auto-advancing content slow enough to
+    // read, and it pauses entirely while the user's finger is down or the
+    // platform asks for reduced motion.
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (!mounted) return;
+      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return;
       final provider = Provider.of<HeritageProvider>(context, listen: false);
       final featured = provider.getFeaturedSites(category: widget.selectedCategory);
       if (featured.isEmpty) return;
@@ -543,14 +565,19 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
           content = SizedBox(
             key: const ValueKey('featured-content'),
             height: 200,
-            child: PageView.builder(
+            child: Listener(
+              // Finger down pauses the auto-advance; lifting resumes it.
+              onPointerDown: (_) => _timer?.cancel(),
+              onPointerUp: (_) => _startAutoScroll(),
+              onPointerCancel: (_) => _startAutoScroll(),
+              child: PageView.builder(
               controller: _pageController,
               itemCount: featured.length,
               onPageChanged: (index) => setState(() => _currentPage = index),
               itemBuilder: (context, index) {
                 final site = featured[index];
                 return FeaturedSiteCard(
-                  title: site.name,
+                  title: site.localizedName(Localizations.localeOf(context).languageCode == 'ne'),
                   location: site.district,
                   icon: _getIconForCategory(site.category),
                   imageUrl: site.imageUrl,
@@ -564,6 +591,7 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
                   },
                 );
               },
+              ),
             ),
           );
         }

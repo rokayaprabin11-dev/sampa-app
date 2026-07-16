@@ -48,6 +48,13 @@ class HeritageSite extends Equatable {
     this.reason,
   });
 
+  /// Locale-aware content: Nepali when the UI language is Nepali and the field
+  /// is filled, otherwise English — so a partly-translated record still reads.
+  String localizedName(bool np) =>
+      np && nameNepali.trim().isNotEmpty ? nameNepali : name;
+  String localizedDescription(bool np) =>
+      np && descriptionNepali.trim().isNotEmpty ? descriptionNepali : description;
+
   @override
   List<Object?> get props => [
         id,

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/theme/app_theme.dart';
+import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
@@ -33,17 +35,17 @@ class CategoryChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFD4520A) : Colors.white,
+            color: isSelected ? AppColors.kColorPrimary : Colors.white,
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
             border: Border.all(
-              color: isSelected ? const Color(0xFFD4520A) : const Color(0xFFF7EED3),
+              color: isSelected ? AppColors.kColorPrimary : AppColors.kColorBorderCream,
             ),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? Colors.white : const Color(0xFF6B5041),
+              color: isSelected ? Colors.white : AppColors.kColorTextSecondary,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -115,7 +117,7 @@ class FeaturedSiteCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF5D1700), Color(0xFF9E3D1A)],
+            colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -168,12 +170,12 @@ class FeaturedSiteCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(meta.$1, color: const Color(0xFF7B1E00), size: 12),
+                      Icon(meta.$1, color: AppColors.kColorDeep, size: 12),
                       const SizedBox(width: 4),
                       Text(
                         meta.$2,
                         style: const TextStyle(
-                          color: Color(0xFF7B1E00),
+                          color: AppColors.kColorDeep,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -192,17 +194,17 @@ class FeaturedSiteCard extends StatelessWidget {
                 children: [
                   Text(
                     title.toUpperCase(),
-                    style: const TextStyle(
+                    // Cinzel — the display face — not the platform serif.
+                    style: GoogleFonts.cinzel(
                       color: Colors.white,
                       fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 1.1,
-                      fontFamily: 'serif',
-                    ),
+                    ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
                   ),
                   const SizedBox(height: 4),
                   Row(children: [
-                    const Icon(Icons.location_on, color: Color(0xFFDCA73A), size: 14),
+                    const Icon(Icons.location_on, color: AppColors.kColorAccentLight, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       location,
@@ -303,8 +305,9 @@ class _FeaturedSiteCarouselState extends State<FeaturedSiteCarousel> {
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemBuilder: (context, index) {
               final site = featured[index];
+              final np = Localizations.localeOf(context).languageCode == 'ne';
               return FeaturedSiteCard(
-                title: site.name,
+                title: site.localizedName(np),
                 location: site.district,
                 icon: _getIconForCategory(site.category),
                 onTap: () {
@@ -353,8 +356,8 @@ class DistrictCard extends StatelessWidget {
     required this.sitesCount,
     this.coverImageUrl,
     required this.icon,
-    this.iconColor = const Color(0xFF4A342B),
-    this.iconBgColor = const Color(0xFFF5EFEC),
+    this.iconColor = AppColors.kColorTextHeading,
+    this.iconBgColor = AppColors.kColorBgMuted,
   });
 
   @override
@@ -364,7 +367,9 @@ class DistrictCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: const Color(0xFFF0E6D3), width: 1.2),
+        // Same border token as DistrictGridCard so the two variants read as
+        // one family.
+        border: Border.all(color: AppColors.kColorBorderMid, width: 1.2),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
@@ -400,20 +405,22 @@ class DistrictCard extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                  style: GoogleFonts.cinzel(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
                     color: Theme.of(context).colorScheme.onSurface,
                     height: 1.2,
-                  ),
+                  ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 2),
                 Text(
-                  '$sitesCount Sites',
+                  AppLocalizations.of(context)!.siteCountLabel(sitesCount),
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF8C7162),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.kColorAccentSafe,
                     height: 1.2,
                   ),
                 ),
@@ -475,12 +482,12 @@ class DistrictGridCard extends StatelessWidget {
             const SizedBox(height: 11),
             Text(
               name,
-              style: const TextStyle(
-                fontFamily: 'serif',
-                fontSize: 16,
+              // Cinzel — the display face — not the platform serif.
+              style: GoogleFonts.cinzel(
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: AppColors.kColorTextHeading,
-              ),
+              ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -488,7 +495,8 @@ class DistrictGridCard extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 nameNp,
-                style: const TextStyle(fontSize: 12, color: AppColors.kColorTextMuted),
+                style: GoogleFonts.notoSerifDevanagari(
+                    fontSize: 12, color: AppColors.kColorTextMuted),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -499,7 +507,7 @@ class DistrictGridCard extends StatelessWidget {
                 const Icon(Icons.location_on_outlined, size: 13, color: AppColors.kColorAccentSafe),
                 const SizedBox(width: 4),
                 Text(
-                  '$sitesCount ${sitesCount == 1 ? "site" : "sites"}',
+                  AppLocalizations.of(context)!.siteCountLabel(sitesCount),
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.kColorAccentSafe),
                 ),
               ],
@@ -541,7 +549,7 @@ class EventCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFDF8E8),
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: const Color(0xFFF7EED3)),
+        border: Border.all(color: AppColors.kColorBorderCream),
       ),
       child: Row(
         children: [
@@ -549,7 +557,7 @@ class EventCard extends StatelessWidget {
             width: 10,
             height: 10,
             decoration: const BoxDecoration(
-              color: Color(0xFFD4520A),
+              color: AppColors.kColorPrimary,
               shape: BoxShape.circle,
             ),
           ),
@@ -569,20 +577,20 @@ class EventCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_month, size: 14, color: Color(0xFF8C7162)),
+                    const Icon(Icons.calendar_month, size: 14, color: AppColors.kColorTextMuted),
                     const SizedBox(width: 4),
-                    Text(date, style: const TextStyle(fontSize: 12, color: Color(0xFF8C7162))),
+                    Text(date, style: const TextStyle(fontSize: 12, color: AppColors.kColorTextMuted)),
                     if (distance != null) ...[
                       const SizedBox(width: 16),
-                      const Icon(Icons.location_on, size: 14, color: Color(0xFF8C7162)),
+                      const Icon(Icons.location_on, size: 14, color: AppColors.kColorTextMuted),
                       const SizedBox(width: 4),
-                      Text(distance!, style: const TextStyle(fontSize: 12, color: Color(0xFF8C7162))),
+                      Text(distance!, style: const TextStyle(fontSize: 12, color: AppColors.kColorTextMuted)),
                     ],
                     if (seatsLeftLabel != null) ...[
                       const SizedBox(width: 16),
-                      const Icon(Icons.event_seat, size: 14, color: Color(0xFFD4520A)),
+                      const Icon(Icons.event_seat, size: 14, color: AppColors.kColorPrimary),
                       const SizedBox(width: 4),
-                      Text(seatsLeftLabel!, style: const TextStyle(fontSize: 12, color: Color(0xFFD4520A), fontWeight: FontWeight.w600)),
+                      Text(seatsLeftLabel!, style: const TextStyle(fontSize: 12, color: AppColors.kColorPrimary, fontWeight: FontWeight.w600)),
                     ],
                   ],
                 ),
@@ -594,12 +602,12 @@ class EventCard extends StatelessWidget {
                     children: tags.map((tag) => Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7EED3),
+                        color: AppColors.kColorBorderCream,
                         borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
                       ),
                       child: Text(
                         tag,
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF7B1E00), fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 11, color: AppColors.kColorDeep, fontWeight: FontWeight.w500),
                       ),
                     )).toList(),
                   ),
@@ -641,7 +649,7 @@ class HeritageGridCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: const Color(0xFFF7EED3)),
+          border: Border.all(color: AppColors.kColorBorderCream),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -687,7 +695,7 @@ class HeritageGridCard extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: Color(0xFF331609),
+                      color: AppColors.kColorTextHeading,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -695,14 +703,14 @@ class HeritageGridCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: Color(0xFFD4520A)),
+                      const Icon(Icons.location_on, size: 14, color: AppColors.kColorPrimary),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           distance == null ? location : '$location · $distance',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF8C7162),
+                            color: AppColors.kColorTextMuted,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -724,7 +732,7 @@ class HeritageGridCard extends StatelessWidget {
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF5D1700), Color(0xFF9E3D1A)],
+          colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -776,7 +784,7 @@ DistrictVisualInfo districtVisualInfo(String name) {
       return const DistrictVisualInfo(Icons.temple_hindu, Color(0xFFB84B00), Color(0xFFFFF0E6));
     case 'kaski':
     case 'pokhara':
-      return const DistrictVisualInfo(Icons.landscape, Color(0xFF2E7D32), Color(0xFFE8F5E9));
+      return const DistrictVisualInfo(Icons.landscape, AppColors.statusSuccess, Color(0xFFE8F5E9));
     case 'mustang':
       return const DistrictVisualInfo(Icons.terrain, Color(0xFF795548), Color(0xFFEFEBE9));
     case 'dolakha':
@@ -801,7 +809,7 @@ DistrictVisualInfo districtVisualInfo(String name) {
     case 'kailali':
       return const DistrictVisualInfo(Icons.water, Color(0xFF0288D1), Color(0xFFE1F5FE));
     default:
-      return const DistrictVisualInfo(Icons.location_city, Color(0xFF8C7162), Color(0xFFF5EFEC));
+      return const DistrictVisualInfo(Icons.location_city, AppColors.kColorTextMuted, AppColors.kColorTagBg);
   }
 }
 
