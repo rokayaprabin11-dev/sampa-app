@@ -140,7 +140,7 @@ class GuideTermsScreen extends StatelessWidget {
 
   Widget _subtitle(bool isDark, String text) => Padding(
     padding: const EdgeInsets.only(top: 4),
-    child: Text(text, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+    child: Text(text, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
   );
 
   Widget _section(bool isDark, String text) => Padding(

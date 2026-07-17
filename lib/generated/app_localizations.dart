@@ -2039,7 +2039,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Namaste! 🙏'**
+  /// **'Namaste!'**
   String get homeGreeting;
 
   /// No description provided for @searchSitesHint.
@@ -2051,7 +2051,7 @@ abstract class AppLocalizations {
   /// No description provided for @nearbyEventsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nearby Events 🔔'**
+  /// **'Nearby Events'**
   String get nearbyEventsTitle;
 
   /// No description provided for @noDistrictsAvailable.
@@ -2737,6 +2737,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AD'**
   String get calendarAdLabel;
+
+  /// No description provided for @guideHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find Your\nHeritage Guide'**
+  String get guideHeaderTitle;
+
+  /// No description provided for @guideHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book certified local guides across Nepal\'s 77 districts'**
+  String get guideHeaderSubtitle;
+
+  /// No description provided for @filterNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get filterNearby;
+
+  /// No description provided for @filterTopRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Rated'**
+  String get filterTopRated;
+
+  /// No description provided for @filterTempleExpert.
+  ///
+  /// In en, this message translates to:
+  /// **'Temple Expert'**
+  String get filterTempleExpert;
+
+  /// No description provided for @filterTrekking.
+  ///
+  /// In en, this message translates to:
+  /// **'Trekking'**
+  String get filterTrekking;
+
+  /// No description provided for @filterCulture.
+  ///
+  /// In en, this message translates to:
+  /// **'Culture'**
+  String get filterCulture;
+
+  /// No description provided for @filterLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get filterLanguage;
+
+  /// No description provided for @btnReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get btnReviews;
+
+  /// No description provided for @btnHireNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Hire Now'**
+  String get btnHireNow;
+
+  /// No description provided for @fromPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'From {amount}'**
+  String fromPrice(String amount);
+
+  /// No description provided for @perTour.
+  ///
+  /// In en, this message translates to:
+  /// **'per tour'**
+  String get perTour;
+
+  /// No description provided for @noGuidesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No guides registered yet.'**
+  String get noGuidesYet;
+
+  /// No description provided for @noGuidesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No guides match your search.'**
+  String get noGuidesMatch;
+
+  /// No description provided for @badgeTop.
+  ///
+  /// In en, this message translates to:
+  /// **'⭐ Top'**
+  String get badgeTop;
+
+  /// No description provided for @badgeVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Verified'**
+  String get badgeVerified;
+
+  /// No description provided for @eventsHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar & Cultural\nEvents'**
+  String get eventsHeaderTitle;
+
+  /// No description provided for @todayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayLabel;
+
+  /// No description provided for @eventCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Event} other{{count} Events}}'**
+  String eventCountLabel(int count);
+
+  /// No description provided for @recentlyVisited.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Visited'**
+  String get recentlyVisited;
+
+  /// No description provided for @myPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'My Payments'**
+  String get myPayments;
 }
 
 class _AppLocalizationsDelegate

@@ -540,13 +540,13 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                     Text(
                       l10n.applicationReviewMsg,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? AppColors.darkTextSecondary : Colors.grey[700]),
+                      style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       l10n.applicationReviewNote,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12.5, height: 1.5, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : Colors.grey[600]),
+                      style: TextStyle(fontSize: 12.5, height: 1.5, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextSecondary),
                     ),
                     const SizedBox(height: 32),
                     SizedBox(
@@ -654,7 +654,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                             fontSize: 13, fontWeight: FontWeight.bold,
                             color: isActive
                                 ? (isDark ? Colors.black : Colors.white)
-                                : (isDark ? AppColors.darkTextTertiary : Colors.grey),
+                                : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
                           ),
                         ),
                 ),
@@ -665,7 +665,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive ? activeColor : (isDark ? AppColors.darkTextTertiary : Colors.grey),
+                  color: isActive ? activeColor : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
                 ),
               ),
             ],
@@ -697,7 +697,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                       ? FileImage(File(_pickedProfilePhoto!.path))
                       : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
                   child: (_pickedProfilePhoto == null && _existingPhotoUrl == null)
-                      ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : Colors.grey[400])
+                      ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorBorderStrong)
                       : null,
                 ),
                 Positioned(
@@ -751,7 +751,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
         _secHeader(context, isDark, 'Languages Spoken', Icons.language),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.selectAllApply, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.selectAllApply, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8, runSpacing: 8,
@@ -770,7 +770,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         const SizedBox(height: 4),
         Text(
           AppLocalizations.of(context)!.aboutYourselfDesc,
-          style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+          style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
         ),
         const SizedBox(height: 12),
         TextField(
@@ -779,7 +779,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           maxLength: 300,
           style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
           decoration: _inputDecor(isDark, 'Write a short introduction...').copyWith(
-            counterStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 11),
+            counterStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted, fontSize: 11),
           ),
         ),
       ],
@@ -805,7 +805,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(AppLocalizations.of(context)!.guideExpertise, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  Text(AppLocalizations.of(context)!.guideExpertiseDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+                  Text(AppLocalizations.of(context)!.guideExpertiseDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
                 ],
               ),
             ),
@@ -894,7 +894,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(AppLocalizations.of(context)!.verification, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  Text(AppLocalizations.of(context)!.verificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+                  Text(AppLocalizations.of(context)!.verificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
                 ],
               ),
             ),
@@ -904,7 +904,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
         Text(AppLocalizations.of(context)!.governmentId, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.governmentIdDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.governmentIdDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -917,7 +917,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
         Text(AppLocalizations.of(context)!.profilePhoto, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.profilePhotoDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.profilePhotoDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
         Center(
           child: CircleAvatar(
@@ -927,7 +927,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                 ? FileImage(File(_pickedProfilePhoto!.path))
                 : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
             child: (_pickedProfilePhoto == null && _existingPhotoUrl == null)
-                ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : Colors.grey[400])
+                ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorBorderStrong)
                 : null,
           ),
         ),
@@ -937,11 +937,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           children: [
             Text(AppLocalizations.of(context)!.certification, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(width: 6),
-            Text('(Optional)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+            Text('(Optional)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
           ],
         ),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.certificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(AppLocalizations.of(context)!.certificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
         _uploadBox(context, isDark, 'Upload Certificate', Icons.workspace_premium_outlined, _certification != null, () => _pickImage((f) => _certification = f)),
         const SizedBox(height: 24),
@@ -970,7 +970,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                   border: Border.all(
                     color: _confirmedAccuracy
                         ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
-                        : (isDark ? AppColors.darkBorder : Colors.grey),
+                        : (isDark ? AppColors.darkBorder : AppColors.kColorTextMuted),
                   ),
                   color: _confirmedAccuracy
                       ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
@@ -1001,7 +1001,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   /// only to tourists who have actually booked them, and the guide confirms each
   /// payment themselves before a booking counts as settled.
   Widget _buildStep4(BuildContext context, bool isDark) {
-    final muted = isDark ? AppColors.darkTextTertiary : Colors.grey;
+    final muted = isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted;
     final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final filled = _paymentMethodsFilled;
 
@@ -1119,7 +1119,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(AppLocalizations.of(context)!.joinVerifiedGuides, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                Text(AppLocalizations.of(context)!.earnFromHeritage, style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : Colors.grey)),
+                Text(AppLocalizations.of(context)!.earnFromHeritage, style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
               ],
             ),
           ],
@@ -1163,7 +1163,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                Text(body, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : Colors.grey)),
+                Text(body, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
               ],
             ),
           ),
@@ -1187,13 +1187,13 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
       children: [
         Text(main, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(width: 6),
-        Text(sub, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : Colors.grey)),
+        Text(sub, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
       ],
     );
   }
 
   Widget _label(BuildContext context, bool isDark, String text) {
-    return Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : Colors.grey));
+    return Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted));
   }
 
   InputDecoration _inputDecor(bool isDark, String hint) => _guideInputDecor(isDark, hint);
@@ -1229,7 +1229,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
             children: [
               Text('+977', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
               const SizedBox(width: 4),
-              Icon(Icons.arrow_drop_down, size: 16, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+              Icon(Icons.arrow_drop_down, size: 16, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
             ],
           ),
         ),
@@ -1256,7 +1256,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
       ),
       child: Row(
         children: [
-          Icon(Icons.calendar_today_outlined, size: 16, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+          Icon(Icons.calendar_today_outlined, size: 16, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
           const SizedBox(width: 8),
           Text(
             _dateOfBirth != null
@@ -1266,7 +1266,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
               fontSize: 14,
               color: _dateOfBirth != null
                   ? Theme.of(context).colorScheme.onSurface
-                  : (isDark ? AppColors.darkTextTertiary : Colors.grey),
+                  : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
             ),
           ),
         ],
@@ -1287,7 +1287,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           value: value,
           isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down),
-          iconEnabledColor: Colors.grey,
+          iconEnabledColor: AppColors.kColorTextMuted,
           dropdownColor: isDark ? AppColors.darkBgCard : Colors.white,
           style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
           items: items.map((e) => DropdownMenuItem(
@@ -1327,7 +1327,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
               label,
               style: TextStyle(
                 fontSize: 12, fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : Colors.grey[700]),
+                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
               ),
             ),
             if (selected && showCheck) ...[
@@ -1357,14 +1357,14 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           children: [
             Icon(
               icon, size: 14,
-              color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextTertiary : Colors.grey[600]),
+              color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextSecondary),
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12, fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : Colors.grey[700]),
+                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
               ),
             ),
             if (selected) ...[
@@ -1389,7 +1389,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
         ),
-        child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : Colors.grey[600])),
+        child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
       ),
     );
   }
@@ -1419,7 +1419,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
             ),
             if (!uploaded) ...[
               const SizedBox(height: 4),
-              Text(AppLocalizations.of(context)!.fileTypeHint, textAlign: TextAlign.center, style: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 10)),
+              Text(AppLocalizations.of(context)!.fileTypeHint, textAlign: TextAlign.center, style: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted, fontSize: 10)),
             ],
           ],
         ),
@@ -1431,7 +1431,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 InputDecoration _guideInputDecor(bool isDark, String hint) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : Colors.grey, fontSize: 14),
+    hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted, fontSize: 14),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     filled: isDark,
     fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
@@ -1511,7 +1511,7 @@ class _AddLanguageDialogState extends State<_AddLanguageDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : Colors.grey[700])),
+          child: Text('Cancel', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
         ),
         TextButton(
           onPressed: _submit,

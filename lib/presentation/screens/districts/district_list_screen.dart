@@ -119,6 +119,7 @@ class _DistrictListScreenState extends State<DistrictListScreen> {
                                   name: d.name,
                                   nameNp: d.nameNp,
                                   sitesCount: d.sitesCount,
+                                  coverImageUrl: d.coverImageUrl.isNotEmpty ? d.coverImageUrl : null,
                                   icon: info.icon,
                                   iconColor: info.color,
                                   iconBgColor: info.bgColor,
@@ -185,8 +186,10 @@ class _Header extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight],
             ),
+            image: AppTheme.headerIllustration,
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
           ),
+          clipBehavior: Clip.antiAlias,
           child: SafeArea(
             bottom: false,
             child: Padding(

@@ -94,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onPressed: () {
                               Navigator.pushNamed(context, AppStrings.settingsPath);
                             },
-                            tooltip: 'Settings',
+                            tooltip: l10n.settingsTitle,
                             hoverColor: Colors.white.withValues(alpha: 0.1),
                             splashColor: Colors.white.withValues(alpha: 0.2),
                           ),
@@ -131,9 +131,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 55), // Reduced from 70 to 55 to match smaller avatar/header
 
-            // User Name & Email
+            // User Name & Email — no name yet (fresh account) shows the email
+            // row alone rather than a made-up placeholder name.
             Text(
-              user?.displayName ?? 'Prabin Rokaya',
+              user?.displayName ?? '',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -193,9 +194,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Recently Visited',
-                    style: TextStyle(
+                  Text(
+                    l10n.recentlyVisited,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.kColorAccentSafe,
@@ -220,9 +221,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 key: const ValueKey('visits-empty'),
                                 padding: const EdgeInsets.symmetric(vertical: 24),
                                 alignment: Alignment.center,
-                                child: const Text(
-                                  'No visited sites yet',
-                                  style: TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
+                                child: Text(
+                                  l10n.emptyVisitHistory,
+                                  style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
                                 ),
                               )
                             : Column(
@@ -254,9 +255,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Account',
-                    style: TextStyle(
+                  Text(
+                    l10n.settingsAccountSection,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.kColorAccentSafe,
@@ -314,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildAccountTile(
                       context,
                       icon: Icons.event_note_outlined,
-                      title: 'My Bookings',
+                      title: l10n.myBookingsTitle,
                       trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
                       onTap: () => Navigator.pushNamed(context, AppStrings.myBookingsPath),
                     ),
@@ -326,7 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildAccountTile(
                       context,
                       icon: Icons.receipt_long_outlined,
-                      title: 'My Payments',
+                      title: l10n.myPayments,
                       trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
                       onTap: () => Navigator.push(
                         context,
@@ -347,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildAccountTile(
                     context,
                     icon: isApprovedGuide ? Icons.badge_outlined : Icons.tour_outlined,
-                    title: isApprovedGuide ? 'Guide Profile' : 'Be a Guide',
+                    title: isApprovedGuide ? l10n.myGuideProfile : l10n.becomeGuide,
                     trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
                     onTap: () => Navigator.pushNamed(
                       context,

@@ -362,9 +362,9 @@
   "labelPerHour": "प्रति घण्टा",
   "joinVerifiedGuides": "२४८ प्रमाणित गाइडहरूमा सामेल हुनुहोस्",
 
-  "homeGreeting": "नमस्ते! 🙏",
+  "homeGreeting": "नमस्ते!",
   "searchSitesHint": "स्थल, जिल्ला खोज्नुहोस्...",
-  "nearbyEventsTitle": "नजिकैका कार्यक्रमहरू 🔔",
+  "nearbyEventsTitle": "नजिकैका कार्यक्रमहरू",
   "noDistrictsAvailable": "कुनै जिल्ला उपलब्ध छैन",
   "noNearbyEvents": "नजिकै आउँदा कार्यक्रमहरू भेटिएनन्।",
   "pressBackAgainToExit": "बाहिर निस्कन फेरि ब्याक थिच्नुहोस्",
@@ -484,5 +484,27 @@
   "copyrightPolicy": "प्रतिलिपि अधिकार नीति",
 
   "calendarBsLabel": "वि.सं.",
-  "calendarAdLabel": "ई.सं."
+  "calendarAdLabel": "ई.सं.",
+
+  "guideHeaderTitle": "आफ्नो सम्पदा\nगाइड खोज्नुहोस्",
+  "guideHeaderSubtitle": "नेपालका ७७ जिल्लामा प्रमाणित स्थानीय गाइड बुक गर्नुहोस्",
+  "filterNearby": "नजिकै",
+  "filterTopRated": "उच्च रेटिङ",
+  "filterTempleExpert": "मन्दिर विशेषज्ञ",
+  "filterTrekking": "पदयात्रा",
+  "filterCulture": "संस्कृति",
+  "filterLanguage": "भाषा",
+  "btnReviews": "समीक्षा",
+  "btnHireNow": "अहिले बुक गर्नुहोस्",
+  "fromPrice": "{amount} देखि",
+  "perTour": "प्रति भ्रमण",
+  "noGuidesYet": "अहिलेसम्म कुनै गाइड दर्ता छैनन्।",
+  "noGuidesMatch": "खोजसँग मिल्ने गाइड भेटिएनन्।",
+  "badgeTop": "⭐ उत्कृष्ट",
+  "badgeVerified": "✓ प्रमाणित",
+  "eventsHeaderTitle": "पात्रो र सांस्कृतिक\nकार्यक्रमहरू",
+  "todayLabel": "आज",
+  "eventCountLabel": "{count, plural, other{{count} कार्यक्रम}}",
+  "recentlyVisited": "भर्खरै घुमेका",
+  "myPayments": "मेरा भुक्तानीहरू"
 }

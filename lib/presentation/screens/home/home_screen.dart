@@ -10,11 +10,11 @@ import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/core/services/notification_service.dart';
 import 'package:sampada/core/theme/app_theme.dart';
-import 'package:sampada/core/utils/geo_distance.dart';
+import 'package:sampada/data/models/cultural_event.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/presentation/widgets/heritage_widgets.dart';
-import 'package:sampada/presentation/widgets/events/event_list_card.dart';
+import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/presentation/screens/events/event_detail_screen.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/providers/event_provider.dart';
@@ -105,6 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                       stops: [0.0, 0.6, 1.0],
                     ),
+                    image: AppTheme.headerIllustration,
                   ),
                   child: SafeArea(
                     bottom: false,
@@ -117,12 +118,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                l10n.homeGreeting,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    l10n.homeGreeting,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Icon(Icons.waving_hand,
+                                      color: AppColors.kColorAccentLight, size: 18),
+                                ],
                               ),
                               // IconButton reserves the 48dp target and gives
                               // the screen reader a label — the bare InkWell
@@ -278,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Consumer<HeritageProvider>(
-                    builder: (_, p, __) => p.districts.length > 8
+                    builder: (_, p, __) => p.districts.length > 4
                         ? TextButton(
                             onPressed: () => Navigator.pushNamed(context, AppStrings.districtListPath),
                             child: Row(
@@ -297,9 +305,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Consumer<HeritageProvider>(
               builder: (context, heritageProvider, child) {
                 final loading = heritageProvider.isLoading && heritageProvider.districts.isEmpty;
-                final visible = heritageProvider.districts
-                    .where((d) => d.sitesCount > 0)
-                    .take(8)
+                // Top 4 districts by site count — the full list lives behind
+                // "See All" on the districts screen.
+                final visible = (heritageProvider.districts
+                        .where((d) => d.sitesCount > 0)
+                        .toList()
+                      ..sort((a, b) => b.sitesCount.compareTo(a.sitesCount)))
+                    .take(4)
                     .toList();
 
                 final Widget content;
@@ -392,6 +404,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Theme.of(context).brightness == Brightness.light ? AppColors.textHeadline : AppColors.goldMain,
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.notifications_active,
+                      color: AppColors.kColorPrimary, size: 18),
                 ],
               ),
             ),
@@ -424,21 +439,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
                       children: nearbyEvents.take(2).map((event) {
-                        final km = eventProvider.distanceKmOf(event);
-                        final np = Localizations.localeOf(context).languageCode == 'ne';
-                        return EventListCard(
-                          title: event.localizedTitle(np),
-                          // Locale-aware month names — "३० अक्टोबर" for ne, not
-                          // a hardcoded English array.
-                          date: DateFormat('d MMM yyyy',
-                                  Localizations.localeOf(context).toString())
-                              .format(event.startDate),
-                          location: event.locationName,
-                          time: event.timeLabel,
-                          distance: km == null ? null : GeoDistance.shortLabel(km),
-                          tag: event.eventType,
-                          imageUrl: event.imageUrl,
-                          shortDescription: event.localizedShortDescription(np),
+                        return _HomeEventCard(
+                          event: event,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -620,6 +622,156 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
       default:
         return Icons.museum;
     }
+  }
+}
+
+/// Home "Nearby Events" card: cream date block (month / day / weekday) on the
+/// left, title + venue + time in the middle, event photo on the right.
+/// Month and weekday follow the active locale via [DateFormat].
+class _HomeEventCard extends StatelessWidget {
+  final CulturalEvent event;
+  final VoidCallback onTap;
+
+  const _HomeEventCard({required this.event, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final np = Localizations.localeOf(context).languageCode == 'ne';
+    final locale = Localizations.localeOf(context).toString();
+    final d = event.startDate;
+    final time = event.timeLabel;
+
+    final secondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary;
+    final accent = isDark ? AppColors.goldMain : AppColors.kColorAccentSafe;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+            border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream,
+                width: 1.2),
+            boxShadow: AppTheme.cardShadow,
+          ),
+          child: Row(
+            children: [
+              // Date block
+              Container(
+                width: 62,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      DateFormat('MMM', locale).format(d).toUpperCase(),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: accent),
+                    ),
+                    Text(
+                      DateFormat('d', locale).format(d),
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          height: 1.15,
+                          color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                    Text(
+                      DateFormat('E', locale).format(d),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: accent),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Title + venue + time
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.localizedTitle(np),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                    const SizedBox(height: 6),
+                    if (event.locationName.isNotEmpty)
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on,
+                              size: 14, color: AppColors.kColorDeep),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              event.locationName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 13, color: secondary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (time != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.access_time, size: 14, color: secondary),
+                          const SizedBox(width: 4),
+                          Text(time,
+                              style: TextStyle(fontSize: 13, color: secondary)),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              // Event photo
+              if (event.imageUrl.isNotEmpty) ...[
+                const SizedBox(width: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+                  child: AppNetworkImage(
+                    url: event.imageUrl,
+                    width: 64,
+                    height: 72,
+                    fit: BoxFit.cover,
+                    errorWidget: Container(
+                      width: 64,
+                      height: 72,
+                      color: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
+                      child: Icon(Icons.event, color: secondary, size: 22),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      ),
+    );
   }
 }
 

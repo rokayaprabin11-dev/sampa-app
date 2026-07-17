@@ -34,7 +34,7 @@ class PolicyScreen extends StatelessWidget {
         children: [
           Text(
             'Last updated: $lastUpdated',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: const TextStyle(fontSize: 12, color: AppColors.kColorTextMuted),
           ),
           const SizedBox(height: 20),
           ...sections.map((s) => _buildSection(s)),

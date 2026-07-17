@@ -28,25 +28,32 @@ class CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isDesignStyle) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.kColorPrimary : Colors.white,
+      // Material+InkWell (not GestureDetector) so taps give ripple feedback.
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Material(
+          color: isSelected ? AppColors.kColorPrimary : Colors.white,
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-            border: Border.all(
-              color: isSelected ? AppColors.kColorPrimary : AppColors.kColorBorderCream,
-            ),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isSelected ? Colors.white : AppColors.kColorTextSecondary,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+                border: Border.all(
+                  color: isSelected ? AppColors.kColorPrimary : AppColors.kColorBorderCream,
+                ),
+              ),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : AppColors.kColorTextSecondary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
             ),
           ),
         ),
@@ -433,12 +440,15 @@ class DistrictCard extends StatelessWidget {
   }
 }
 
-/// Vertical district card for the full "Browse by District" list — distinct
-/// from the compact horizontal [DistrictCard] used in the home preview row.
+/// Vertical district card for the full "Browse by District" list — cover
+/// photo with the district icon floating over it, caps name, Devanagari
+/// subtitle, then site count + a decorative arrow (the whole card is the
+/// tap target). Distinct from the compact horizontal [DistrictCard].
 class DistrictGridCard extends StatelessWidget {
   final String name;
   final String nameNp;
   final int sitesCount;
+  final String? coverImageUrl;
   final IconData icon;
   final Color iconColor;
   final Color iconBgColor;
@@ -449,68 +459,104 @@ class DistrictGridCard extends StatelessWidget {
     required this.name,
     required this.nameNp,
     required this.sitesCount,
+    this.coverImageUrl,
     required this.icon,
     required this.iconColor,
     required this.iconBgColor,
     this.onTap,
   });
 
+  Widget _iconFallback() => Container(
+        color: iconBgColor,
+        child: Center(child: Icon(icon, size: 34, color: iconColor)),
+      );
+
   @override
   Widget build(BuildContext context) {
+    final hasCover = coverImageUrl != null && coverImageUrl!.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: AppColors.kColorBorderMid, width: 1.2),
+          border: Border.all(color: AppColors.kColorBorderCream, width: 1.2),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+            // Cover photo fills whatever height the text below doesn't need.
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (hasCover)
+                    AppNetworkImage(
+                      url: coverImageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: _iconFallback(),
+                    )
+                  else
+                    _iconFallback(),
+                ],
               ),
-              child: Icon(icon, size: 26, color: iconColor),
             ),
-            const SizedBox(height: 11),
-            Text(
-              name,
-              // Cinzel — the display face — not the platform serif.
-              style: GoogleFonts.cinzel(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.kColorTextHeading,
-              ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (nameNp.isNotEmpty) ...[
-              const SizedBox(height: 3),
-              Text(
-                nameNp,
-                style: GoogleFonts.notoSerifDevanagari(
-                    fontSize: 12, color: AppColors.kColorTextMuted),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name.toUpperCase(),
+                    // Cinzel — the display face — not the platform serif.
+                    style: GoogleFonts.cinzel(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.kColorTextHeading,
+                    ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (nameNp.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      nameNp,
+                      style: GoogleFonts.notoSerifDevanagari(
+                          fontSize: 13, color: AppColors.kColorAccentSafe),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 14, color: AppColors.kColorAccentSafe),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context)!.siteCountLabel(sitesCount),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.kColorAccentSafe),
+                        ),
+                      ),
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: const BoxDecoration(
+                            color: AppColors.kColorBgWarm, shape: BoxShape.circle),
+                        child: const Icon(Icons.arrow_forward,
+                            size: 15, color: AppColors.kColorPrimary),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-            const SizedBox(height: 9),
-            Row(
-              children: [
-                const Icon(Icons.location_on_outlined, size: 13, color: AppColors.kColorAccentSafe),
-                const SizedBox(width: 4),
-                Text(
-                  AppLocalizations.of(context)!.siteCountLabel(sitesCount),
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.kColorAccentSafe),
-                ),
-              ],
             ),
           ],
         ),

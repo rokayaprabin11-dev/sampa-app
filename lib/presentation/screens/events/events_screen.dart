@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:nepali_utils/nepali_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
@@ -19,11 +23,13 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  String _formatEventDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
+  /// AD date in the active locale's month names, with the BS date alongside —
+  /// e.g. "20 Jul 2026 · साउन ४".
+  String _formatEventDate(BuildContext context, DateTime d) {
+    final ad = DateFormat('d MMM yyyy', Localizations.localeOf(context).toString()).format(d);
+    final bs = d.toNepaliDateTime().format('MMMM d', Language.nepali);
+    return '$ad · $bs';
+  }
 
   @override
   void initState() {
@@ -75,7 +81,7 @@ class _EventsScreenState extends State<EventsScreen> {
               isLoading: eventProvider.isLoadingStartingSoon,
               error: eventProvider.startingSoonError,
               emptyText: l10n.emptyEventsStartingSoon,
-              formatDate: _formatEventDate,
+              formatDate: (d) => _formatEventDate(context, d),
             ),
             const SizedBox(height: 32),
             _EventSection(
@@ -84,7 +90,7 @@ class _EventsScreenState extends State<EventsScreen> {
               isLoading: eventProvider.isLoading,
               error: eventProvider.error,
               emptyText: l10n.emptyEventsThisMonth,
-              formatDate: _formatEventDate,
+              formatDate: (d) => _formatEventDate(context, d),
             ),
             const SizedBox(height: 40),
           ],
@@ -143,7 +149,25 @@ class _EventSection extends StatelessWidget {
             itemBuilder: (context, index) => const EventCardSkeleton(),
           )
         else if (error != null)
-          Center(child: Text(error!))
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.cloud_off_rounded, size: 18, color: AppColors.kColorTextMuted),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    error!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isLight ? AppColors.kColorTextSecondary : AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
         else if (events.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -205,11 +229,13 @@ class _Header extends StatelessWidget {
               : const [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
           stops: isDark ? null : const [0.0, 0.6, 1.0],
         ),
+        image: AppTheme.headerIllustration,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
           bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
         ),
       ),
+      clipBehavior: Clip.antiAlias,
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 20,
         left: 24,
@@ -220,14 +246,15 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 8),
-          const Text(
-            'Calendar & Cultural\nEvents',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.eventsHeaderTitle,
+            // Cinzel — headers use the display face.
+            style: GoogleFonts.cinzel(
               color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              height: 1.2,
-            ),
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              height: 1.25,
+            ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
           ),
         ],
       ),
@@ -256,28 +283,35 @@ class _MonthSelector extends StatelessWidget {
         itemCount: months.length,
         itemBuilder: (context, index) {
           final isSelected = selectedIndex == index;
-          return GestureDetector(
-            onTap: () => onTap(index),
-            child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isSelected 
-                    ? (Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.goldMain) 
-                    : Theme.of(context).colorScheme.surface,
+          // Material+InkWell for ripple feedback on month taps.
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Material(
+              color: isSelected
+                  ? (Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.goldMain)
+                  : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+              child: InkWell(
+                onTap: () => onTap(index),
                 borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-                border: Border.all(
-                  color: isSelected ? AppColors.goldMain : (Theme.of(context).brightness == Brightness.light ? AppColors.brownLight : AppColors.darkBorder),
-                ),
-              ),
-              child: Text(
-                months[index],
-                style: TextStyle(
-                  color: isSelected 
-                      ? (Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : Colors.black) 
-                      : Theme.of(context).colorScheme.onSurface,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+                    border: Border.all(
+                      color: isSelected ? AppColors.goldMain : (Theme.of(context).brightness == Brightness.light ? AppColors.brownLight : AppColors.darkBorder),
+                    ),
+                  ),
+                  child: Text(
+                    months[index],
+                    style: TextStyle(
+                      color: isSelected
+                          ? (Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : Colors.black)
+                          : Theme.of(context).colorScheme.onSurface,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -340,42 +374,40 @@ class _CalendarWidget extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    GestureDetector(
-                      onTap: () => eventProvider.previousMonth(),
-                      child: Icon(
+                    IconButton(
+                      tooltip: MaterialLocalizations.of(context).previousMonthTooltip,
+                      onPressed: () => eventProvider.previousMonth(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      icon: Icon(
                         Icons.chevron_left,
                         size: 24,
                         color: Theme.of(context).brightness == Brightness.light ? AppColors.textSecondary : AppColors.darkTextSecondary
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: () => eventProvider.resetToToday(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.goldMain,
-                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.goldMain.withValues(alpha: 0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Text(
-                          'आज',
-                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    Material(
+                      color: AppColors.goldMain,
+                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                      child: InkWell(
+                        onTap: () => eventProvider.resetToToday(),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: Text(
+                            AppLocalizations.of(context)!.todayLabel,
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: () => eventProvider.nextMonth(),
-                      child: Icon(
-                        Icons.chevron_right, 
-                        size: 24, 
+                    IconButton(
+                      tooltip: MaterialLocalizations.of(context).nextMonthTooltip,
+                      onPressed: () => eventProvider.nextMonth(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      icon: Icon(
+                        Icons.chevron_right,
+                        size: 24,
                         color: Theme.of(context).brightness == Brightness.light ? AppColors.textSecondary : AppColors.darkTextSecondary
                       ),
                     ),
@@ -567,7 +599,7 @@ void showDayEventsPopover(BuildContext cellContext, List<CulturalEvent> events) 
                   Padding(
                     padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
                     child: Text(
-                      events.length == 1 ? 'Event' : '${events.length} Events',
+                      AppLocalizations.of(cellContext)!.eventCountLabel(events.length),
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.4, color: accent),
                     ),
                   ),
@@ -608,7 +640,7 @@ void showDayEventsPopover(BuildContext cellContext, List<CulturalEvent> events) 
                                   child: Text(e.eventType, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: dot)),
                                 ),
                                 const SizedBox(width: 4),
-                                Icon(Icons.chevron_right, size: 16, color: isDark ? AppColors.darkTextTertiary : Colors.grey),
+                                Icon(Icons.chevron_right, size: 16, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
                               ],
                             ),
                           ),

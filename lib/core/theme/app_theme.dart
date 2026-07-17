@@ -19,6 +19,17 @@ class AppTheme {
   static TextStyle _dv(TextStyle style) =>
       style.copyWith(fontFamilyFallback: devanagariFallback);
 
+  /// Temple-skyline wash for the terracotta screen headers. The PNG has a
+  /// white sky, so it is painted at low opacity: the skyline reads as a
+  /// subtle emboss and the white becomes a faint glow rather than a slab.
+  /// Drop into any header BoxDecoration alongside the gradient.
+  static const DecorationImage headerIllustration = DecorationImage(
+    image: AssetImage('assets/icons/bgillustration.png'),
+    fit: BoxFit.cover,
+    alignment: Alignment.bottomCenter,
+    opacity: 0.16,
+  );
+
   static ThemeData get light => _buildLight();
   static ThemeData get dark  => _buildDark();
 

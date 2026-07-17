@@ -371,9 +371,9 @@
   "labelPerHour": "per hour",
   "joinVerifiedGuides": "Join 248 verified guides",
 
-  "homeGreeting": "Namaste! 🙏",
+  "homeGreeting": "Namaste!",
   "searchSitesHint": "Search sites, districts...",
-  "nearbyEventsTitle": "Nearby Events 🔔",
+  "nearbyEventsTitle": "Nearby Events",
   "noDistrictsAvailable": "No districts available",
   "noNearbyEvents": "No upcoming nearby events found.",
   "pressBackAgainToExit": "Press back again to exit",
@@ -508,5 +508,29 @@
   "copyrightPolicy": "Copyright Policy",
 
   "calendarBsLabel": "BS",
-  "calendarAdLabel": "AD"
+  "calendarAdLabel": "AD",
+
+  "guideHeaderTitle": "Find Your\nHeritage Guide",
+  "guideHeaderSubtitle": "Book certified local guides across Nepal's 77 districts",
+  "filterNearby": "Nearby",
+  "filterTopRated": "Top Rated",
+  "filterTempleExpert": "Temple Expert",
+  "filterTrekking": "Trekking",
+  "filterCulture": "Culture",
+  "filterLanguage": "Language",
+  "btnReviews": "Reviews",
+  "btnHireNow": "Hire Now",
+  "fromPrice": "From {amount}",
+  "@fromPrice": { "placeholders": { "amount": { "type": "String" } } },
+  "perTour": "per tour",
+  "noGuidesYet": "No guides registered yet.",
+  "noGuidesMatch": "No guides match your search.",
+  "badgeTop": "⭐ Top",
+  "badgeVerified": "✓ Verified",
+  "eventsHeaderTitle": "Calendar & Cultural\nEvents",
+  "todayLabel": "Today",
+  "eventCountLabel": "{count, plural, =1{Event} other{{count} Events}}",
+  "@eventCountLabel": { "placeholders": { "count": { "type": "int" } } },
+  "recentlyVisited": "Recently Visited",
+  "myPayments": "My Payments"
 }

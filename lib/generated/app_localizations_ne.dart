@@ -1043,13 +1043,13 @@ class AppLocalizationsNe extends AppLocalizations {
   String get joinVerifiedGuides => '२४८ प्रमाणित गाइडहरूमा सामेल हुनुहोस्';
 
   @override
-  String get homeGreeting => 'नमस्ते! 🙏';
+  String get homeGreeting => 'नमस्ते!';
 
   @override
   String get searchSitesHint => 'स्थल, जिल्ला खोज्नुहोस्...';
 
   @override
-  String get nearbyEventsTitle => 'नजिकैका कार्यक्रमहरू 🔔';
+  String get nearbyEventsTitle => 'नजिकैका कार्यक्रमहरू';
 
   @override
   String get noDistrictsAvailable => 'कुनै जिल्ला उपलब्ध छैन';
@@ -1438,4 +1438,77 @@ class AppLocalizationsNe extends AppLocalizations {
 
   @override
   String get calendarAdLabel => 'ई.सं.';
+
+  @override
+  String get guideHeaderTitle => 'आफ्नो सम्पदा\nगाइड खोज्नुहोस्';
+
+  @override
+  String get guideHeaderSubtitle =>
+      'नेपालका ७७ जिल्लामा प्रमाणित स्थानीय गाइड बुक गर्नुहोस्';
+
+  @override
+  String get filterNearby => 'नजिकै';
+
+  @override
+  String get filterTopRated => 'उच्च रेटिङ';
+
+  @override
+  String get filterTempleExpert => 'मन्दिर विशेषज्ञ';
+
+  @override
+  String get filterTrekking => 'पदयात्रा';
+
+  @override
+  String get filterCulture => 'संस्कृति';
+
+  @override
+  String get filterLanguage => 'भाषा';
+
+  @override
+  String get btnReviews => 'समीक्षा';
+
+  @override
+  String get btnHireNow => 'अहिले बुक गर्नुहोस्';
+
+  @override
+  String fromPrice(String amount) {
+    return '$amount देखि';
+  }
+
+  @override
+  String get perTour => 'प्रति भ्रमण';
+
+  @override
+  String get noGuidesYet => 'अहिलेसम्म कुनै गाइड दर्ता छैनन्।';
+
+  @override
+  String get noGuidesMatch => 'खोजसँग मिल्ने गाइड भेटिएनन्।';
+
+  @override
+  String get badgeTop => '⭐ उत्कृष्ट';
+
+  @override
+  String get badgeVerified => '✓ प्रमाणित';
+
+  @override
+  String get eventsHeaderTitle => 'पात्रो र सांस्कृतिक\nकार्यक्रमहरू';
+
+  @override
+  String get todayLabel => 'आज';
+
+  @override
+  String eventCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count कार्यक्रम',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentlyVisited => 'भर्खरै घुमेका';
+
+  @override
+  String get myPayments => 'मेरा भुक्तानीहरू';
 }

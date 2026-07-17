@@ -366,7 +366,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     const SizedBox(height: 4),
                     const Text(
                       'Email is managed by Google and cannot be changed here.',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      style: TextStyle(fontSize: 11, color: AppColors.kColorTextMuted),
                     ),
                   ],
                   const SizedBox(height: 24),
@@ -588,7 +588,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   const SizedBox(height: 12),
                                   const Text(
                                     'You will be asked to re-sign in with Google to confirm.',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                                    style: TextStyle(fontSize: 12, color: AppColors.kColorTextMuted),
                                   ),
                                 ],
                               ],
@@ -714,13 +714,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           readOnly: readOnly,
           style: TextStyle(
             color: readOnly
-                ? (isDark ? Colors.grey[500] : Colors.grey[600])
+                ? (isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)
                 : Theme.of(context).colorScheme.onSurface,
             fontSize: 15,
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+            hintStyle: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
             filled: true,
             fillColor: readOnly
                 ? (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF0F0F0))

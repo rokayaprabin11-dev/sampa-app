@@ -1031,13 +1031,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get joinVerifiedGuides => 'Join 248 verified guides';
 
   @override
-  String get homeGreeting => 'Namaste! 🙏';
+  String get homeGreeting => 'Namaste!';
 
   @override
   String get searchSitesHint => 'Search sites, districts...';
 
   @override
-  String get nearbyEventsTitle => 'Nearby Events 🔔';
+  String get nearbyEventsTitle => 'Nearby Events';
 
   @override
   String get noDistrictsAvailable => 'No districts available';
@@ -1428,4 +1428,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarAdLabel => 'AD';
+
+  @override
+  String get guideHeaderTitle => 'Find Your\nHeritage Guide';
+
+  @override
+  String get guideHeaderSubtitle =>
+      'Book certified local guides across Nepal\'s 77 districts';
+
+  @override
+  String get filterNearby => 'Nearby';
+
+  @override
+  String get filterTopRated => 'Top Rated';
+
+  @override
+  String get filterTempleExpert => 'Temple Expert';
+
+  @override
+  String get filterTrekking => 'Trekking';
+
+  @override
+  String get filterCulture => 'Culture';
+
+  @override
+  String get filterLanguage => 'Language';
+
+  @override
+  String get btnReviews => 'Reviews';
+
+  @override
+  String get btnHireNow => 'Hire Now';
+
+  @override
+  String fromPrice(String amount) {
+    return 'From $amount';
+  }
+
+  @override
+  String get perTour => 'per tour';
+
+  @override
+  String get noGuidesYet => 'No guides registered yet.';
+
+  @override
+  String get noGuidesMatch => 'No guides match your search.';
+
+  @override
+  String get badgeTop => '⭐ Top';
+
+  @override
+  String get badgeVerified => '✓ Verified';
+
+  @override
+  String get eventsHeaderTitle => 'Calendar & Cultural\nEvents';
+
+  @override
+  String get todayLabel => 'Today';
+
+  @override
+  String eventCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Events',
+      one: 'Event',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recentlyVisited => 'Recently Visited';
+
+  @override
+  String get myPayments => 'My Payments';
 }

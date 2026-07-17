@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sampada/core/services/location_service.dart';
 import 'package:sampada/core/utils/geo_distance.dart';
 import 'package:sampada/generated/app_localizations.dart';
@@ -49,7 +50,20 @@ class _GuideScreenState extends State<GuideScreen> {
     });
   }
 
+  // Stable filter KEYS — the switch in _process matches on these; the chip
+  // row renders them through l10n so the labels translate without touching
+  // the filter logic.
   static const _chips = ['Nearby', 'Top Rated', 'Temple Expert', 'Trekking', 'Culture', 'Language'];
+
+  String _chipLabel(AppLocalizations l10n, String key) => switch (key) {
+        'Nearby' => l10n.filterNearby,
+        'Top Rated' => l10n.filterTopRated,
+        'Temple Expert' => l10n.filterTempleExpert,
+        'Trekking' => l10n.filterTrekking,
+        'Culture' => l10n.filterCulture,
+        'Language' => l10n.filterLanguage,
+        _ => key,
+      };
 
   static const _langShort = {
     'english': 'EN',
@@ -266,7 +280,7 @@ class _GuideScreenState extends State<GuideScreen> {
 
   void _openChat(Map<String, dynamic> guide, int bookingId) {
     final user = guide['user'] as Map<String, dynamic>? ?? {};
-    final name = (user['full_name'] ?? user['username'] ?? 'Guide').toString();
+    final name = (user['full_name'] ?? user['username'] ?? AppLocalizations.of(context)!.tourGuide).toString();
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -326,7 +340,7 @@ class _GuideScreenState extends State<GuideScreen> {
     final l10n = AppLocalizations.of(context)!;
     final paymentDue = b['status'] == 'completed' &&
         (b['payment_status'] == 'due' || b['payment_status'] == 'rejected');
-    final guideName = (b['guide_name'] ?? 'your guide').toString();
+    final guideName = (b['guide_name'] ?? l10n.tourGuide).toString();
     final price = b['total_price'];
     final title = paymentDue ? l10n.payDueTitle : l10n.confirmTourTitle;
     final body = paymentDue
@@ -453,7 +467,7 @@ class _GuideScreenState extends State<GuideScreen> {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(children: _chips.map((f) => _chip(context, f)).toList()),
+                  child: Row(children: _chips.map((f) => _chip(context, f, _chipLabel(l10n, f))).toList()),
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -526,11 +540,13 @@ class _GuideScreenState extends State<GuideScreen> {
                   : const [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
               stops: isDark ? null : const [0.0, 0.6, 1.0],
             ),
+            image: AppTheme.headerIllustration,
             borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
               bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
             ),
           ),
+          clipBehavior: Clip.antiAlias,
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -567,16 +583,22 @@ class _GuideScreenState extends State<GuideScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    'Find Your\nHeritage Guide',
-                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.1),
+                  Text(
+                    AppLocalizations.of(context)!.guideHeaderTitle,
+                    // Cinzel — headers use the display face.
+                    style: GoogleFonts.cinzel(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
+                    ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
                   ),
                   const SizedBox(height: 8),
                   Container(width: 40, height: 3, decoration: BoxDecoration(color: AppColors.kColorBgWarm, borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm))),
                   const SizedBox(height: 8),
-                  const Text(
-                    "Book certified local guides across Nepal's 77 districts",
-                    style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+                  Text(
+                    AppLocalizations.of(context)!.guideHeaderSubtitle,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
                   ),
                 ],
               ),
@@ -692,7 +714,7 @@ class _GuideScreenState extends State<GuideScreen> {
             bottom: 0, right: 2,
             child: Container(
               width: 13, height: 13,
-              decoration: BoxDecoration(color: const Color(0xFF2ECC71), shape: BoxShape.circle, border: Border.all(color: isDark ? AppColors.darkBgCard : Colors.white, width: 2)),
+              decoration: BoxDecoration(color: AppColors.kColorOnlineDot, shape: BoxShape.circle, border: Border.all(color: isDark ? AppColors.darkBgCard : Colors.white, width: 2)),
             ),
           ),
       ],
@@ -767,10 +789,10 @@ class _GuideScreenState extends State<GuideScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     if (_isTopGuide(guide))
-                      _pill('⭐ Top', isDark ? AppColors.goldMain : AppColors.kColorAccentLight, AppColors.kColorBrownDarkest),
+                      _pill(AppLocalizations.of(context)!.badgeTop, isDark ? AppColors.goldMain : AppColors.kColorAccentLight, AppColors.kColorBrownDarkest),
                     if (isVerified) ...[
                       if (_isTopGuide(guide)) const SizedBox(height: 4),
-                      _pill('✓ Verified', AppColors.kColorOfflineBg, AppColors.statusSuccess),
+                      _pill(AppLocalizations.of(context)!.badgeVerified, AppColors.kColorOfflineBg, AppColors.statusSuccess),
                     ],
                   ],
                 ),
@@ -798,7 +820,7 @@ class _GuideScreenState extends State<GuideScreen> {
                           const SizedBox(width: 3),
                           Text(rating.toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
                           const SizedBox(width: 3),
-                          Text('($reviews reviews)', style: TextStyle(fontSize: 11, color: sub)),
+                          Text('(${AppLocalizations.of(context)!.reviewsCount(reviews)})', style: TextStyle(fontSize: 11, color: sub)),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -810,9 +832,11 @@ class _GuideScreenState extends State<GuideScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('From ${AppLocalizations.of(context)!.nprAmount(_cheapestPackagePrice(guide)!)}',
+                      Text(
+                          AppLocalizations.of(context)!.fromPrice(
+                              AppLocalizations.of(context)!.nprAmount(_cheapestPackagePrice(guide)!)),
                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: accent)),
-                      Text('per tour', style: TextStyle(fontSize: 10, color: sub)),
+                      Text(AppLocalizations.of(context)!.perTour, style: TextStyle(fontSize: 10, color: sub)),
                     ],
                   )
                 else if (rate != null)
@@ -843,14 +867,14 @@ class _GuideScreenState extends State<GuideScreen> {
                   children: [
                     if (chatBookingId != null) ...[
                       Expanded(
-                        child: _outlineBtn(context, isDark, 'Message',
+                        child: _outlineBtn(context, isDark, AppLocalizations.of(context)!.btnMessage,
                             () => _openChat(guide, chatBookingId)),
                       ),
                       const SizedBox(width: 6),
                     ],
-                    Expanded(child: _outlineBtn(context, isDark, 'Reviews', () => _openReviews(guide))),
+                    Expanded(child: _outlineBtn(context, isDark, AppLocalizations.of(context)!.btnReviews, () => _openReviews(guide))),
                     const SizedBox(width: 6),
-                    Expanded(flex: 2, child: _filledBtn(context, isDark, 'Hire Now', () => _openDetail(guide))),
+                    Expanded(flex: 2, child: _filledBtn(context, isDark, AppLocalizations.of(context)!.btnHireNow, () => _openDetail(guide))),
                   ],
                 );
               }),
@@ -937,7 +961,7 @@ class _GuideScreenState extends State<GuideScreen> {
                   ),
                 ),
                 if (_cheapestPackagePrice(guide) != null)
-                  Text('From ${l10n.nprAmount(_cheapestPackagePrice(guide)!)}',
+                  Text(l10n.fromPrice(l10n.nprAmount(_cheapestPackagePrice(guide)!)),
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: accent))
                 else if (rate != null)
                   Text(l10n.nprAmount(rate.toString()), style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: accent)),
@@ -1017,13 +1041,13 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
-  Widget _chip(BuildContext context, String label) {
+  Widget _chip(BuildContext context, String key, String label) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isSelected = _selectedFilter == label;
+    final isSelected = _selectedFilter == key;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => setState(() => _selectedFilter = label),
+        onTap: () => setState(() => _selectedFilter = key),
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
@@ -1072,7 +1096,7 @@ class _GuideScreenState extends State<GuideScreen> {
             style: TextStyle(
               fontSize: 10,
               fontWeight: online ? FontWeight.bold : FontWeight.normal,
-              color: online ? const Color(0xFF1E8449) : sub,
+              color: online ? AppColors.statusSuccess : sub,
             ),
           ),
         ),
@@ -1168,9 +1192,13 @@ class _GuideScreenState extends State<GuideScreen> {
       padding: const EdgeInsets.all(40),
       child: Column(
         children: [
-          Icon(Icons.person_search, size: 64, color: isDark ? AppColors.darkTextTertiary : const Color(0xFFD4B8A8)),
+          Icon(Icons.person_search, size: 64, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorBorderStrong),
           const SizedBox(height: 16),
-          Text(none ? 'No guides registered yet.' : 'No guides match your search.', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
+          Text(
+              none
+                  ? AppLocalizations.of(context)!.noGuidesYet
+                  : AppLocalizations.of(context)!.noGuidesMatch,
+              style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
         ],
       ),
     );
