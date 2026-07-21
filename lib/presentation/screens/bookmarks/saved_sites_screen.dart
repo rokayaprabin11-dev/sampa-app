@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -31,11 +32,14 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
     final l10n = AppLocalizations.of(context)!;
     final profileProvider = context.watch<ProfileProvider>();
     final bookmarks = profileProvider.bookmarks;
-    
+
     // Filter by category if not 'All'
     final filteredBookmarks = _selectedCategory == 'All'
         ? bookmarks
-        : bookmarks.where((s) => s.category.toLowerCase() == _selectedCategory.toLowerCase()).toList();
+        : bookmarks
+            .where((s) =>
+                s.category.toLowerCase() == _selectedCategory.toLowerCase())
+            .toList();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -64,14 +68,16 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          icon: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 20),
                           onPressed: () => Navigator.pop(context),
                           hoverColor: Colors.white.withValues(alpha: 0.1),
                           splashColor: Colors.white.withValues(alpha: 0.2),
@@ -112,10 +118,14 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                _buildCategoryChip(context, l10n.catAll, isSelected: _selectedCategory == 'All'),
-                _buildCategoryChip(context, l10n.catTemple, isSelected: _selectedCategory == 'Temples'),
-                _buildCategoryChip(context, l10n.catStupa, isSelected: _selectedCategory == 'Stupas'),
-                _buildCategoryChip(context, l10n.catPalace, isSelected: _selectedCategory == 'Palaces'),
+                _buildCategoryChip(context, l10n.catAll,
+                    isSelected: _selectedCategory == 'All'),
+                _buildCategoryChip(context, l10n.catTemple,
+                    isSelected: _selectedCategory == 'Temples'),
+                _buildCategoryChip(context, l10n.catStupa,
+                    isSelected: _selectedCategory == 'Stupas'),
+                _buildCategoryChip(context, l10n.catPalace,
+                    isSelected: _selectedCategory == 'Palaces'),
               ],
             ),
           ),
@@ -167,16 +177,26 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
     }
   }
 
-  Widget _buildCategoryChip(BuildContext context, String label, {bool isSelected = false}) {
-    return GestureDetector(
+  Widget _buildCategoryChip(BuildContext context, String label,
+      {bool isSelected = false}) {
+    return InteractiveSurface(
       onTap: () => setState(() => _selectedCategory = label),
       child: Container(
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.kColorAccentLight : (Theme.of(context).brightness == Brightness.light ? AppColors.kColorDeepShade : AppColors.darkBgSurface),
+          color: isSelected
+              ? AppColors.kColorAccentLight
+              : (Theme.of(context).brightness == Brightness.light
+                  ? AppColors.kColorDeepShade
+                  : AppColors.darkBgSurface),
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-          border: Border.all(color: isSelected ? AppColors.kColorAccentLight : (Theme.of(context).brightness == Brightness.light ? AppColors.kColorDeepShade : AppColors.darkBorder)),
+          border: Border.all(
+              color: isSelected
+                  ? AppColors.kColorAccentLight
+                  : (Theme.of(context).brightness == Brightness.light
+                      ? AppColors.kColorDeepShade
+                      : AppColors.darkBorder)),
         ),
         child: Text(
           label,
@@ -211,14 +231,17 @@ class _SavedSiteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
+          border: Border.all(
+              color: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.kColorBorderCream
+                  : AppColors.darkBorder),
         ),
         child: Row(
           children: [
@@ -232,7 +255,9 @@ class _SavedSiteCard extends StatelessWidget {
                 width: 100,
                 height: 100,
                 child: hasImage
-                    ? AppNetworkImage(url: imageUrl, fit: BoxFit.cover,
+                    ? AppNetworkImage(
+                        url: imageUrl,
+                        fit: BoxFit.cover,
                         errorWidget: _iconFallback(icon))
                     : _iconFallback(icon),
               ),
@@ -259,26 +284,31 @@ class _SavedSiteCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const Icon(Icons.bookmark, color: AppColors.kColorAccentLight, size: 24),
+                        const Icon(Icons.bookmark,
+                            color: AppColors.kColorAccentLight, size: 24),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: AppColors.kColorTextMuted),
+                        const Icon(Icons.location_on,
+                            size: 14, color: AppColors.kColorTextMuted),
                         const SizedBox(width: 4),
                         Text(
                           location,
-                          style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
+                          style: const TextStyle(
+                              color: AppColors.kColorTextMuted, fontSize: 13),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.kColorAccentLight,
-                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusSm),
                       ),
                       child: Text(
                         type,
@@ -300,14 +330,7 @@ class _SavedSiteCard extends StatelessWidget {
   }
 
   Widget _iconFallback(IconData icon) => Container(
-    color: AppColors.kColorDeep,
-    child: Center(child: Icon(icon, color: Colors.white38, size: 40)),
-  );
+        color: AppColors.kColorDeep,
+        child: Center(child: Icon(icon, color: Colors.white38, size: 40)),
+      );
 }
-
-
-
-
-
-
-

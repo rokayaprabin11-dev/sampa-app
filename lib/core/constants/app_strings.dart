@@ -35,6 +35,7 @@ class AppStrings {
   static const String messagesPath = '/messages';
   static const String aboutPath = '/about';
   static const String helpCenterPath = '/help';
+  static const String heritageDetailsLoadingPath = '/heritage_details_loading';
 
   // Localization Keys (Internal)
   static const String titleKey = 'title';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -100,7 +101,6 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
         accent: payment.isConfirmed ? AppColors.statusSuccess : null,
       ),
       const SizedBox(height: AppDimensions.sp16),
-
       if (!payment.isPending)
         BookingBanner(
           icon: meta.icon,
@@ -115,7 +115,6 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
           bg: meta.bg,
           fg: meta.fg,
         ),
-
       BookingSection(
         icon: Icons.fact_check_outlined,
         title: 'What to check',
@@ -124,7 +123,8 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
             BookingKeyValue(label: 'Booking', value: payment.bookingRef),
             BookingKeyValue(
               label: 'Tour date',
-              value: formatBookingDate(payment.bookingDate) ?? payment.bookingDate,
+              value:
+                  formatBookingDate(payment.bookingDate) ?? payment.bookingDate,
             ),
             BookingKeyValue(
                 label: 'Method', value: payment.method?.label ?? '—'),
@@ -137,12 +137,11 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
           ],
         ),
       ),
-
       if (payment.screenshotUrl.isNotEmpty)
         BookingSection(
           icon: Icons.image_outlined,
           title: 'Their screenshot',
-          child: GestureDetector(
+          child: InteractiveSurface(
             onTap: () => _viewScreenshot(payment.screenshotUrl),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
@@ -155,7 +154,6 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
             ),
           ),
         ),
-
       if (payment.isPending) ...[
         Container(
           padding: const EdgeInsets.all(AppDimensions.sp12),
@@ -174,7 +172,8 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
                   'Open your ${payment.method?.label ?? 'wallet'} and check the '
                   'money is really there. Confirming marks the booking paid and '
                   'issues a receipt — it cannot be undone.',
-                  style: t.bodySmall?.copyWith(color: AppColors.kColorAccentDark),
+                  style:
+                      t.bodySmall?.copyWith(color: AppColors.kColorAccentDark),
                 ),
               ),
             ],
@@ -258,14 +257,14 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
           'Only confirm if the money is in your '
           '${payment.method?.label ?? 'account'}. This marks the booking paid '
           'and issues a receipt.',
-          style:
-              t.bodyMedium?.copyWith(color: Theme.of(ctx).colorScheme.onSurface),
+          style: t.bodyMedium
+              ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Not Yet',
-                style: TextStyle(color: bookingSecondary(ctx))),
+            child:
+                Text('Not Yet', style: TextStyle(color: bookingSecondary(ctx))),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -294,7 +293,8 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
     await _load();
     if (!mounted) return;
     messenger.showSnackBar(SnackBar(
-      content: Text('Payment confirmed. ${payment.touristName} has been notified.'),
+      content:
+          Text('Payment confirmed. ${payment.touristName} has been notified.'),
     ));
   }
 
@@ -328,7 +328,8 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
               style: t.bodyMedium
                   ?.copyWith(color: Theme.of(ctx).colorScheme.onSurface),
               decoration: const InputDecoration(
-                hintText: 'e.g. No payment with that reference reached my eSewa.',
+                hintText:
+                    'e.g. No payment with that reference reached my eSewa.',
               ),
             ),
           ],
@@ -371,7 +372,8 @@ class _GuideConfirmPaymentScreenState extends State<GuideConfirmPaymentScreen>
     await _load();
     if (!mounted) return;
     messenger.showSnackBar(SnackBar(
-      content: Text('${payment.touristName} has been asked to check and resubmit.'),
+      content:
+          Text('${payment.touristName} has been asked to check and resubmit.'),
     ));
   }
 }

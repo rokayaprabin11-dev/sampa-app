@@ -323,16 +323,18 @@ class _NavBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.35),
-          shape: BoxShape.circle,
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: Colors.white.withAlpha(26),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }
@@ -365,80 +367,87 @@ class _SiteListTile extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
 
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(
-        context,
-        AppStrings.heritageDetailsPath,
-        arguments: site,
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
-          border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderFaint,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+        child: InkWell(
+          onTap: () => Navigator.pushNamed(
+            context,
+            AppStrings.heritageDetailsPath,
+            arguments: site,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+          hoverColor: isDark ? Colors.white.withAlpha(13) : AppColors.kColorPrimary.withAlpha(10),
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.kColorBorderFaint,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
-              child: site.imageUrl != null && site.imageUrl!.isNotEmpty
-                  ? AppNetworkImage(
-                      url: site.imageUrl,
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                      errorWidget: _iconPlaceholder(isDark),
-                    )
-                  : _iconPlaceholder(isDark),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    site.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                  child: site.imageUrl != null && site.imageUrl!.isNotEmpty
+                      ? AppNetworkImage(
+                          url: site.imageUrl,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          errorWidget: _iconPlaceholder(isDark),
+                        )
+                      : _iconPlaceholder(isDark),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on, size: 12,
-                          color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: Text(
-                          site.location.isNotEmpty ? site.location : site.category,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        site.name,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: cs.onSurface,
                         ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 12,
+                              color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              site.location.isNotEmpty ? site.location : site.category,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                Icon(Icons.chevron_right,
+                    color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+              ],
             ),
-            Icon(Icons.chevron_right,
-                color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
-          ],
+          ),
         ),
       ),
     );

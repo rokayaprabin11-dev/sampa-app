@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -27,7 +28,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   // is done client-side. No separate /categories/ call, so it can't be broken
   // by an empty response or a stale token, and only categories that actually
   // have sites are shown.
-  String? _selectedSlug;    // null = All
+  String? _selectedSlug; // null = All
   String _query = '';
 
   // Idle = nothing searched and no category chosen. Like standard search apps
@@ -96,7 +97,8 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     // backend semantic search (typo-tolerant, matches Nepali + descriptions
     // across the whole catalogue) that refines the results when it returns.
     setState(() => _query = value.trim().toLowerCase());
-    Provider.of<HeritageProvider>(context, listen: false).onSearchChanged(value);
+    Provider.of<HeritageProvider>(context, listen: false)
+        .onSearchChanged(value);
   }
 
   void _onClearSearch() {
@@ -114,8 +116,10 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
   String _slug(String raw) {
     final s = raw.toLowerCase().trim();
     const map = {
-      'durbar square': 'durbar', 'durbar sq.': 'durbar',
-      'lake / natural': 'lake', 'durbar squares': 'durbar',
+      'durbar square': 'durbar',
+      'durbar sq.': 'durbar',
+      'lake / natural': 'lake',
+      'durbar squares': 'durbar',
     };
     return map[s] ?? s;
   }
@@ -128,7 +132,9 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
       if (label.isEmpty) continue;
       seen.putIfAbsent(_slug(label), () => label);
     }
-    final cats = seen.entries.map((e) => _Category(label: e.value, apiValue: e.key)).toList()
+    final cats = seen.entries
+        .map((e) => _Category(label: e.value, apiValue: e.key))
+        .toList()
       ..sort((a, b) => a.label.compareTo(b.label));
     return [const _Category(label: 'All', apiValue: null), ...cats];
   }
@@ -184,7 +190,11 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
+          colors: [
+            AppColors.kColorDeep,
+            AppColors.kColorPrimaryMid,
+            AppColors.kColorPrimary
+          ],
           stops: [0.0, 0.6, 1.0],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -194,7 +204,7 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Back button
-          GestureDetector(
+          InteractiveSurface(
             onTap: () => Navigator.pop(context),
             child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
           ),
@@ -222,32 +232,46 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               onSubmitted: _onSubmit,
               textInputAction: TextInputAction.search,
               maxLength: 100,
-              buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
-              style: const TextStyle(fontSize: 15, color: AppColors.kColorTextHeading),
+              buildCounter: (_,
+                      {required currentLength,
+                      required isFocused,
+                      maxLength}) =>
+                  null,
+              style: const TextStyle(
+                  fontSize: 15, color: AppColors.kColorTextHeading),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
                 hintText: AppLocalizations.of(context)!.searchHeritageHint,
-                hintStyle: const TextStyle(color: Color(0xFFB08060), fontSize: 14),
+                hintStyle:
+                    const TextStyle(color: Color(0xFFB08060), fontSize: 14),
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                prefixIcon: const Icon(Icons.search, color: AppColors.kColorTextMuted, size: 22),
+                prefixIcon: const Icon(Icons.search,
+                    color: AppColors.kColorTextMuted, size: 22),
                 suffixIcon: _searchController.text.isNotEmpty
-                    ? GestureDetector(
+                    ? InteractiveSurface(
                         onTap: _onClearSearch,
-                        child: const Icon(Icons.close, color: AppColors.kColorTextMuted, size: 20),
+                        child: const Icon(Icons.close,
+                            color: AppColors.kColorTextMuted, size: 20),
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-                  borderSide: const BorderSide(color: Color(0xFFD4A040), width: 1.8),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.kRadiusPill),
+                  borderSide:
+                      const BorderSide(color: Color(0xFFD4A040), width: 1.8),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-                  borderSide: const BorderSide(color: Color(0xFFD4A040), width: 1.8),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.kRadiusPill),
+                  borderSide:
+                      const BorderSide(color: Color(0xFFD4A040), width: 1.8),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-                  borderSide: const BorderSide(color: Color(0xFFD4A040), width: 2.0),
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.kRadiusPill),
+                  borderSide:
+                      const BorderSide(color: Color(0xFFD4A040), width: 2.0),
                 ),
               ),
             ),
@@ -306,18 +330,23 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               color: AppColors.kColorBorderCream,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.travel_explore_rounded, size: 46, color: AppColors.kColorPrimary),
+            child: const Icon(Icons.travel_explore_rounded,
+                size: 46, color: AppColors.kColorPrimary),
           ),
           const SizedBox(height: 20),
           Text(
             AppLocalizations.of(context)!.searchHeritageEmptyTitle,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.kColorTextHeading),
+            style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.kColorTextHeading),
           ),
           const SizedBox(height: 8),
           Text(
             AppLocalizations.of(context)!.searchHeritageEmptyBody,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14, color: AppColors.kColorTextMuted, height: 1.5),
+            style: const TextStyle(
+                fontSize: 14, color: AppColors.kColorTextMuted, height: 1.5),
           ),
         ],
       ),
@@ -340,11 +369,17 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(AppLocalizations.of(context)!.recentSearches,
-                      style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13, fontWeight: FontWeight.w600)),
-                  GestureDetector(
+                      style: const TextStyle(
+                          color: AppColors.kColorTextMuted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600)),
+                  InteractiveSurface(
                     onTap: provider.clearRecentSearches,
                     child: Text(AppLocalizations.of(context)!.btnClear,
-                        style: const TextStyle(color: AppColors.kColorPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
+                        style: const TextStyle(
+                            color: AppColors.kColorPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -352,25 +387,34 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: recents.map((q) => GestureDetector(
-                  onTap: () => _onRecentTap(q),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: AppColors.kColorBorderCream,
-                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-                      border: Border.all(color: const Color(0xFFE3D2A8)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.history, size: 15, color: AppColors.kColorTextMuted),
-                        const SizedBox(width: 6),
-                        Text(q, style: const TextStyle(color: AppColors.kColorTextHeading, fontSize: 13)),
-                      ],
-                    ),
-                  ),
-                )).toList(),
+                children: recents
+                    .map((q) => InteractiveSurface(
+                          onTap: () => _onRecentTap(q),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 7),
+                            decoration: BoxDecoration(
+                              color: AppColors.kColorBorderCream,
+                              borderRadius: BorderRadius.circular(
+                                  AppDimensions.kRadiusXxl),
+                              border:
+                                  Border.all(color: const Color(0xFFE3D2A8)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.history,
+                                    size: 15, color: AppColors.kColorTextMuted),
+                                const SizedBox(width: 6),
+                                Text(q,
+                                    style: const TextStyle(
+                                        color: AppColors.kColorTextHeading,
+                                        fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                        ))
+                    .toList(),
               ),
             ],
           ),
@@ -389,11 +433,13 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
           child: Row(
             children: [
-              const Icon(Icons.cloud_off_rounded, size: 16, color: Color(0xFFB0693C)),
+              const Icon(Icons.cloud_off_rounded,
+                  size: 16, color: Color(0xFFB0693C)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(provider.searchError!,
-                    style: const TextStyle(color: Color(0xFFB0693C), fontSize: 12)),
+                    style: const TextStyle(
+                        color: Color(0xFFB0693C), fontSize: 12)),
               ),
             ],
           ),
@@ -589,14 +635,16 @@ class _CategoryPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.kColorPrimary : Colors.white.withValues(alpha: 0.15),
+          color: isSelected
+              ? AppColors.kColorPrimary
+              : Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: isSelected ? AppColors.kColorPrimary : Colors.white38,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -41,7 +42,9 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
         setState(() => _selectedSite = site);
         // Slight delay so FlutterMap finishes its own init before we move
         await Future.delayed(const Duration(milliseconds: 300));
-        if (mounted) _mapController.move(LatLng(site.latitude, site.longitude), _siteZoom);
+        if (mounted) {
+          _mapController.move(LatLng(site.latitude, site.longitude), _siteZoom);
+        }
       } else {
         _tryLocate();
       }
@@ -166,13 +169,15 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
       point: LatLng(site.latitude, site.longitude),
       width: isSelected ? 44 : 36,
       height: isSelected ? 44 : 36,
-      child: GestureDetector(
+      child: InteractiveSurface(
         onTap: () => _onMarkerTap(site),
         child: Container(
           decoration: BoxDecoration(
             color: site.isUnesco
                 ? Colors.amber
-                : (isSelected ? AppColors.primaryBrown : AppColors.primaryBrown.withValues(alpha: 0.85)),
+                : (isSelected
+                    ? AppColors.primaryBrown
+                    : AppColors.primaryBrown.withValues(alpha: 0.85)),
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: isSelected ? 3 : 2),
             boxShadow: [
@@ -204,7 +209,8 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white, width: 3),
           boxShadow: const [
-            BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+            BoxShadow(
+                color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
           ],
         ),
         child: const Icon(Icons.person, color: Colors.white, size: 20),
@@ -220,7 +226,8 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
       right: 16,
       child: Card(
         elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -249,7 +256,8 @@ class _MapPlaceholderScreenState extends State<MapPlaceholderScreen> {
                         if (site.isUnesco)
                           const Padding(
                             padding: EdgeInsets.only(right: 4),
-                            child: Icon(Icons.star, color: Colors.amber, size: 14),
+                            child:
+                                Icon(Icons.star, color: Colors.amber, size: 14),
                           ),
                         Expanded(
                           child: Text(

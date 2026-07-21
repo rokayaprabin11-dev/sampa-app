@@ -36,6 +36,7 @@ class CategoryChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           child: InkWell(
             onTap: onTap,
+            hoverColor: Colors.white.withAlpha(isSelected ? 51 : 26),
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -59,27 +60,35 @@ class CategoryChip extends StatelessWidget {
         ),
       );
     }
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? (Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain)
-              : Theme.of(context).colorScheme.surface,
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Material(
+        color: isSelected
+            ? (isLight ? AppColors.brownDark : AppColors.goldMain)
+            : Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(
-            color: isSelected 
-                ? (Theme.of(context).brightness == Brightness.light ? AppColors.brownDark : AppColors.goldMain)
-                : (Theme.of(context).brightness == Brightness.light ? AppColors.brownLight : AppColors.darkBorder),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? (Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black) : Theme.of(context).colorScheme.onSurface,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          hoverColor: isLight ? Colors.black.withAlpha(10) : Colors.white.withAlpha(26),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+              border: Border.all(
+                color: isSelected
+                    ? (isLight ? AppColors.brownDark : AppColors.goldMain)
+                    : (isLight ? AppColors.brownLight : AppColors.darkBorder),
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? (isLight ? Colors.white : Colors.black) : Theme.of(context).colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
           ),
         ),
       ),
@@ -117,111 +126,117 @@ class FeaturedSiteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
     final meta = reasonLabel != null ? _reasonMeta[reasonLabel] : null;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 12),
+    return Padding(
+      padding: const EdgeInsets.only(right: 12.0),
+      child: Material(
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // cover image
-            if (hasImage)
-              AppNetworkImage(
-                url: imageUrl,
-                fit: BoxFit.cover,
-                errorWidget: const SizedBox.shrink(),
-              )
-            else
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 100),
-                ),
+        child: InkWell(
+          onTap: onTap,
+          hoverColor: Colors.black.withAlpha(26),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-
-            // gradient overlay for text readability
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: hasImage ? 0.65 : 0.3),
-                  ],
-                ),
-              ),
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
             ),
-
-            // explainability badge (Editor's Choice / Near You / Trending / New / For You)
-            if (meta != null)
-              Positioned(
-                left: 16,
-                top: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.92),
-                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // cover image
+                if (hasImage)
+                  AppNetworkImage(
+                    url: imageUrl,
+                    fit: BoxFit.cover,
+                    errorWidget: const SizedBox.shrink(),
+                  )
+                else
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 100),
+                    ),
                   ),
-                  child: Row(
+    
+                // gradient overlay for text readability
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: hasImage ? 0.65 : 0.3),
+                      ],
+                    ),
+                  ),
+                ),
+    
+                // explainability badge (Editor's Choice / Near You / Trending / New / For You)
+                if (meta != null)
+                  Positioned(
+                    left: 16,
+                    top: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(meta.$1, color: AppColors.kColorDeep, size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            meta.$2,
+                            style: const TextStyle(
+                              color: AppColors.kColorDeep,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+    
+                // title + location
+                Positioned(
+                  left: 20, right: 20, bottom: 20,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(meta.$1, color: AppColors.kColorDeep, size: 12),
-                      const SizedBox(width: 4),
                       Text(
-                        meta.$2,
-                        style: const TextStyle(
-                          color: AppColors.kColorDeep,
-                          fontSize: 11,
+                        title.toUpperCase(),
+                        // Cinzel — the display face — not the platform serif.
+                        style: GoogleFonts.cinzel(
+                          color: Colors.white,
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
-                        ),
+                          letterSpacing: 1.1,
+                        ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
                       ),
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        const Icon(Icons.location_on, color: AppColors.kColorAccentLight, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          location,
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+                        ),
+                      ]),
                     ],
                   ),
                 ),
-              ),
-
-            // title + location
-            Positioned(
-              left: 20, right: 20, bottom: 20,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title.toUpperCase(),
-                    // Cinzel — the display face — not the platform serif.
-                    style: GoogleFonts.cinzel(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.1,
-                    ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(children: [
-                    const Icon(Icons.location_on, color: AppColors.kColorAccentLight, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      location,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
-                    ),
-                  ]),
-                ],
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -281,8 +296,8 @@ class _FeaturedSiteCarouselState extends State<FeaturedSiteCarousel> {
   Widget build(BuildContext context) {
     return Consumer<HeritageProvider>(
       builder: (context, provider, child) {
-        final featured = provider.featuredSites;
 
+        final featured = provider.featuredSites;
         if (provider.isLoading && featured.isEmpty) {
           return SizedBox(
             height: 200,
@@ -308,6 +323,7 @@ class _FeaturedSiteCarouselState extends State<FeaturedSiteCarousel> {
           height: 200,
           child: PageView.builder(
             controller: _pageController,
+            padEnds: false,
             itemCount: featured.length,
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemBuilder: (context, index) {
@@ -474,91 +490,91 @@ class DistrictGridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasCover = coverImageUrl != null && coverImageUrl!.isNotEmpty;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: AppColors.kColorBorderCream, width: 1.2),
-          boxShadow: AppTheme.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover photo fills whatever height the text below doesn't need.
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (hasCover)
-                    AppNetworkImage(
-                      url: coverImageUrl,
-                      fit: BoxFit.cover,
-                      errorWidget: _iconFallback(),
-                    )
-                  else
-                    _iconFallback(),
-                ],
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: AppColors.kColorPrimary.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+            border: Border.all(color: AppColors.kColorBorderCream, width: 1.2),
+            boxShadow: AppTheme.cardShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cover photo fills whatever height the text below doesn't need.
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (hasCover)
+                      AppNetworkImage(
+                        url: coverImageUrl,
+                        fit: BoxFit.cover,
+                        errorWidget: _iconFallback(),
+                      )
+                    else
+                      _iconFallback(),
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name.toUpperCase(),
-                    // Cinzel — the display face — not the platform serif.
-                    style: GoogleFonts.cinzel(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.kColorTextHeading,
-                    ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (nameNp.isNotEmpty) ...[
-                    const SizedBox(height: 3),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      nameNp,
-                      style: GoogleFonts.notoSerifDevanagari(
-                          fontSize: 13, color: AppColors.kColorAccentSafe),
+                      name.toUpperCase(),
+                      // Cinzel — the display face — not the platform serif.
+                      style: GoogleFonts.cinzel(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.kColorTextHeading,
+                      ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 14, color: AppColors.kColorAccentSafe),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.siteCountLabel(sitesCount),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.kColorAccentSafe),
-                        ),
-                      ),
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: const BoxDecoration(
-                            color: AppColors.kColorBgWarm, shape: BoxShape.circle),
-                        child: const Icon(Icons.arrow_forward,
-                            size: 15, color: AppColors.kColorPrimary),
+                    if (nameNp.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        nameNp,
+                        style: GoogleFonts.notoSerifDevanagari(
+                            fontSize: 13, color: AppColors.kColorAccentSafe),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 14, color: AppColors.kColorAccentSafe),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.siteCountLabel(sitesCount),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.kColorAccentSafe),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward,
+                            size: 20, color: AppColors.kColorPrimary),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -689,85 +705,90 @@ class HeritageGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: AppColors.kColorBorderCream),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (imageUrl != null && imageUrl!.isNotEmpty)
-                      AppNetworkImage(
-                        url: imageUrl,
-                        fit: BoxFit.cover,
-                        errorWidget: _buildPlaceholder(),
-                      )
-                    else
-                      _buildPlaceholder(),
-                    // Subtle overlay to ensure text readability if needed (though text is below)
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.1),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: AppColors.kColorTextHeading,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: AppColors.kColorPrimary.withAlpha(10),
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+            border: Border.all(color: AppColors.kColorBorderCream),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
+                  child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: AppColors.kColorPrimary),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          distance == null ? location : '$location · $distance',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.kColorTextMuted,
+                      if (imageUrl != null && imageUrl!.isNotEmpty)
+                        AppNetworkImage(
+                          url: imageUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: _buildPlaceholder(),
+                        )
+                      else
+                        _buildPlaceholder(),
+                      // Subtle overlay to ensure text readability if needed (though text is below)
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.1),
+                              Colors.transparent,
+                            ],
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: AppColors.kColorTextHeading,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 14, color: AppColors.kColorPrimary),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            distance == null ? location : '$location · $distance',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.kColorTextMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -858,10 +879,3 @@ DistrictVisualInfo districtVisualInfo(String name) {
       return const DistrictVisualInfo(Icons.location_city, AppColors.kColorTextMuted, AppColors.kColorTagBg);
   }
 }
-
-
-
-
-
-
-

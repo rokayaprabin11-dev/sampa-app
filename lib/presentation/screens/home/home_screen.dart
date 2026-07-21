@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -81,392 +82,426 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
       },
       child: Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Header Section ---
-            // Sizes to its content instead of a fixed screen-height fraction,
-            // with extra bottom padding so the overhanging search bar clears the text.
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.kColorDeep,
-                        AppColors.kColorPrimaryMid,
-                        AppColors.kColorPrimary,
-                      ],
-                      stops: [0.0, 0.6, 1.0],
-                    ),
-                    image: AppTheme.headerIllustration,
-                  ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    l10n.homeGreeting,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  const Icon(Icons.waving_hand,
-                                      color: AppColors.kColorAccentLight, size: 18),
-                                ],
-                              ),
-                              // IconButton reserves the 48dp target and gives
-                              // the screen reader a label — the bare InkWell
-                              // did neither.
-                              IconButton(
-                                tooltip: l10n.navNotifications,
-                                onPressed: () => Navigator.pushNamed(context, AppStrings.notificationsPath),
-                                splashColor: Colors.white24,
-                                highlightColor: Colors.white10,
-                                icon: const Icon(Icons.notifications, color: AppColors.kColorBgWarm, size: 22),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              l10n.exploreHeritage.toUpperCase(),
-                              // Cinzel, not the platform 'serif' — this is the
-                              // app's display face everywhere else.
-                              style: GoogleFonts.cinzel(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.5,
-                              ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                // Search Bar
-                Positioned(
-                  bottom: -25,
-                  left: 24,
-                  right: 24,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, AppStrings.searchPath);
-                    },
-                    child: Container(
-                      height: 50,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.search, color: AppColors.kColorDeep, size: 20),
-                          const SizedBox(width: 12),
-                          Text(
-                            l10n.searchSitesHint,
-                            style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 48),
-
-            // --- Categories (only show categories with actual sites) ---
-            Consumer<HeritageProvider>(
-              builder: (context, hp, _) {
-                // Build chips from the categories actually present in the loaded
-                // sites, so admin-added/edited categories appear here too.
-                // getFeaturedSites() filters via _slugify(site.category), so any
-                // category name works without a hardcoded map.
-                final present = hp.sites
-                    .map((s) => s.category.trim())
-                    .where((c) => c.isNotEmpty)
-                    .toSet()
-                    .toList()
-                  ..sort();
-                final allCats = <String>[l10n.all, ...present];
-                return SizedBox(
-                  height: 45,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    children: allCats.map((cat) => CategoryChip(
-                      label: cat,
-                      isSelected: _selectedCategory == cat || (_selectedCategory == 'All' && cat == l10n.all),
-                      onTap: () => setState(() => _selectedCategory = cat),
-                      isDesignStyle: true,
-                    )).toList(),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 10),
-
-            // --- Featured Sites ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Header Section ---
+              // Sizes to its content instead of a fixed screen-height fraction,
+              // with extra bottom padding so the overhanging search bar clears the text.
+              Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Text(
-                    l10n.featuredSites,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.light ? AppColors.textHeadline : AppColors.goldMain,
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.kColorDeep,
+                          AppColors.kColorPrimaryMid,
+                          AppColors.kColorPrimary,
+                        ],
+                        stops: [0.0, 0.6, 1.0],
+                      ),
+                      image: AppTheme.headerIllustration,
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppStrings.searchPath);
-                    },
-                    child: Row(
-                      children: [
-                        Text(l10n.seeAll, style: const TextStyle(color: AppColors.kColorPrimary)),
-                        const Icon(Icons.arrow_forward, size: 16, color: AppColors.kColorPrimary),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            DynamicFeaturedCarousel(selectedCategory: _selectedCategory),
-
-            const SizedBox(height: 10),
-
-            // --- Browse by District ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.browseByDistrict,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.light ? AppColors.textHeadline : AppColors.goldMain,
-                    ),
-                  ),
-                  Consumer<HeritageProvider>(
-                    builder: (_, p, __) => p.districts.length > 4
-                        ? TextButton(
-                            onPressed: () => Navigator.pushNamed(context, AppStrings.districtListPath),
-                            child: Row(
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(l10n.seeAll, style: const TextStyle(color: AppColors.kColorPrimary)),
-                                const Icon(Icons.arrow_forward, size: 16, color: AppColors.kColorPrimary),
+                                Row(
+                                  children: [
+                                    Text(
+                                      l10n.homeGreeting,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.waving_hand,
+                                        color: AppColors.kColorAccentLight,
+                                        size: 18),
+                                  ],
+                                ),
+                                // IconButton reserves the 48dp target and gives
+                                // the screen reader a label — the bare InkWell
+                                // did neither.
+                                IconButton(
+                                  tooltip: l10n.navNotifications,
+                                  onPressed: () => Navigator.pushNamed(
+                                      context, AppStrings.notificationsPath),
+                                  splashColor: Colors.white24,
+                                  highlightColor: Colors.white10,
+                                  icon: const Icon(Icons.notifications,
+                                      color: AppColors.kColorBgWarm, size: 22),
+                                ),
                               ],
                             ),
-                          )
-                        : const SizedBox.shrink(),
+                            const SizedBox(height: 8),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                l10n.exploreHeritage.toUpperCase(),
+                                // Cinzel, not the platform 'serif' — this is the
+                                // app's display face everywhere else.
+                                style: GoogleFonts.cinzel(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.5,
+                                ).copyWith(
+                                    fontFamilyFallback:
+                                        AppTheme.devanagariFallback),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Search Bar
+                  Positioned(
+                    bottom: -25,
+                    left: 24,
+                    right: 24,
+                    child: InteractiveSurface(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppStrings.searchPath);
+                      },
+                      child: Container(
+                        height: 50,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.kRadiusPill),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.search,
+                                color: AppColors.kColorDeep, size: 20),
+                            const SizedBox(width: 12),
+                            Text(
+                              l10n.searchSitesHint,
+                              style: const TextStyle(
+                                  color: AppColors.kColorTextMuted,
+                                  fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 1),
-            Consumer<HeritageProvider>(
-              builder: (context, heritageProvider, child) {
-                final loading = heritageProvider.isLoading && heritageProvider.districts.isEmpty;
-                // Top 4 districts by site count — the full list lives behind
-                // "See All" on the districts screen.
-                final visible = (heritageProvider.districts
-                        .where((d) => d.sitesCount > 0)
-                        .toList()
-                      ..sort((a, b) => b.sitesCount.compareTo(a.sitesCount)))
-                    .take(4)
-                    .toList();
 
-                final Widget content;
-                if (loading) {
-                  content = Padding(
-                    key: const ValueKey('districts-skeleton'),
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      childAspectRatio: 2.2,
-                      children: const [
-                        DistrictCardSkeleton(),
-                        DistrictCardSkeleton(),
-                        DistrictCardSkeleton(),
-                        DistrictCardSkeleton(),
-                      ],
+              const SizedBox(height: 48),
+
+              // --- Categories (only show categories with actual sites) ---
+              Consumer<HeritageProvider>(
+                builder: (context, hp, _) {
+                  // Build chips from the categories actually present in the loaded
+                  // sites, so admin-added/edited categories appear here too.
+                  // getFeaturedSites() filters via _slugify(site.category), so any
+                  // category name works without a hardcoded map.
+                  final present = hp.sites
+                      .map((s) => s.category.trim())
+                      .where((c) => c.isNotEmpty)
+                      .toSet()
+                      .toList()
+                    ..sort();
+                  final allCats = <String>[l10n.all, ...present];
+                  return SizedBox(
+                    height: 45,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      children: allCats
+                          .map((cat) => CategoryChip(
+                                label: cat,
+                                isSelected: _selectedCategory == cat ||
+                                    (_selectedCategory == 'All' &&
+                                        cat == l10n.all),
+                                onTap: () =>
+                                    setState(() => _selectedCategory = cat),
+                                isDesignStyle: true,
+                              ))
+                          .toList(),
                     ),
                   );
-                } else if (visible.isEmpty) {
-                  content = Padding(
-                    key: const ValueKey('districts-empty'),
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Text(
-                      l10n.noDistrictsAvailable,
-                      style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
+                },
+              ),
+
+              const SizedBox(height: 10),
+
+              // --- Featured Sites ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.featuredSites,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.textHeadline
+                            : AppColors.goldMain,
+                      ),
                     ),
-                  );
-                } else {
-                  content = Padding(
-                    key: const ValueKey('districts-content'),
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: visible.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppStrings.searchPath);
+                      },
+                      child: Row(
+                        children: [
+                          Text(l10n.seeAll,
+                              style: const TextStyle(
+                                  color: AppColors.kColorPrimary)),
+                          const Icon(Icons.arrow_forward,
+                              size: 16, color: AppColors.kColorPrimary),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              DynamicFeaturedCarousel(selectedCategory: _selectedCategory),
+
+              const SizedBox(height: 10),
+
+              // --- Browse by District ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.browseByDistrict,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.textHeadline
+                            : AppColors.goldMain,
+                      ),
+                    ),
+                    Consumer<HeritageProvider>(
+                      builder: (_, p, __) => p.districts.length > 4
+                          ? TextButton(
+                              onPressed: () => Navigator.pushNamed(
+                                  context, AppStrings.districtListPath),
+                              child: Row(
+                                children: [
+                                  Text(l10n.seeAll,
+                                      style: const TextStyle(
+                                          color: AppColors.kColorPrimary)),
+                                  const Icon(Icons.arrow_forward,
+                                      size: 16, color: AppColors.kColorPrimary),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 1),
+              Consumer<HeritageProvider>(
+                builder: (context, heritageProvider, child) {
+                  final loading = heritageProvider.isLoading &&
+                      heritageProvider.districts.isEmpty;
+                  // Top 4 districts by site count — the full list lives behind
+                  // "See All" on the districts screen.
+                  final visible = (heritageProvider.districts
+                          .where((d) => d.sitesCount > 0)
+                          .toList()
+                        ..sort((a, b) => b.sitesCount.compareTo(a.sitesCount)))
+                      .take(4)
+                      .toList();
+
+                  final Widget content;
+                  if (loading) {
+                    content = Padding(
+                      key: const ValueKey('districts-skeleton'),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 2,
                         mainAxisSpacing: 14,
                         crossAxisSpacing: 14,
                         childAspectRatio: 2.2,
+                        children: const [
+                          DistrictCardSkeleton(),
+                          DistrictCardSkeleton(),
+                          DistrictCardSkeleton(),
+                          DistrictCardSkeleton(),
+                        ],
                       ),
-                      itemBuilder: (context, index) {
-                        final d = visible[index];
-                        final info = districtVisualInfo(d.name);
-                        return GestureDetector(
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            AppStrings.districtDetailPath,
-                            arguments: d,
-                          ),
-                          child: DistrictCard(
-                            name: d.name,
-                            sitesCount: d.sitesCount,
-                            coverImageUrl: d.coverImageUrl.isNotEmpty ? d.coverImageUrl : null,
-                            icon: info.icon,
-                            iconColor: info.color,
-                            iconBgColor: info.bgColor,
-                          ),
-                        );
-                      },
-                    ),
+                    );
+                  } else if (visible.isEmpty) {
+                    content = Padding(
+                      key: const ValueKey('districts-empty'),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Text(
+                        l10n.noDistrictsAvailable,
+                        style: const TextStyle(
+                            color: AppColors.kColorTextMuted, fontSize: 14),
+                      ),
+                    );
+                  } else {
+                    content = Padding(
+                      key: const ValueKey('districts-content'),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: visible.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 14,
+                          crossAxisSpacing: 14,
+                          childAspectRatio: 2.2,
+                        ),
+                        itemBuilder: (context, index) {
+                          final d = visible[index];
+                          final info = districtVisualInfo(d.name);
+                          return InteractiveSurface(
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              AppStrings.districtDetailPath,
+                              arguments: d,
+                            ),
+                            child: DistrictCard(
+                              name: d.name,
+                              sitesCount: d.sitesCount,
+                              coverImageUrl: d.coverImageUrl.isNotEmpty
+                                  ? d.coverImageUrl
+                                  : null,
+                              icon: info.icon,
+                              iconColor: info.color,
+                              iconBgColor: info.bgColor,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }
+
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 350),
+                    transitionBuilder: (child, anim) =>
+                        FadeTransition(opacity: anim, child: child),
+                    child: content,
                   );
-                }
-
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  transitionBuilder: (child, anim) =>
-                      FadeTransition(opacity: anim, child: child),
-                  child: content,
-                );
-              },
-            ),
-
-            const SizedBox(height: 15),
-
-            // --- Nearby Events ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                children: [
-                  Text(
-                    l10n.nearbyEventsTitle,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.light ? AppColors.textHeadline : AppColors.goldMain,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.notifications_active,
-                      color: AppColors.kColorPrimary, size: 18),
-                ],
+                },
               ),
-            ),
-            const SizedBox(height: 10),
-            Consumer<EventProvider>(
-              builder: (context, eventProvider, child) {
-                final nearbyEvents = eventProvider.nearbyEvents;
 
-                final Widget content;
-                if (eventProvider.isLoading) {
-                  content = const Padding(
-                    key: ValueKey('events-skeleton'),
-                    padding: EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      children: [EventCardSkeleton(), EventCardSkeleton()],
-                    ),
-                  );
-                } else if (nearbyEvents.isEmpty) {
-                  content = Padding(
-                    key: const ValueKey('events-empty'),
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Text(
-                      l10n.noNearbyEvents,
-                      style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
-                    ),
-                  );
-                } else {
-                  content = Padding(
-                    key: const ValueKey('events-content'),
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      children: nearbyEvents.take(2).map((event) {
-                        return _HomeEventCard(
-                          event: event,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => EventDetailScreen(event: event)),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                }
+              const SizedBox(height: 15),
 
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  transitionBuilder: (child, anim) =>
-                      FadeTransition(opacity: anim, child: child),
-                  child: content,
-                );
-              },
-            ),
+              // --- Nearby Events ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  children: [
+                    Text(
+                      l10n.nearbyEventsTitle,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.textHeadline
+                            : AppColors.goldMain,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.notifications_active,
+                        color: AppColors.kColorPrimary, size: 18),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Consumer<EventProvider>(
+                builder: (context, eventProvider, child) {
+                  final nearbyEvents = eventProvider.nearbyEvents;
 
-            const SizedBox(height: 40),
-          ],
+                  final Widget content;
+                  if (eventProvider.isLoading) {
+                    content = const Padding(
+                      key: ValueKey('events-skeleton'),
+                      padding: EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        children: [EventCardSkeleton(), EventCardSkeleton()],
+                      ),
+                    );
+                  } else if (nearbyEvents.isEmpty) {
+                    content = Padding(
+                      key: const ValueKey('events-empty'),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Text(
+                        l10n.noNearbyEvents,
+                        style: const TextStyle(
+                            color: AppColors.kColorTextMuted, fontSize: 14),
+                      ),
+                    );
+                  } else {
+                    content = Padding(
+                      key: const ValueKey('events-content'),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        children: nearbyEvents.take(2).map((event) {
+                          return _HomeEventCard(
+                            event: event,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      EventDetailScreen(event: event)),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  }
+
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 350),
+                    transitionBuilder: (child, anim) =>
+                        FadeTransition(opacity: anim, child: child),
+                    child: content,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
+        bottomNavigationBar: const AppBottomNav(currentIndex: 0),
       ),
-      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
-    ),
     );
   }
 }
@@ -476,7 +511,8 @@ class DynamicFeaturedCarousel extends StatefulWidget {
   const DynamicFeaturedCarousel({super.key, required this.selectedCategory});
 
   @override
-  State<DynamicFeaturedCarousel> createState() => _DynamicFeaturedCarouselState();
+  State<DynamicFeaturedCarousel> createState() =>
+      _DynamicFeaturedCarouselState();
 }
 
 class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
@@ -500,7 +536,8 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
       if (!mounted) return;
       if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return;
       final provider = Provider.of<HeritageProvider>(context, listen: false);
-      final featured = provider.getFeaturedSites(category: widget.selectedCategory);
+      final featured =
+          provider.getFeaturedSites(category: widget.selectedCategory);
       if (featured.isEmpty) return;
 
       if (_currentPage < featured.length - 1) {
@@ -541,7 +578,8 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
   Widget build(BuildContext context) {
     return Consumer<HeritageProvider>(
       builder: (context, provider, child) {
-        final featured = provider.getFeaturedSites(category: widget.selectedCategory);
+        final featured =
+            provider.getFeaturedSites(category: widget.selectedCategory);
 
         final Widget content;
         if (provider.isFeaturedLoading && featured.isEmpty) {
@@ -553,7 +591,8 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
               itemCount: 3,
               itemBuilder: (context, index) => const Padding(
                 padding: EdgeInsets.only(right: 12),
-                child: ShimmerSkeleton(width: 300, height: 200, borderRadius: 24),
+                child:
+                    ShimmerSkeleton(width: 300, height: 200, borderRadius: 24),
               ),
             ),
           );
@@ -561,7 +600,8 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
           content = SizedBox(
             key: const ValueKey('featured-empty'),
             height: 200,
-            child: Center(child: Text(AppLocalizations.of(context)!.noFeaturedSites)),
+            child: Center(
+                child: Text(AppLocalizations.of(context)!.noFeaturedSites)),
           );
         } else {
           content = SizedBox(
@@ -573,26 +613,27 @@ class _DynamicFeaturedCarouselState extends State<DynamicFeaturedCarousel> {
               onPointerUp: (_) => _startAutoScroll(),
               onPointerCancel: (_) => _startAutoScroll(),
               child: PageView.builder(
-              controller: _pageController,
-              itemCount: featured.length,
-              onPageChanged: (index) => setState(() => _currentPage = index),
-              itemBuilder: (context, index) {
-                final site = featured[index];
-                return FeaturedSiteCard(
-                  title: site.localizedName(Localizations.localeOf(context).languageCode == 'ne'),
-                  location: site.district,
-                  icon: _getIconForCategory(site.category),
-                  imageUrl: site.imageUrl,
-                  reasonLabel: site.reason,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppStrings.heritageDetailsPath,
-                      arguments: site,
-                    );
-                  },
-                );
-              },
+                controller: _pageController,
+                itemCount: featured.length,
+                onPageChanged: (index) => setState(() => _currentPage = index),
+                itemBuilder: (context, index) {
+                  final site = featured[index];
+                  return FeaturedSiteCard(
+                    title: site.localizedName(
+                        Localizations.localeOf(context).languageCode == 'ne'),
+                    location: site.district,
+                    icon: _getIconForCategory(site.category),
+                    imageUrl: site.imageUrl,
+                    reasonLabel: site.reason,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppStrings.heritageDetailsPath,
+                        arguments: site,
+                      );
+                    },
+                  );
+                },
               ),
             ),
           );
@@ -649,136 +690,137 @@ class _HomeEventCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-      child: InkWell(
-        onTap: onTap,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-            border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream,
-                width: 1.2),
-            boxShadow: AppTheme.cardShadow,
-          ),
-          child: Row(
-            children: [
-              // Date block
-              Container(
-                width: 62,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
-                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      DateFormat('MMM', locale).format(d).toUpperCase(),
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
-                          color: accent),
-                    ),
-                    Text(
-                      DateFormat('d', locale).format(d),
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          height: 1.15,
-                          color: Theme.of(context).colorScheme.onSurface),
-                    ),
-                    Text(
-                      DateFormat('E', locale).format(d),
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: accent),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Title + venue + time
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.localizedTitle(np),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.onSurface),
-                    ),
-                    const SizedBox(height: 6),
-                    if (event.locationName.isNotEmpty)
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on,
-                              size: 14, color: AppColors.kColorDeep),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              event.locationName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 13, color: secondary),
-                            ),
-                          ),
-                        ],
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+              border: Border.all(
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : AppColors.kColorBorderCream,
+                  width: 1.2),
+              boxShadow: AppTheme.cardShadow,
+            ),
+            child: Row(
+              children: [
+                // Date block
+                Container(
+                  width: 62,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color:
+                        isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusLg),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        DateFormat('MMM', locale).format(d).toUpperCase(),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1,
+                            color: accent),
                       ),
-                    if (time != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.access_time, size: 14, color: secondary),
-                          const SizedBox(width: 4),
-                          Text(time,
-                              style: TextStyle(fontSize: 13, color: secondary)),
-                        ],
+                      Text(
+                        DateFormat('d', locale).format(d),
+                        style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            height: 1.15,
+                            color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                      Text(
+                        DateFormat('E', locale).format(d),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: accent),
                       ),
                     ],
-                  ],
-                ),
-              ),
-              // Event photo
-              if (event.imageUrl.isNotEmpty) ...[
-                const SizedBox(width: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-                  child: AppNetworkImage(
-                    url: event.imageUrl,
-                    width: 64,
-                    height: 72,
-                    fit: BoxFit.cover,
-                    errorWidget: Container(
-                      width: 64,
-                      height: 72,
-                      color: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
-                      child: Icon(Icons.event, color: secondary, size: 22),
-                    ),
                   ),
                 ),
+                const SizedBox(width: 12),
+                // Title + venue + time
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        event.localizedTitle(np),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                      const SizedBox(height: 6),
+                      if (event.locationName.isNotEmpty)
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on,
+                                size: 14, color: AppColors.kColorDeep),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                event.locationName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    TextStyle(fontSize: 13, color: secondary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (time != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.access_time, size: 14, color: secondary),
+                            const SizedBox(width: 4),
+                            Text(time,
+                                style:
+                                    TextStyle(fontSize: 13, color: secondary)),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                // Event photo
+                if (event.imageUrl.isNotEmpty) ...[
+                  const SizedBox(width: 10),
+                  ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusLg),
+                    child: AppNetworkImage(
+                      url: event.imageUrl,
+                      width: 64,
+                      height: 72,
+                      fit: BoxFit.cover,
+                      errorWidget: Container(
+                        width: 64,
+                        height: 72,
+                        color: isDark
+                            ? AppColors.darkBgCard
+                            : AppColors.kColorBgWarm,
+                        child: Icon(Icons.event, color: secondary, size: 22),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
 }
-
-
-
-
-
-
-
-

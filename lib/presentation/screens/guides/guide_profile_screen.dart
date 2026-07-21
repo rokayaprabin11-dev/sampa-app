@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -63,7 +64,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     });
   }
 
-  Color _accent(bool isDark) => isDark ? AppColors.goldMain : AppColors.kColorDeep;
+  Color _accent(bool isDark) =>
+      isDark ? AppColors.goldMain : AppColors.kColorDeep;
 
   // DRF serializes DecimalField (rating_avg, hourly_rate) as a String.
   double _toDouble(dynamic v) {
@@ -130,14 +132,19 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   Future<void> _respond(int bookingId, String action) async {
     final l10n = AppLocalizations.of(context)!;
-    final okMsg = action == 'accept' ? l10n.bookingAccepted : l10n.bookingDeclined;
-    final err = await context.read<GuideProvider>().respondToBooking(bookingId, action);
+    final okMsg =
+        action == 'accept' ? l10n.bookingAccepted : l10n.bookingDeclined;
+    final err =
+        await context.read<GuideProvider>().respondToBooking(bookingId, action);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err ?? okMsg)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(err ?? okMsg)));
   }
 
-  Widget _buildBookingRequests(BuildContext context, bool isDark, GuideProvider gp) {
-    final pending = gp.incomingBookings.where((b) => b['status'] == 'pending').toList();
+  Widget _buildBookingRequests(
+      BuildContext context, bool isDark, GuideProvider gp) {
+    final pending =
+        gp.incomingBookings.where((b) => b['status'] == 'pending').toList();
     if (pending.isEmpty) return const SizedBox.shrink();
     final accent = _accent(isDark);
     return Column(
@@ -146,13 +153,23 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
         Row(
           children: [
             Text(AppLocalizations.of(context)!.bookingRequests,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: accent)),
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                    color: accent)),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+              decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.kRadiusXxl)),
               child: Text('${pending.length}',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.black : Colors.white)),
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.black : Colors.white)),
             ),
           ],
         ),
@@ -163,12 +180,15 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     );
   }
 
-  Widget _requestCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
+  Widget _requestCard(
+      BuildContext context, bool isDark, Map<String, dynamic> b) {
     final l10n = AppLocalizations.of(context)!;
     final id = b['id'] as int;
     final name = (b['tourist_name'] ?? 'Tourist').toString();
     final date = (b['date'] ?? '').toString();
-    String t(dynamic v) => (v ?? '').toString().length >= 5 ? (v).toString().substring(0, 5) : (v ?? '').toString();
+    String t(dynamic v) => (v ?? '').toString().length >= 5
+        ? (v).toString().substring(0, 5)
+        : (v ?? '').toString();
     final when = '$date · ${t(b['start_time'])}–${t(b['end_time'])}';
     final notes = (b['notes'] ?? '').toString();
     // Package bookings carry what was chosen and for how many people, plus the
@@ -188,7 +208,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,10 +218,14 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorDeep,
+                backgroundColor:
+                    isDark ? AppColors.darkBgCard : AppColors.kColorDeep,
                 child: Text(
                   name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: const TextStyle(color: AppColors.kColorBgWarm, fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(
+                      color: AppColors.kColorBgWarm,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13),
                 ),
               ),
               const SizedBox(width: 10),
@@ -208,9 +233,18 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                    Text(name,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface)),
                     const SizedBox(height: 2),
-                    Text(when, style: TextStyle(fontSize: 11.5, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
+                    Text(when,
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.kColorTextMuted)),
                   ],
                 ),
               ),
@@ -220,23 +254,34 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.tour_outlined, size: 14,
-                    color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe),
+                Icon(Icons.tour_outlined,
+                    size: 14,
+                    color: isDark
+                        ? AppColors.goldMain
+                        : AppColors.kColorAccentSafe),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(pkgLine,
                       style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
+                          color: isDark
+                              ? AppColors.goldMain
+                              : AppColors.kColorAccentSafe)),
                 ),
               ],
             ),
           ],
           if (notes.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(notes, maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
+            Text(notes,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.kColorTextSecondary)),
           ],
           const SizedBox(height: 12),
           Row(
@@ -248,9 +293,13 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     foregroundColor: const Color(0xFFC0392B),
                     side: const BorderSide(color: Color(0xFFE0B4AE)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
-                  child: Text(l10n.btnReject, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  child: Text(l10n.btnReject,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -262,9 +311,13 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusMd)),
                   ),
-                  child: Text(l10n.btnAccept, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  child: Text(l10n.btnAccept,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13)),
                 ),
               ),
             ],
@@ -282,10 +335,12 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
         .read<GuideProvider>()
         .completeTour(bookingId, asGuide: true);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err ?? okMsg)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(err ?? okMsg)));
   }
 
-  Widget _buildOngoingTours(BuildContext context, bool isDark, GuideProvider gp) {
+  Widget _buildOngoingTours(
+      BuildContext context, bool isDark, GuideProvider gp) {
     final confirmed =
         gp.incomingBookings.where((b) => b['status'] == 'confirmed').toList();
     if (confirmed.isEmpty) return const SizedBox.shrink();
@@ -306,11 +361,14 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     );
   }
 
-  Widget _ongoingCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
+  Widget _ongoingCard(
+      BuildContext context, bool isDark, Map<String, dynamic> b) {
     final id = b['id'] as int;
     final name = (b['tourist_name'] ?? 'Tourist').toString();
     final date = (b['date'] ?? '').toString();
-    String t(dynamic v) => (v ?? '').toString().length >= 5 ? (v).toString().substring(0, 5) : (v ?? '').toString();
+    String t(dynamic v) => (v ?? '').toString().length >= 5
+        ? (v).toString().substring(0, 5)
+        : (v ?? '').toString();
     final when = '$date · ${t(b['start_time'])}–${t(b['end_time'])}';
     final awaitingTourist = b['guide_marked_complete_at'] != null;
 
@@ -320,7 +378,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
       ),
       child: Row(
         children: [
@@ -348,8 +407,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => LiveTrackingScreen(
-                    bookingId: id, otherPartyName: name),
+                builder: (_) =>
+                    LiveTrackingScreen(bookingId: id, otherPartyName: name),
               ),
             ),
             icon: const Icon(Icons.my_location, size: 20),
@@ -377,8 +436,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                     backgroundColor: AppColors.statusSuccess,
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(AppDimensions.kRadiusMd)),
@@ -397,7 +456,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   /// Entry point to the guide's inbox. A chat exists for every booking that
   /// reached `confirmed` (and stays reachable through `completed`), which is
   /// exactly what the inbox lists — so the count here is the count there.
-  Widget _buildMessagesEntry(BuildContext context, bool isDark, GuideProvider gp) {
+  Widget _buildMessagesEntry(
+      BuildContext context, bool isDark, GuideProvider gp) {
     final conversations = gp.incomingBookings
         .where((b) => b['status'] == 'confirmed' || b['status'] == 'completed')
         .length;
@@ -416,15 +476,19 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
               border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : AppColors.kColorBorderCream),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
-                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                    color:
+                        isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusMd),
                   ),
                   child: Icon(Icons.forum_outlined, size: 20, color: accent),
                 ),
@@ -504,7 +568,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           badge: pending,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const GuidePaymentHistoryScreen()),
+            MaterialPageRoute(
+                builder: (_) => const GuidePaymentHistoryScreen()),
           ).then((_) => payments.loadReceived()),
         ),
       ],
@@ -540,15 +605,19 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
               border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : AppColors.kColorBorderCream),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
-                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                    color:
+                        isDark ? AppColors.darkBgCard : AppColors.kColorTagBg,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusMd),
                   ),
                   child: Icon(icon, size: 20, color: accent),
                 ),
@@ -599,7 +668,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   /// Everything this guide has finished or lost: completed and cancelled tours.
   /// Lives here rather than in the tourist's My Bookings, because a guide's
   /// bookings are the ones addressed *to* them, not the ones they made.
-  Widget _buildTourHistory(BuildContext context, bool isDark, GuideProvider gp) {
+  Widget _buildTourHistory(
+      BuildContext context, bool isDark, GuideProvider gp) {
     final history = gp.incomingBookings
         .where((b) => b['status'] == 'completed' || b['status'] == 'cancelled')
         .toList()
@@ -642,7 +712,9 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
               border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+                  color: isDark
+                      ? AppColors.darkBorder
+                      : AppColors.kColorBorderCream),
             ),
             child: Text(
               'Tours you finish will be listed here.',
@@ -669,7 +741,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 padding: EdgeInsets.zero,
                 physics: const ClampingScrollPhysics(),
                 itemCount: history.length,
-                itemBuilder: (_, i) => _historyCard(context, isDark, history[i]),
+                itemBuilder: (_, i) =>
+                    _historyCard(context, isDark, history[i]),
               ),
             ),
           ),
@@ -690,7 +763,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     return true;
   }
 
-  Widget _historyCard(BuildContext context, bool isDark, Map<String, dynamic> b) {
+  Widget _historyCard(
+      BuildContext context, bool isDark, Map<String, dynamic> b) {
     final name = (b['tourist_name'] ?? 'Tourist').toString();
     final completed = b['status'] == 'completed';
     final price = b['total_price'];
@@ -709,119 +783,124 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       if (group > 1) '$group people',
     ].join(' · ');
 
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: () => _showHistoryDetail(context, isDark, b),
       child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
-        border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface)),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                decoration: BoxDecoration(
-                    color: statusBg,
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.kRadiusXxl)),
-                child: Text(completed ? 'Completed' : 'Cancelled',
-                    style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: statusFg)),
-              ),
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right, size: 16,
-                  color: isDark ? AppColors.darkTextSecondary : const Color(0xFFB0A090)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(Icons.event_outlined,
-                  size: 13, color: AppColors.kColorAccentSafe),
-              const SizedBox(width: 4),
-              Text('${b['date'] ?? ''}',
-                  style: TextStyle(
-                      fontSize: 11.5,
-                      color: isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.kColorTextMuted)),
-              if (sub.isNotEmpty) ...[
-                const SizedBox(width: 10),
-                const Icon(Icons.tour_outlined,
-                    size: 13, color: AppColors.kColorAccentSafe),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(sub,
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXl),
+          border: Border.all(
+              color:
+                  isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          fontSize: 11.5,
-                          color: isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.kColorTextMuted)),
-                ),
-              ],
-            ],
-          ),
-          if (completed && (price != null || rating is num)) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                if (price != null) ...[
-                  Text('NPR $price',
-                      style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface)),
-                  const SizedBox(width: 6),
-                  Text(paid ? '· Paid' : '· Unpaid',
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(
+                      color: statusBg,
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.kRadiusXxl)),
+                  child: Text(completed ? 'Completed' : 'Cancelled',
                       style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: paid
-                              ? AppColors.kColorOfflineText
-                              : AppColors.kColorPendingText)),
-                ],
-                const Spacer(),
-                if (rating is num)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ...List.generate(
-                        5,
-                        (i) => Icon(
-                          i < rating.round()
-                              ? Icons.star_rounded
-                              : Icons.star_outline_rounded,
-                          size: 14,
-                          color: AppColors.kColorAccentLight,
-                        ),
-                      ),
-                    ],
-                  ),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: statusFg)),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right,
+                    size: 16,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : const Color(0xFFB0A090)),
               ],
             ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.event_outlined,
+                    size: 13, color: AppColors.kColorAccentSafe),
+                const SizedBox(width: 4),
+                Text('${b['date'] ?? ''}',
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.kColorTextMuted)),
+                if (sub.isNotEmpty) ...[
+                  const SizedBox(width: 10),
+                  const Icon(Icons.tour_outlined,
+                      size: 13, color: AppColors.kColorAccentSafe),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(sub,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.kColorTextMuted)),
+                  ),
+                ],
+              ],
+            ),
+            if (completed && (price != null || rating is num)) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  if (price != null) ...[
+                    Text('NPR $price',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface)),
+                    const SizedBox(width: 6),
+                    Text(paid ? '· Paid' : '· Unpaid',
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: paid
+                                ? AppColors.kColorOfflineText
+                                : AppColors.kColorPendingText)),
+                  ],
+                  const Spacer(),
+                  if (rating is num)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ...List.generate(
+                          5,
+                          (i) => Icon(
+                            i < rating.round()
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            size: 14,
+                            color: AppColors.kColorAccentLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
           ],
-        ],
-      ),
+        ),
       ),
     );
   }
@@ -832,7 +911,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   /// card. Shows everything the summary card omits — exact time, package,
   /// group size, payment status, receipt, the tourist's review and per-category
   /// scores, and the guide's own reply.
-  void _showHistoryDetail(BuildContext context, bool isDark, Map<String, dynamic> b) {
+  void _showHistoryDetail(
+      BuildContext context, bool isDark, Map<String, dynamic> b) {
     String t(dynamic v) => (v ?? '').toString().length >= 5
         ? v.toString().substring(0, 5)
         : (v ?? '').toString();
@@ -863,7 +943,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
         ? AppColors.statusInfo.withValues(alpha: 0.12)
         : AppColors.statusError.withValues(alpha: 0.10);
     final statusFg = completed ? AppColors.statusInfo : AppColors.statusError;
-    final muted = isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted;
+    final muted =
+        isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted;
 
     showModalBottomSheet(
       context: context,
@@ -872,7 +953,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       builder: (ctx) {
         final onSurface = Theme.of(ctx).colorScheme.onSurface;
         return Container(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.85),
+          constraints:
+              BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.85),
           decoration: BoxDecoration(
             color: Theme.of(ctx).colorScheme.surface,
             borderRadius: const BorderRadius.vertical(
@@ -883,7 +965,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             children: [
               Container(
                 margin: const EdgeInsets.only(top: 10),
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                     color: muted.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2)),
@@ -897,16 +980,22 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold, color: onSurface)),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: onSurface)),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                           color: statusBg,
-                          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.kRadiusXxl)),
                       child: Text(completed ? 'Completed' : 'Cancelled',
                           style: TextStyle(
-                              fontSize: 11, fontWeight: FontWeight.bold, color: statusFg)),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: statusFg)),
                     ),
                   ],
                 ),
@@ -917,10 +1006,12 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _detailRow(context, isDark, 'Date', '${b['date'] ?? '—'}'),
+                      _detailRow(
+                          context, isDark, 'Date', '${b['date'] ?? '—'}'),
                       if (start.isNotEmpty || end.isNotEmpty)
                         _detailRow(context, isDark, 'Time', '$start – $end'),
-                      _detailRow(context, isDark, 'Package', pkg.isNotEmpty ? pkg : 'Hourly'),
+                      _detailRow(context, isDark, 'Package',
+                          pkg.isNotEmpty ? pkg : 'Hourly'),
                       _detailRow(context, isDark, 'Group size',
                           group > 1 ? '$group people' : '1 person'),
                       if (price != null)
@@ -948,13 +1039,15 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            ...List.generate(5, (i) => Icon(
-                                  i < rating.round()
-                                      ? Icons.star_rounded
-                                      : Icons.star_outline_rounded,
-                                  size: 18,
-                                  color: AppColors.kColorAccentLight,
-                                )),
+                            ...List.generate(
+                                5,
+                                (i) => Icon(
+                                      i < rating.round()
+                                          ? Icons.star_rounded
+                                          : Icons.star_outline_rounded,
+                                      size: 18,
+                                      color: AppColors.kColorAccentLight,
+                                    )),
                             const SizedBox(width: 8),
                             Text(rating.toStringAsFixed(1),
                                 style: TextStyle(
@@ -966,7 +1059,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                         if (reviewText.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Text(reviewText,
-                              style: TextStyle(fontSize: 13, height: 1.5, color: onSurface)),
+                              style: TextStyle(
+                                  fontSize: 13, height: 1.5, color: onSurface)),
                         ],
                         if (categories.isNotEmpty) ...[
                           const SizedBox(height: 12),
@@ -978,15 +1072,18 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                                   SizedBox(
                                     width: 120,
                                     child: Text(e.key,
-                                        style: TextStyle(fontSize: 12.5, color: muted)),
+                                        style: TextStyle(
+                                            fontSize: 12.5, color: muted)),
                                   ),
-                                  ...List.generate(5, (i) => Icon(
-                                        i < (e.value as num).round()
-                                            ? Icons.star_rounded
-                                            : Icons.star_outline_rounded,
-                                        size: 13,
-                                        color: AppColors.kColorAccentLight,
-                                      )),
+                                  ...List.generate(
+                                      5,
+                                      (i) => Icon(
+                                            i < (e.value as num).round()
+                                                ? Icons.star_rounded
+                                                : Icons.star_outline_rounded,
+                                            size: 13,
+                                            color: AppColors.kColorAccentLight,
+                                          )),
                                 ],
                               ),
                             ),
@@ -996,8 +1093,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isDark ? AppColors.darkBgCard : AppColors.kColorSurface,
-                              borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
+                              color: isDark
+                                  ? AppColors.darkBgCard
+                                  : AppColors.kColorSurface,
+                              borderRadius: BorderRadius.circular(
+                                  AppDimensions.kRadiusMd),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1009,7 +1109,10 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                                         color: muted)),
                                 const SizedBox(height: 4),
                                 Text(guideReply,
-                                    style: TextStyle(fontSize: 13, height: 1.5, color: onSurface)),
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        height: 1.5,
+                                        color: onSurface)),
                               ],
                             ),
                           ),
@@ -1037,13 +1140,17 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       case 'rejected':
         return 'Rejected';
       default:
-        return status.isEmpty ? '—' : status[0].toUpperCase() + status.substring(1);
+        return status.isEmpty
+            ? '—'
+            : status[0].toUpperCase() + status.substring(1);
     }
   }
 
-  Widget _detailRow(BuildContext context, bool isDark, String label, String value,
+  Widget _detailRow(
+      BuildContext context, bool isDark, String label, String value,
       {Color? valueColor}) {
-    final muted = isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted;
+    final muted =
+        isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
@@ -1058,7 +1165,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: valueColor ?? Theme.of(context).colorScheme.onSurface)),
+                    color:
+                        valueColor ?? Theme.of(context).colorScheme.onSurface)),
           ),
         ],
       ),
@@ -1087,15 +1195,22 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                icon:
+                    const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                 onPressed: () => Navigator.pop(context),
               ),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.myGuideProfile, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                  Text(AppLocalizations.of(context)!.manageListing, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.myGuideProfile,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold)),
+                  Text(AppLocalizations.of(context)!.manageListing,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ],
@@ -1107,7 +1222,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   // ─── Verified / Active status bar ─────────────────────────────
 
-  Widget _buildStatusBar(BuildContext context, bool isDark, Map<String, dynamic> p) {
+  Widget _buildStatusBar(
+      BuildContext context, bool isDark, Map<String, dynamic> p) {
     final isVerified = (p['is_verified'] as bool?) ?? false;
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -1123,11 +1239,15 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              isVerified ? AppLocalizations.of(context)!.verifiedGuideActive : AppLocalizations.of(context)!.labelActive,
+              isVerified
+                  ? AppLocalizations.of(context)!.verifiedGuideActive
+                  : AppLocalizations.of(context)!.labelActive,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.darkTextSecondary : const Color(0xFF2E5A3A),
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : const Color(0xFF2E5A3A),
               ),
             ),
           ),
@@ -1139,11 +1259,17 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   // ─── Main listing card ────────────────────────────────────────
 
-  Widget _buildListingCard(BuildContext context, bool isDark, Map<String, dynamic> p) {
+  Widget _buildListingCard(
+      BuildContext context, bool isDark, Map<String, dynamic> p) {
     final accent = _accent(isDark);
     final user = p['user'] as Map<String, dynamic>? ?? {};
-    final fullName = (user['full_name'] ?? user['username'] ?? 'Guide').toString();
-    final initials = fullName.split(' ').take(2).map((s) => s.isNotEmpty ? s[0].toUpperCase() : '').join();
+    final fullName =
+        (user['full_name'] ?? user['username'] ?? 'Guide').toString();
+    final initials = fullName
+        .split(' ')
+        .take(2)
+        .map((s) => s.isNotEmpty ? s[0].toUpperCase() : '')
+        .join();
     final photoUrl = p['photo_url'] as String?;
     final rate = p['hourly_rate'];
     final rating = _toDouble(p['rating_avg']);
@@ -1160,7 +1286,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1170,21 +1297,40 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBrownDarkest,
+                backgroundColor: isDark
+                    ? AppColors.darkBgCard
+                    : AppColors.kColorBrownDarkest,
                 child: (photoUrl != null && photoUrl.isNotEmpty)
                     ? ClipOval(
-                        child: AppNetworkImage(url: photoUrl, width: 60, height: 60, cloudinaryWidth: 60),
+                        child: AppNetworkImage(
+                            url: photoUrl,
+                            width: 60,
+                            height: 60,
+                            cloudinaryWidth: 60),
                       )
-                    : Text(initials, style: const TextStyle(color: AppColors.kColorBgWarm, fontSize: 18, fontWeight: FontWeight.bold)),
+                    : Text(initials,
+                        style: const TextStyle(
+                            color: AppColors.kColorBgWarm,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(fullName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                    Text(fullName,
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface)),
                     const SizedBox(height: 2),
-                    Text(location, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
+                    Text(location,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.kColorTextMuted)),
                   ],
                 ),
               ),
@@ -1192,8 +1338,19 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(AppLocalizations.of(context)!.nprAmount(rate.toString()), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accent)),
-                    Text(AppLocalizations.of(context)!.labelPerHour, style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
+                    Text(
+                        AppLocalizations.of(context)!
+                            .nprAmount(rate.toString()),
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: accent)),
+                    Text(AppLocalizations.of(context)!.labelPerHour,
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.kColorTextMuted)),
                   ],
                 ),
             ],
@@ -1202,24 +1359,42 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
           // Badges
           Wrap(
-            spacing: 8, runSpacing: 8,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              if (isTopGuide) _badge(isDark, '⭐ Top Guide', AppColors.kColorPendingBg, AppColors.kColorPendingText),
-              if (isVerified) _badge(isDark, '✓ Verified', const Color(0xFFE8F5EC), AppColors.statusSuccess),
+              if (isTopGuide)
+                _badge(isDark, '⭐ Top Guide', AppColors.kColorPendingBg,
+                    AppColors.kColorPendingText),
+              if (isVerified)
+                _badge(isDark, '✓ Verified', const Color(0xFFE8F5EC),
+                    AppColors.statusSuccess),
             ],
           ),
           if (specialties.isNotEmpty) ...[
             const SizedBox(height: 12),
             Wrap(
-              spacing: 8, runSpacing: 8,
-              children: specialties.map((s) => _softChip(context, isDark, s, accent.withValues(alpha: 0.35))).toList(),
+              spacing: 8,
+              runSpacing: 8,
+              children: specialties
+                  .map((s) => _softChip(
+                      context, isDark, s, accent.withValues(alpha: 0.35)))
+                  .toList(),
             ),
           ],
           if (languages.isNotEmpty) ...[
             const SizedBox(height: 8),
             Wrap(
-              spacing: 8, runSpacing: 8,
-              children: languages.map((l) => _softChip(context, isDark, l, isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)).toList(),
+              spacing: 8,
+              runSpacing: 8,
+              children: languages
+                  .map((l) => _softChip(
+                      context,
+                      isDark,
+                      l,
+                      isDark
+                          ? AppColors.darkBorder
+                          : AppColors.kColorBorderSubtle))
+                  .toList(),
             ),
           ],
           const SizedBox(height: 14),
@@ -1231,15 +1406,26 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.star, color: isDark ? AppColors.goldMain : AppColors.kColorAccent, size: 16),
+                Icon(Icons.star,
+                    color: isDark ? AppColors.goldMain : AppColors.kColorAccent,
+                    size: 16),
                 const SizedBox(width: 4),
                 Text('${rating.toStringAsFixed(1)} ($reviewCount reviews)',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    _availableForBookings ? AppLocalizations.of(context)!.availableToday : AppLocalizations.of(context)!.notAcceptingBookings,
-                    style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted),
+                    _availableForBookings
+                        ? AppLocalizations.of(context)!.availableToday
+                        : AppLocalizations.of(context)!.notAcceptingBookings,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.kColorTextMuted),
                   ),
                 ),
               ],
@@ -1252,7 +1438,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   // ─── Stats ────────────────────────────────────────────────────
 
-  Widget _buildStatsCard(BuildContext context, bool isDark, Map<String, dynamic> p) {
+  Widget _buildStatsCard(
+      BuildContext context, bool isDark, Map<String, dynamic> p) {
     final reviewCount = (p['review_count'] as int?) ?? 0;
     final rating = _toDouble(p['rating_avg']);
     final yearsExp = (p['years_experience'] as String?) ?? '—';
@@ -1264,7 +1451,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1283,7 +1471,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   String _shortExperience(String raw) {
     // '3 – 5 years' → '3–5y', '10+ years' → '10+y', fallback to raw.
-    final digits = RegExp(r'\d+\+?').allMatches(raw).map((m) => m.group(0)).toList();
+    final digits =
+        RegExp(r'\d+\+?').allMatches(raw).map((m) => m.group(0)).toList();
     if (digits.isEmpty) return '—';
     return '${digits.join('–')}y';
   }
@@ -1304,31 +1493,48 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        _settingTile(context, isDark, Icons.circle, AppColors.kColorOnlineDot,
+        _settingTile(
+            context,
+            isDark,
+            Icons.circle,
+            AppColors.kColorOnlineDot,
             AppLocalizations.of(context)!.settingAvailableForBookings,
-            _availableForBookings, (v) => _persistSetting(
+            _availableForBookings,
+            (v) => _persistSetting(
                 'available_for_bookings', v, () => _availableForBookings = v)),
         const SizedBox(height: 10),
-        _settingTile(context, isDark, Icons.notifications_none, AppColors.kColorAccent,
+        _settingTile(
+            context,
+            isDark,
+            Icons.notifications_none,
+            AppColors.kColorAccent,
             AppLocalizations.of(context)!.settingBookingNotifications,
-            _bookingNotifications, (v) => _persistSetting(
+            _bookingNotifications,
+            (v) => _persistSetting(
                 'booking_notifications', v, () => _bookingNotifications = v)),
         const SizedBox(height: 10),
-        _settingTile(context, isDark, Icons.flash_on, AppColors.kColorAccent,
+        _settingTile(
+            context,
+            isDark,
+            Icons.flash_on,
+            AppColors.kColorAccent,
             AppLocalizations.of(context)!.settingAutoAccept,
-            _autoAccept, (v) => _persistSetting(
+            _autoAccept,
+            (v) => _persistSetting(
                 'auto_accept_bookings', v, () => _autoAccept = v)),
       ],
     );
   }
 
-  Widget _settingTile(BuildContext context, bool isDark, IconData icon, Color iconColor, String label, bool value, ValueChanged<bool> onChanged) {
+  Widget _settingTile(BuildContext context, bool isDark, IconData icon,
+      Color iconColor, String label, bool value, ValueChanged<bool> onChanged) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
       ),
       child: Row(
         children: [
@@ -1342,7 +1548,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface)),
           ),
           Switch(
             value: value,
@@ -1357,7 +1567,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   // ─── Action buttons ───────────────────────────────────────────
 
-  Widget _buildActions(BuildContext context, bool isDark, Map<String, dynamic> p) {
+  Widget _buildActions(
+      BuildContext context, bool isDark, Map<String, dynamic> p) {
     final l10n = AppLocalizations.of(context)!;
     final accent = _accent(isDark);
     return Row(
@@ -1372,9 +1583,12 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               foregroundColor: accent,
               side: BorderSide(color: accent),
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
-            child: Text(l10n.btnViewMyListing, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            child: Text(l10n.btnViewMyListing,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
         ),
         const SizedBox(width: 12),
@@ -1385,9 +1599,12 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               backgroundColor: accent,
               foregroundColor: isDark ? Colors.black : Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
             ),
-            child: Text(l10n.btnEditProfile, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            child: Text(l10n.btnEditProfile,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
         ),
       ],
@@ -1400,7 +1617,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     // Derived from completed bookings this calendar month.
     final stats = _completedStats(context.read<GuideProvider>());
     final earnings = stats.monthEarnings.toStringAsFixed(0);
-    final avg = stats.avgRating == null ? '—' : stats.avgRating!.toStringAsFixed(1);
+    final avg =
+        stats.avgRating == null ? '—' : stats.avgRating!.toStringAsFixed(1);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1416,18 +1634,40 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(AppLocalizations.of(context)!.thisMonthEarnings,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorPendingText)),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.kColorPendingText)),
                 const SizedBox(height: 4),
-                Text(AppLocalizations.of(context)!.nprAmount(earnings.toString()),
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorPendingText)),
+                Text(
+                    AppLocalizations.of(context)!
+                        .nprAmount(earnings.toString()),
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.goldMain
+                            : AppColors.kColorPendingText)),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('${stats.toursDone} tours', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorPendingText)),
-              Text('$avg avg rating', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorPendingText)),
+              Text('${stats.toursDone} tours',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.kColorPendingText)),
+              Text('$avg avg rating',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.kColorPendingText)),
             ],
           ),
         ],
@@ -1439,9 +1679,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
   /// Optimistically flip a booking-setting toggle and persist it via
   /// PATCH /guides/me/; roll back + warn on failure.
-  Future<void> _persistSetting(String field, bool value, VoidCallback apply) async {
+  Future<void> _persistSetting(
+      String field, bool value, VoidCallback apply) async {
     setState(apply);
-    final err = await context.read<GuideProvider>().updateMyProfile({field: value});
+    final err =
+        await context.read<GuideProvider>().updateMyProfile({field: value});
     if (err != null && mounted) {
       setState(() {
         // Roll back the toggle on failure.
@@ -1455,14 +1697,16 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.couldntSaveSetting)),
+        SnackBar(
+            content: Text(AppLocalizations.of(context)!.couldntSaveSetting)),
       );
     }
   }
 
   /// Derive real dashboard stats from the guide's completed bookings (already
   /// fetched into GuideProvider.incomingBookings).
-  ({int toursDone, double monthEarnings, double? avgRating}) _completedStats(GuideProvider gp) {
+  ({int toursDone, double monthEarnings, double? avgRating}) _completedStats(
+      GuideProvider gp) {
     final now = DateTime.now();
     var earnings = 0.0;
     final ratings = <double>[];
@@ -1477,7 +1721,9 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       final r = b['review_rating'];
       if (r is num) ratings.add(r.toDouble());
     }
-    final avg = ratings.isEmpty ? null : ratings.reduce((a, b) => a + b) / ratings.length;
+    final avg = ratings.isEmpty
+        ? null
+        : ratings.reduce((a, b) => a + b) / ratings.length;
     return (toursDone: done, monthEarnings: earnings, avgRating: avg);
   }
 
@@ -1495,26 +1741,46 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
   Widget _stat(BuildContext context, bool isDark, String value, String label) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color:
+                    isDark ? AppColors.goldMain : AppColors.kColorAccentSafe)),
         const SizedBox(height: 2),
-        Text(label, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
+        Text(label,
+            style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.kColorTextMuted)),
       ],
     );
   }
 
   Widget _statDivider(bool isDark) {
-    return Container(width: 1, height: 32, color: isDark ? AppColors.darkBorder : const Color(0xFFEADFCB));
+    return Container(
+        width: 1,
+        height: 32,
+        color: isDark ? AppColors.darkBorder : const Color(0xFFEADFCB));
   }
 
   Widget _badge(bool isDark, String text, Color bg, Color fg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: isDark ? AppColors.darkBgCard : bg, borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
-      child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? AppColors.goldMain : fg)),
+      decoration: BoxDecoration(
+          color: isDark ? AppColors.darkBgCard : bg,
+          borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl)),
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.goldMain : fg)),
     );
   }
 
-  Widget _softChip(BuildContext context, bool isDark, String label, Color borderColor) {
+  Widget _softChip(
+      BuildContext context, bool isDark, String label, Color borderColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -1522,13 +1788,19 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
         border: Border.all(color: borderColor),
       ),
-      child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 12,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.kColorTextSecondary)),
     );
   }
 
-  Widget _outlineButton(BuildContext context, bool isDark, String label, VoidCallback onTap) {
+  Widget _outlineButton(
+      BuildContext context, bool isDark, String label, VoidCallback onTap) {
     final accent = _accent(isDark);
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -1537,7 +1809,9 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(color: accent),
         ),
-        child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: accent)),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.bold, color: accent)),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
@@ -70,7 +71,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         _strengthText = 'Password strength: Weak — use more characters';
         _strengthColor = Colors.red;
       } else if (strength <= 0.7) {
-        _strengthText = 'Password strength: Medium — use symbols for stronger security';
+        _strengthText =
+            'Password strength: Medium — use symbols for stronger security';
         _strengthColor = Colors.orange;
       } else {
         _strengthText = 'Password strength: Strong';
@@ -94,7 +96,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   Future<void> _pickAndUploadImage(ImageSource source) async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: source, imageQuality: 80, maxWidth: 800);
+    final picked =
+        await picker.pickImage(source: source, imageQuality: 80, maxWidth: 800);
     if (picked == null) return;
 
     setState(() => _uploadingPhoto = true);
@@ -141,7 +144,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.uploadFailed(e.toString()))),
+        SnackBar(
+            content:
+                Text(AppLocalizations.of(context)!.uploadFailed(e.toString()))),
       );
     } finally {
       if (mounted) setState(() => _uploadingPhoto = false);
@@ -149,7 +154,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   }
 
   String _base64Encode(List<int> bytes) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     final result = StringBuffer();
     for (var i = 0; i < bytes.length; i += 3) {
       final b0 = bytes[i];
@@ -157,7 +163,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       final b2 = i + 2 < bytes.length ? bytes[i + 2] : 0;
       result.write(chars[(b0 >> 2) & 0x3F]);
       result.write(chars[((b0 << 4) | (b1 >> 4)) & 0x3F]);
-      result.write(i + 1 < bytes.length ? chars[((b1 << 2) | (b2 >> 6)) & 0x3F] : '=');
+      result.write(
+          i + 1 < bytes.length ? chars[((b1 << 2) | (b2 >> 6)) & 0x3F] : '=');
       result.write(i + 2 < bytes.length ? chars[b2 & 0x3F] : '=');
     }
     return result.toString();
@@ -226,14 +233,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          icon: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 20),
                           onPressed: () => Navigator.pop(context),
                           hoverColor: Colors.white.withValues(alpha: 0.1),
                           splashColor: Colors.white.withValues(alpha: 0.2),
@@ -277,7 +286,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   Center(
                     child: Column(
                       children: [
-                        GestureDetector(
+                        InteractiveSurface(
                           onTap: _showImageSourceSheet,
                           child: Stack(
                             alignment: Alignment.bottomRight,
@@ -288,26 +297,45 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.kColorDeep,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.kColorBorderCream, width: 2),
+                                  border: Border.all(
+                                      color: AppColors.kColorBorderCream,
+                                      width: 2),
                                 ),
                                 child: ClipOval(
                                   child: _uploadingPhoto
-                                      ? const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                      ? const Center(
+                                          child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2))
                                       : authProvider.user?.photoURL != null
                                           ? AppNetworkImage(
                                               url: authProvider.user!.photoURL,
                                               fit: BoxFit.cover,
                                               errorWidget: Center(
                                                 child: Text(
-                                                  authProvider.user?.displayName?.substring(0, 1).toUpperCase() ?? 'P',
-                                                  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                                                  authProvider.user?.displayName
+                                                          ?.substring(0, 1)
+                                                          .toUpperCase() ??
+                                                      'P',
+                                                  style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 32,
+                                                      fontWeight:
+                                                          FontWeight.bold),
                                                 ),
                                               ),
                                             )
                                           : Center(
                                               child: Text(
-                                                authProvider.user?.displayName?.substring(0, 1).toUpperCase() ?? 'P',
-                                                style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                                                authProvider.user?.displayName
+                                                        ?.substring(0, 1)
+                                                        .toUpperCase() ??
+                                                    'P',
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 32,
+                                                    fontWeight:
+                                                        FontWeight.bold),
                                               ),
                                             ),
                                 ),
@@ -318,7 +346,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   color: AppColors.kColorAccentLight,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                                child: const Icon(Icons.camera_alt,
+                                    color: Colors.white, size: 16),
                               ),
                             ],
                           ),
@@ -336,7 +365,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           authProvider.user?.email ?? 'user@example.com',
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -366,12 +397,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     const SizedBox(height: 4),
                     const Text(
                       'Email is managed by Google and cannot be changed here.',
-                      style: TextStyle(fontSize: 11, color: AppColors.kColorTextMuted),
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.kColorTextMuted),
                     ),
                   ],
                   const SizedBox(height: 24),
                   _buildPrimaryButton(
-                    authProvider.isLoading ? 'Processing...' : 'Save Profile Changes',
+                    authProvider.isLoading
+                        ? 'Processing...'
+                        : 'Save Profile Changes',
                     authProvider.isLoading
                         ? () {}
                         : () async {
@@ -380,25 +414,32 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               try {
                                 await ap.updateProfile(
                                   displayName: _usernameController.text.trim(),
-                                  email: isGoogle ? null : _emailController.text.trim(),
+                                  email: isGoogle
+                                      ? null
+                                      : _emailController.text.trim(),
                                   password: password,
                                 );
                                 if (context.mounted) {
                                   setState(() {
                                     final user = ap.user;
                                     if (user != null) {
-                                      _usernameController.text = user.displayName ?? '';
+                                      _usernameController.text =
+                                          user.displayName ?? '';
                                       _emailController.text = user.email ?? '';
                                     }
                                   });
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(ap.error ?? 'Profile updated successfully!')),
+                                    SnackBar(
+                                        content: Text(ap.error ??
+                                            'Profile updated successfully!')),
                                   );
                                 }
                               } catch (e) {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(ap.error ?? 'Update failed.')),
+                                    SnackBar(
+                                        content:
+                                            Text(ap.error ?? 'Update failed.')),
                                   );
                                 }
                               }
@@ -407,7 +448,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                             if (isGoogle) {
                               await doUpdate(null);
                             } else {
-                              _showPasswordConfirmationDialog(onConfirm: (p) => doUpdate(p));
+                              _showPasswordConfirmationDialog(
+                                  onConfirm: (p) => doUpdate(p));
                             }
                           },
                   ),
@@ -424,7 +466,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       hint: 'Enter current password',
                       isPassword: true,
                       obscureText: !_showCurrentPassword,
-                      onToggleVisibility: () => setState(() => _showCurrentPassword = !_showCurrentPassword),
+                      onToggleVisibility: () => setState(
+                          () => _showCurrentPassword = !_showCurrentPassword),
                       suffix: TextButton(
                         onPressed: () async {
                           final email = _emailController.text.trim();
@@ -437,7 +480,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           await authProvider.sendPasswordResetEmail(email);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(l10n.passwordResetEmailSent)),
+                              SnackBar(
+                                  content: Text(l10n.passwordResetEmailSent)),
                             );
                           }
                         },
@@ -463,7 +507,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       hint: 'Minimum 8 characters',
                       isPassword: true,
                       obscureText: !_showNewPassword,
-                      onToggleVisibility: () => setState(() => _showNewPassword = !_showNewPassword),
+                      onToggleVisibility: () =>
+                          setState(() => _showNewPassword = !_showNewPassword),
                     ),
                     if (_newPasswordController.text.isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -471,10 +516,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.kRadiusSm),
                             child: LinearProgressIndicator(
                               value: _passwordStrength,
-                              backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                              backgroundColor:
+                                  Colors.grey.withValues(alpha: 0.1),
                               color: _strengthColor,
                               minHeight: 6,
                             ),
@@ -482,7 +529,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           const SizedBox(height: 4),
                           Text(
                             _strengthText,
-                            style: const TextStyle(fontSize: 10, color: AppColors.kColorTextMuted),
+                            style: const TextStyle(
+                                fontSize: 10, color: AppColors.kColorTextMuted),
                           ),
                         ],
                       ),
@@ -494,24 +542,32 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       hint: 'Re-enter new password',
                       isPassword: true,
                       obscureText: !_showConfirmPassword,
-                      onToggleVisibility: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+                      onToggleVisibility: () => setState(
+                          () => _showConfirmPassword = !_showConfirmPassword),
                     ),
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.kColorBorderCream.withValues(alpha: isDark ? 0.1 : 0.5),
-                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-                        border: Border.all(color: AppColors.kColorBorderCream.withValues(alpha: 0.5)),
+                        color: AppColors.kColorBorderCream
+                            .withValues(alpha: isDark ? 0.1 : 0.5),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusLg),
+                        border: Border.all(
+                            color: AppColors.kColorBorderCream
+                                .withValues(alpha: 0.5)),
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.lightbulb_outline, color: AppColors.kColorAccentLight, size: 16),
+                          Icon(Icons.lightbulb_outline,
+                              color: AppColors.kColorAccentLight, size: 16),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Use 8+ characters with a mix of letters, numbers & symbols.',
-                              style: TextStyle(fontSize: 11, color: AppColors.kColorTextMuted),
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.kColorTextMuted),
                             ),
                           ),
                         ],
@@ -525,29 +581,37 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
                   // Bottom Actions
                   OutlinedButton(
-                    onPressed: authProvider.isLoading ? null : () async {
-                      await authProvider.logout();
-                      if (context.mounted) {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          AppStrings.onboardingPath,
-                          (route) => false,
-                        );
-                      }
-                    },
+                    onPressed: authProvider.isLoading
+                        ? null
+                        : () async {
+                            await authProvider.logout();
+                            if (context.mounted) {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                AppStrings.onboardingPath,
+                                (route) => false,
+                              );
+                            }
+                          },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.kColorDeep,
-                      side: const BorderSide(color: AppColors.kColorBorderCream),
+                      side:
+                          const BorderSide(color: AppColors.kColorBorderCream),
                       minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.kRadiusPill)),
                     ),
                     child: authProvider.isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.kColorDeep),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: AppColors.kColorDeep),
                           )
-                        : Text(l10n.btnSignOut, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        : Text(l10n.btnSignOut,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton(
@@ -579,8 +643,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                       labelText: l10n.enterPasswordConfirm,
                                       border: const OutlineInputBorder(),
                                       suffixIcon: IconButton(
-                                        icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
-                                        onPressed: () => setState(() => obscure = !obscure),
+                                        icon: Icon(obscure
+                                            ? Icons.visibility_off
+                                            : Icons.visibility),
+                                        onPressed: () =>
+                                            setState(() => obscure = !obscure),
                                       ),
                                     ),
                                   ),
@@ -588,7 +655,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   const SizedBox(height: 12),
                                   const Text(
                                     'You will be asked to re-sign in with Google to confirm.',
-                                    style: TextStyle(fontSize: 12, color: AppColors.kColorTextMuted),
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.kColorTextMuted),
                                   ),
                                 ],
                               ],
@@ -600,7 +669,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: Text(l10n.btnDelete, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                child: Text(l10n.btnDelete,
+                                    style: const TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
@@ -611,16 +683,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
                       if (confirmed == true && context.mounted) {
                         if (!isGoogle && password.isEmpty) return;
-                        await authProvider.deleteAccount(password: isGoogle ? null : password);
+                        await authProvider.deleteAccount(
+                            password: isGoogle ? null : password);
                         if (context.mounted && authProvider.error == null) {
                           Navigator.pushNamedAndRemoveUntil(
                             context,
                             AppStrings.onboardingPath,
                             (route) => false,
                           );
-                        } else if (context.mounted && authProvider.error != null) {
+                        } else if (context.mounted &&
+                            authProvider.error != null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(authProvider.error!), backgroundColor: Colors.red),
+                            SnackBar(
+                                content: Text(authProvider.error!),
+                                backgroundColor: Colors.red),
                           );
                         }
                       }
@@ -629,10 +705,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       backgroundColor: const Color(0xFFFFEBEE),
                       foregroundColor: Colors.red,
                       minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.kRadiusPill)),
                       elevation: 0,
                     ),
-                    child: Text(l10n.btnDeleteAccount, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(l10n.btnDeleteAccount,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 40),
                 ],
@@ -653,7 +732,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.kColorAccentLight,
+            color: Theme.of(context).brightness == Brightness.light
+                ? AppColors.kColorTextMuted
+                : AppColors.kColorAccentLight,
             letterSpacing: 0.5,
           ),
         ),
@@ -680,7 +761,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     if (isPassword) {
       suffixIcon = IconButton(
         icon: Icon(
-          obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          obscureText
+              ? Icons.visibility_outlined
+              : Icons.visibility_off_outlined,
           color: AppColors.kColorTextSecondary,
           size: 20,
         ),
@@ -701,7 +784,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
               ),
             ),
             if (suffix != null) suffix,
@@ -714,16 +799,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           readOnly: readOnly,
           style: TextStyle(
             color: readOnly
-                ? (isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)
+                ? (isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.kColorTextSecondary)
                 : Theme.of(context).colorScheme.onSurface,
             fontSize: 15,
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
+            hintStyle:
+                const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
             filled: true,
             fillColor: readOnly
-                ? (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF0F0F0))
+                ? (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : const Color(0xFFF0F0F0))
                 : Theme.of(context).colorScheme.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
@@ -735,9 +825,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
-              borderSide: const BorderSide(color: AppColors.kColorDeep, width: 1.5),
+              borderSide:
+                  const BorderSide(color: AppColors.kColorDeep, width: 1.5),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             suffixIcon: suffixIcon,
           ),
         ),
@@ -752,10 +844,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         backgroundColor: AppColors.kColorDeep,
         foregroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
         elevation: 2,
       ),
-      child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      child: Text(text,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -781,8 +875,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   labelText: l10n.password,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                    onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
+                    icon: Icon(obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined),
+                    onPressed: () => setDialogState(
+                        () => obscurePassword = !obscurePassword),
                   ),
                 ),
               ),
@@ -809,10 +906,3 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 }
-
-
-
-
-
-
-

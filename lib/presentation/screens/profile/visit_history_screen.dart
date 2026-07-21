@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
@@ -56,11 +57,13 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 16),
@@ -86,7 +89,8 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.white),
+                      icon:
+                          const Icon(Icons.delete_outline, color: Colors.white),
                       onPressed: () => _showDeleteConfirmation(context),
                       tooltip: 'Clear History',
                     ),
@@ -146,7 +150,8 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
               context.read<ProfileProvider>().clearVisitHistory();
               Navigator.pop(context);
             },
-            child: Text(l10n.btnDelete, style: const TextStyle(color: Colors.red)),
+            child:
+                Text(l10n.btnDelete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -171,7 +176,7 @@ class _VisitHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -213,7 +218,8 @@ class _VisitHistoryCard extends StatelessWidget {
                         width: 80,
                         height: 80,
                       )
-                    : const Icon(Icons.history, color: Colors.white38, size: 30),
+                    : const Icon(Icons.history,
+                        color: Colors.white38, size: 30),
               ),
             ),
             // Content
@@ -237,11 +243,13 @@ class _VisitHistoryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: AppColors.kColorTextMuted),
+                        const Icon(Icons.location_on,
+                            size: 14, color: AppColors.kColorTextMuted),
                         const SizedBox(width: 4),
                         Text(
                           location,
-                          style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
+                          style: const TextStyle(
+                              color: AppColors.kColorTextMuted, fontSize: 13),
                         ),
                       ],
                     ),
@@ -273,10 +281,3 @@ class _VisitHistoryCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-

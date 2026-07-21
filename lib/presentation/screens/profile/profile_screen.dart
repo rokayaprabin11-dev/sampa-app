@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
@@ -90,9 +91,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.settings, color: Colors.white, size: 24),
+                            icon: const Icon(Icons.settings,
+                                color: Colors.white, size: 24),
                             onPressed: () {
-                              Navigator.pushNamed(context, AppStrings.settingsPath);
+                              Navigator.pushNamed(
+                                  context, AppStrings.settingsPath);
                             },
                             tooltip: l10n.settingsTitle,
                             hoverColor: Colors.white.withValues(alpha: 0.1),
@@ -113,11 +116,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.kColorAccentLight,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2), width: 1),
                     ),
                     child: ClipOval(
                       child: user?.photoURL != null
-                          ? AppNetworkImage(url: user!.photoURL, fit: BoxFit.cover)
+                          ? AppNetworkImage(
+                              url: user!.photoURL, fit: BoxFit.cover)
                           : const Icon(
                               Icons.person,
                               size: 70,
@@ -129,7 +134,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
 
-            const SizedBox(height: 55), // Reduced from 70 to 55 to match smaller avatar/header
+            const SizedBox(
+                height:
+                    55), // Reduced from 70 to 55 to match smaller avatar/header
 
             // User Name & Email — no name yet (fresh account) shows the email
             // row alone rather than a made-up placeholder name.
@@ -146,7 +153,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               user?.email ?? 'prabin@example.com',
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? AppColors.kColorTextMuted
+                    : AppColors.darkTextSecondary,
               ),
             ),
 
@@ -156,11 +165,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-                  border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
+                  border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? AppColors.kColorBorderCream
+                          : AppColors.darkBorder),
                 ),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 350),
@@ -172,13 +185,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           key: const ValueKey('stats-real'),
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            GestureDetector(
-                              onTap: () => Navigator.pushNamed(context, AppStrings.visitHistoryPath),
-                              child: _buildStatItem(context, profileProvider.visitHistoryCount.toString(), l10n.visitHistory),
+                            InteractiveSurface(
+                              onTap: () => Navigator.pushNamed(
+                                  context, AppStrings.visitHistoryPath),
+                              child: _buildStatItem(
+                                  context,
+                                  profileProvider.visitHistoryCount.toString(),
+                                  l10n.visitHistory),
                             ),
-                            GestureDetector(
-                              onTap: () => Navigator.pushNamed(context, AppStrings.savedSitesPath),
-                              child: _buildStatItem(context, profileProvider.bookmarksCount.toString(), l10n.bookmarks),
+                            InteractiveSurface(
+                              onTap: () => Navigator.pushNamed(
+                                  context, AppStrings.savedSitesPath),
+                              child: _buildStatItem(
+                                  context,
+                                  profileProvider.bookmarksCount.toString(),
+                                  l10n.bookmarks),
                             ),
                           ],
                         ),
@@ -219,28 +240,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         : profileProvider.visitHistory.isEmpty
                             ? Container(
                                 key: const ValueKey('visits-empty'),
-                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
                                 alignment: Alignment.center,
                                 child: Text(
                                   l10n.emptyVisitHistory,
-                                  style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 13),
+                                  style: const TextStyle(
+                                      color: AppColors.kColorTextMuted,
+                                      fontSize: 13),
                                 ),
                               )
                             : Column(
                                 key: const ValueKey('visits-real'),
-                                children: profileProvider.visitHistory.take(3).map((site) =>
-                                  RecentlyVisitedCard(
-                                    title: site.name,
-                                    timeAgo: site.location.isNotEmpty ? site.location : site.category,
-                                    icon: _categoryIcon(site.category),
-                                    imageUrl: site.imageUrl,
-                                    onTap: () => Navigator.pushNamed(
-                                      context,
-                                      AppStrings.heritageDetailsPath,
-                                      arguments: site,
-                                    ),
-                                  ),
-                                ).toList(),
+                                children: profileProvider.visitHistory
+                                    .take(3)
+                                    .map(
+                                      (site) => RecentlyVisitedCard(
+                                        title: site.name,
+                                        timeAgo: site.location.isNotEmpty
+                                            ? site.location
+                                            : site.category,
+                                        icon: _categoryIcon(site.category),
+                                        imageUrl: site.imageUrl,
+                                        onTap: () => Navigator.pushNamed(
+                                          context,
+                                          AppStrings.heritageDetailsPath,
+                                          arguments: site,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
                               ),
                   ),
                 ],
@@ -264,16 +293,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Language Toggle Tile
                   _buildAccountTile(
                     context,
-                    icon: Icons.language, // Replace with appropriate icon if needed
+                    icon: Icons
+                        .language, // Replace with appropriate icon if needed
                     title: l10n.language,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(l10n.langEngShort, style: const TextStyle(fontSize: 14, color: AppColors.kColorTextMuted)),
+                        Text(l10n.langEngShort,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.kColorTextMuted)),
                         const SizedBox(width: 8),
                         SizedBox(
                           height: 30,
@@ -281,16 +314,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Switch(
                             value: isNepali,
                             onChanged: (val) {
-                              localeProvider.setLocale(Locale(val ? 'ne' : 'en'));
+                              localeProvider
+                                  .setLocale(Locale(val ? 'ne' : 'en'));
                             },
                             activeThumbColor: Colors.white,
-                            activeTrackColor: AppColors.kColorOnlineDot, // Green from image
+                            activeTrackColor:
+                                AppColors.kColorOnlineDot, // Green from image
                             inactiveThumbColor: Colors.white,
-                            inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
+                            inactiveTrackColor:
+                                Colors.grey.withValues(alpha: 0.3),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(l10n.langNepShort, style: const TextStyle(fontSize: 14, color: AppColors.kColorTextMuted)),
+                        Text(l10n.langNepShort,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.kColorTextMuted)),
                       ],
                     ),
                   ),
@@ -302,8 +341,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context,
                     icon: Icons.bookmark_border_rounded,
                     title: l10n.bookmarks,
-                    trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
-                    onTap: () => Navigator.pushNamed(context, AppStrings.savedSitesPath),
+                    trailing: const Icon(Icons.chevron_right,
+                        size: 20, color: AppColors.kColorTextMuted),
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppStrings.savedSitesPath),
                   ),
 
                   // My Bookings (tours this user booked) — hidden for approved
@@ -316,8 +357,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context,
                       icon: Icons.event_note_outlined,
                       title: l10n.myBookingsTitle,
-                      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
-                      onTap: () => Navigator.pushNamed(context, AppStrings.myBookingsPath),
+                      trailing: const Icon(Icons.chevron_right,
+                          size: 20, color: AppColors.kColorTextMuted),
+                      onTap: () => Navigator.pushNamed(
+                          context, AppStrings.myBookingsPath),
                     ),
                     const SizedBox(height: 12),
                     // What this user has paid their guides, and what is still
@@ -328,7 +371,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context,
                       icon: Icons.receipt_long_outlined,
                       title: l10n.myPayments,
-                      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
+                      trailing: const Icon(Icons.chevron_right,
+                          size: 20, color: AppColors.kColorTextMuted),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -347,15 +391,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // application has been approved.
                   _buildAccountTile(
                     context,
-                    icon: isApprovedGuide ? Icons.badge_outlined : Icons.tour_outlined,
-                    title: isApprovedGuide ? l10n.myGuideProfile : l10n.becomeGuide,
-                    trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.kColorTextMuted),
+                    icon: isApprovedGuide
+                        ? Icons.badge_outlined
+                        : Icons.tour_outlined,
+                    title: isApprovedGuide
+                        ? l10n.myGuideProfile
+                        : l10n.becomeGuide,
+                    trailing: const Icon(Icons.chevron_right,
+                        size: 20, color: AppColors.kColorTextMuted),
                     onTap: () => Navigator.pushNamed(
                       context,
-                      isApprovedGuide ? AppStrings.guideProfilePath : AppStrings.becomeGuidePath,
+                      isApprovedGuide
+                          ? AppStrings.guideProfilePath
+                          : AppStrings.becomeGuidePath,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 40),
                 ],
               ),
@@ -369,10 +420,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   IconData _categoryIcon(String cat) {
     switch (cat.toLowerCase()) {
-      case 'temple': return Icons.temple_hindu;
-      case 'stupa':  return Icons.temple_buddhist;
-      case 'palace': return Icons.castle;
-      default:       return Icons.account_balance;
+      case 'temple':
+        return Icons.temple_hindu;
+      case 'stupa':
+        return Icons.temple_buddhist;
+      case 'palace':
+        return Icons.castle;
+      default:
+        return Icons.account_balance;
     }
   }
 
@@ -392,7 +447,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
+            color: Theme.of(context).brightness == Brightness.light
+                ? AppColors.kColorTextMuted
+                : AppColors.darkTextSecondary,
           ),
         ),
       ],
@@ -406,14 +463,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required Widget trailing,
     VoidCallback? onTap,
   }) {
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
+          border: Border.all(
+              color: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.kColorBorderCream
+                  : AppColors.darkBorder),
         ),
         child: Row(
           children: [
@@ -421,10 +481,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBrownDarkest : AppColors.darkBgCard,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? AppColors.kColorBrownDarkest
+                    : AppColors.darkBgCard,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? Colors.white : AppColors.goldMain, size: 18),
+              child: Icon(icon,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : AppColors.goldMain,
+                  size: 18),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -444,10 +510,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-
-
-
-
-
-
-

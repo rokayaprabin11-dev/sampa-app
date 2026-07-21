@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -113,7 +114,8 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
       if (!mounted) return;
       setState(() {
         _reviews = _rowsOf(data);
-        _summary = (data['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
+        _summary =
+            (data['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
         _hasMore = data['next'] != null;
         _page = 1;
         _loading = false;
@@ -197,8 +199,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
       categories: draft.categories,
     );
     if (!mounted) return;
-    messenger.showSnackBar(
-        SnackBar(content: Text(err ?? l10n.reviewThanks)));
+    messenger.showSnackBar(SnackBar(content: Text(err ?? l10n.reviewThanks)));
     if (err == null) {
       gp.fetchGuides(); // the guide's headline rating just moved
       _load();
@@ -246,8 +247,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
 
     final err = await gp.replyToReview(review['id'] as int, text);
     if (!mounted) return;
-    messenger.showSnackBar(
-        SnackBar(content: Text(err ?? l10n.replyPosted)));
+    messenger.showSnackBar(SnackBar(content: Text(err ?? l10n.replyPosted)));
     if (err == null) _load();
   }
 
@@ -273,7 +273,8 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
                 child: _ErrorView(onRetry: _load),
               )
             else ...[
-              SliverToBoxAdapter(child: _RatingOverview(summary: _summary, loading: _loading)),
+              SliverToBoxAdapter(
+                  child: _RatingOverview(summary: _summary, loading: _loading)),
               SliverToBoxAdapter(child: _searchAndSort(context)),
               if (_loading)
                 SliverList.separated(
@@ -318,9 +319,8 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
       // Only a tourist with a completed, unreviewed tour can write one — the
       // server enforces the same rule, so offering it otherwise would only
       // produce a rejection.
-      floatingActionButton: canWrite
-          ? _WriteReviewButton(onTap: _writeReview)
-          : null,
+      floatingActionButton:
+          canWrite ? _WriteReviewButton(onTap: _writeReview) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
@@ -365,7 +365,8 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
-                borderSide: const BorderSide(color: AppColors.kFocusRing, width: 2),
+                borderSide:
+                    const BorderSide(color: AppColors.kFocusRing, width: 2),
               ),
             ),
           ),
@@ -501,8 +502,7 @@ class _GuideHeader extends StatelessWidget {
                             if (verified) ...[
                               const SizedBox(width: AppDimensions.sp4),
                               const Icon(Icons.verified,
-                                  size: 16,
-                                  color: AppColors.kColorAccentLight),
+                                  size: 16, color: AppColors.kColorAccentLight),
                             ],
                           ],
                         ),
@@ -512,8 +512,8 @@ class _GuideHeader extends StatelessWidget {
                                 (years != null && years.isNotEmpty
                                     ? ' · ${l10n.yearsExperienceShort(years)}'
                                     : ''),
-                            style: t.bodySmall?.copyWith(
-                                color: AppColors.kColorBgWarm),
+                            style: t.bodySmall
+                                ?.copyWith(color: AppColors.kColorBgWarm),
                           ),
                         if (languages.isNotEmpty) ...[
                           const SizedBox(height: AppDimensions.sp8),
@@ -531,8 +531,8 @@ class _GuideHeader extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(
                                             AppDimensions.kRadiusPill),
                                         border: Border.all(
-                                            color: AppColors
-                                                .kOverlaySearchBorder),
+                                            color:
+                                                AppColors.kOverlaySearchBorder),
                                       ),
                                       child: Text(l,
                                           style: t.bodySmall?.copyWith(
@@ -699,11 +699,10 @@ class _DistributionBar extends StatelessWidget {
                 builder: (context, value, _) => LinearProgressIndicator(
                   value: value,
                   minHeight: 6,
-                  backgroundColor: isDark
-                      ? AppColors.kDarkBgCard
-                      : AppColors.kColorBgMuted,
-                  valueColor: const AlwaysStoppedAnimation(
-                      AppColors.kColorAccentLight),
+                  backgroundColor:
+                      isDark ? AppColors.kDarkBgCard : AppColors.kColorBgMuted,
+                  valueColor:
+                      const AlwaysStoppedAnimation(AppColors.kColorAccentLight),
                 ),
               ),
             ),
@@ -738,7 +737,8 @@ class _CategoryRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.sp4),
       child: Row(
         children: [
-          Icon(icon, size: AppDimensions.iconSm, color: AppColors.kColorAccentSafe),
+          Icon(icon,
+              size: AppDimensions.iconSm, color: AppColors.kColorAccentSafe),
           const SizedBox(width: AppDimensions.sp8),
           SizedBox(
             width: 110,
@@ -757,9 +757,8 @@ class _CategoryRow extends StatelessWidget {
                 builder: (context, value, _) => LinearProgressIndicator(
                   value: value,
                   minHeight: 5,
-                  backgroundColor: isDark
-                      ? AppColors.kDarkBgCard
-                      : AppColors.kColorBgMuted,
+                  backgroundColor:
+                      isDark ? AppColors.kDarkBgCard : AppColors.kColorBgMuted,
                   valueColor:
                       const AlwaysStoppedAnimation(AppColors.kColorPrimary),
                 ),
@@ -934,7 +933,7 @@ class _ReviewCardState extends State<_ReviewCard> {
               ),
             ),
             if (longText)
-              GestureDetector(
+              InteractiveSurface(
                 onTap: () => setState(() => _expanded = !_expanded),
                 child: Padding(
                   padding: const EdgeInsets.only(top: AppDimensions.sp4),
@@ -957,8 +956,8 @@ class _ReviewCardState extends State<_ReviewCard> {
                             horizontal: AppDimensions.sp8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppColors.kColorTagBg,
-                          borderRadius: BorderRadius.circular(
-                              AppDimensions.kRadiusPill),
+                          borderRadius:
+                              BorderRadius.circular(AppDimensions.kRadiusPill),
                         ),
                         child: Text(
                           '${c.label} ${categories[c.key]}/5',
@@ -1013,17 +1012,14 @@ class _GuideReply extends StatelessWidget {
         border: Border(
           left: BorderSide(color: AppColors.kColorPrimary, width: 3),
           top: BorderSide(
-              color: isDark
-                  ? AppColors.kDarkBorder
-                  : AppColors.kColorBorderFaint),
+              color:
+                  isDark ? AppColors.kDarkBorder : AppColors.kColorBorderFaint),
           right: BorderSide(
-              color: isDark
-                  ? AppColors.kDarkBorder
-                  : AppColors.kColorBorderFaint),
+              color:
+                  isDark ? AppColors.kDarkBorder : AppColors.kColorBorderFaint),
           bottom: BorderSide(
-              color: isDark
-                  ? AppColors.kDarkBorder
-                  : AppColors.kColorBorderFaint),
+              color:
+                  isDark ? AppColors.kDarkBorder : AppColors.kColorBorderFaint),
         ),
       ),
       child: Column(
@@ -1031,8 +1027,7 @@ class _GuideReply extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.reply,
-                  size: 14, color: AppColors.kColorPrimary),
+              const Icon(Icons.reply, size: 14, color: AppColors.kColorPrimary),
               const SizedBox(width: AppDimensions.sp6),
               Text(AppLocalizations.of(context)!.guideResponse,
                   style: t.bodySmall?.copyWith(
@@ -1203,7 +1198,8 @@ class _EmptyView extends StatelessWidget {
               const SizedBox(height: AppDimensions.sp20),
               ElevatedButton.icon(
                 onPressed: onWrite,
-                icon: const Icon(Icons.star_outline, size: AppDimensions.iconSm),
+                icon:
+                    const Icon(Icons.star_outline, size: AppDimensions.iconSm),
                 label: Text(l10n.btnWriteReview),
               ),
             ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -61,7 +62,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
+                colors: [
+                  AppColors.kColorDeep,
+                  AppColors.kColorPrimaryMid,
+                  AppColors.kColorPrimary
+                ],
                 stops: [0.0, 0.6, 1.0],
               ),
               borderRadius: BorderRadius.only(
@@ -73,14 +78,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          icon: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 20),
                           onPressed: () => Navigator.pop(context),
                         ),
                         Text(
@@ -92,10 +99,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () => context.read<NotificationProvider>().markAllRead(),
+                          onPressed: () => context
+                              .read<NotificationProvider>()
+                              .markAllRead(),
                           child: Text(
                             l10n.notifMarkAllRead,
-                            style: const TextStyle(color: AppColors.kColorAccentLight, fontSize: 14),
+                            style: const TextStyle(
+                                color: AppColors.kColorAccentLight,
+                                fontSize: 14),
                           ),
                         ),
                       ],
@@ -124,7 +135,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: 7,
-                    itemBuilder: (context, _) => const NotificationCardSkeleton(),
+                    itemBuilder: (context, _) =>
+                        const NotificationCardSkeleton(),
                   );
                 }
 
@@ -175,9 +187,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       // New-site + proximity alerts open that heritage site's detail page.
       case 'heritage':
       case 'geofence':
+      case 'heritage.update':
         final slug = n.data['site_slug']?.toString();
         if (slug != null && slug.isNotEmpty) {
-          Navigator.pushNamed(context, AppStrings.heritageDetailsPath, arguments: {'slug': slug});
+          Navigator.pushNamed(context, AppStrings.heritageDetailsPath,
+              arguments: {'slug': slug});
         } else {
           Navigator.pushNamed(context, AppStrings.homePath);
         }
@@ -213,7 +227,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => GuideConfirmPaymentScreen(paymentId: paymentId),
+                  builder: (_) =>
+                      GuideConfirmPaymentScreen(paymentId: paymentId),
                 ),
               );
               return;
@@ -248,7 +263,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         } else if (audience == 'tourist') {
           isGuide = false;
         } else {
-          isGuide = context.read<GuideProvider>().myProfile?['status'] == 'approved';
+          isGuide =
+              context.read<GuideProvider>().myProfile?['status'] == 'approved';
         }
         Navigator.pushNamed(
           context,
@@ -259,7 +275,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Widget _buildFilterChip(String label, String value) {
     final isSelected = _selectedFilter == value;
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: () => setState(() => _selectedFilter = value),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -285,13 +301,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.notifications_none_rounded,
-              size: 64, color: isDark ? AppColors.darkTextSecondary : const Color(0xFFB08060)),
+              size: 64,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : const Color(0xFFB08060)),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.emptyNotifications,
             style: TextStyle(
               fontSize: 16,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.kColorTextMuted,
             ),
           ),
         ],
@@ -378,16 +399,14 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: notification.isRead
               ? Theme.of(context).colorScheme.surface
-              : (isDark
-                  ? const Color(0xFF2A1A0A)
-                  : const Color(0xFFFFF8EE)),
+              : (isDark ? const Color(0xFF2A1A0A) : const Color(0xFFFFF8EE)),
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
           border: Border.all(
             color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream,

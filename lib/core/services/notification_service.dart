@@ -33,6 +33,20 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
+  static const String _channelId = 'sampada_notifications';
+  static const String _channelName = 'Sampada Notifications';
+  static const String _channelDescription = 'High-priority Sampada notifications';
+
+  static const AndroidNotificationChannel _androidChannel = AndroidNotificationChannel(
+    _channelId,
+    _channelName,
+    description: _channelDescription,
+    importance: Importance.max,
+    playSound: true,
+    enableVibration: true,
+    showBadge: true,
+  );
+
   final FlutterLocalNotificationsPlugin _localPlugin =
       FlutterLocalNotificationsPlugin();
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
@@ -65,7 +79,17 @@ class NotificationService {
       },
     );
 
+    await _configureLocalNotifications();
+
     await _setupFcm();
+  }
+
+  Future<void> _configureLocalNotifications() async {
+    final androidImplementation =
+        _localPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidImplementation != null) {
+      await androidImplementation.createNotificationChannel(_androidChannel);
+    }
   }
 
   Future<void> _setupFcm() async {
@@ -232,11 +256,14 @@ class NotificationService {
       final localPath = await _downloadImage(imageUrl);
       if (localPath != null) {
         androidDetails = AndroidNotificationDetails(
-          'sampada_notifications',
-          'Sampada Notifications',
-          channelDescription: 'Heritage & event notifications',
+          _channelId,
+          _channelName,
+          channelDescription: _channelDescription,
           importance: Importance.max,
           priority: Priority.high,
+          playSound: true,
+          enableVibration: true,
+          visibility: NotificationVisibility.public,
           styleInformation: BigPictureStyleInformation(
             FilePathAndroidBitmap(localPath),
             largeIcon: FilePathAndroidBitmap(localPath),
@@ -255,18 +282,28 @@ class NotificationService {
       id: DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF,
       title: title,
       body: body,
-      notificationDetails: NotificationDetails(android: androidDetails),
+      notificationDetails: NotificationDetails(
+        android: androidDetails,
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
       payload: payload,
     );
   }
 
   AndroidNotificationDetails _defaultAndroidDetails() =>
       const AndroidNotificationDetails(
-        'sampada_notifications',
-        'Sampada Notifications',
-        channelDescription: 'Heritage & event notifications',
+        _channelId,
+        _channelName,
+        channelDescription: _channelDescription,
         importance: Importance.max,
         priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        visibility: NotificationVisibility.public,
       );
 
   Future<String?> _downloadImage(String url) async {

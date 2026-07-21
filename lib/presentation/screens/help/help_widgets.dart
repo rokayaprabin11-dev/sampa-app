@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -13,8 +14,8 @@ import 'package:sampada/core/theme/app_theme.dart';
 /// Theme-agnostic brand accents (identical in light and dark).
 class HelpColors {
   HelpColors._();
-  static const terracotta = AppColors.kColorPrimary;        // #C8501A
-  static const terracottaDeep = AppColors.kColorAccentDark;  // #993814
+  static const terracotta = AppColors.kColorPrimary; // #C8501A
+  static const terracottaDeep = AppColors.kColorAccentDark; // #993814
   static const gold = Color(0xFFD4AF37);
   static const sage = Color(0xFF6E8360);
   static const alert = Color(0xFFB8453A);
@@ -45,19 +46,26 @@ class HelpPalette {
       ink: Theme.of(context).colorScheme.onSurface,
       muted: dark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary,
       faint: dark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted,
-      wash: dark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF6EBE0),
+      wash:
+          dark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF6EBE0),
     );
   }
 }
 
 /// Cinzel — the app's heading font (matches AppTheme titleLarge/displayLarge).
-TextStyle helpSerif({double size = 16, FontWeight weight = FontWeight.w600, Color? color}) =>
+TextStyle helpSerif(
+        {double size = 16,
+        FontWeight weight = FontWeight.w600,
+        Color? color}) =>
     GoogleFonts.cinzel(fontSize: size, fontWeight: weight, color: color);
 
 /// Small letter-spaced label. Uses the app's own font (no separate mono face)
 /// so eyebrows read as part of Sampada, not a bolt-on.
 TextStyle helpLabel({double size = 10.5, Color? color}) => TextStyle(
-    fontSize: size, fontWeight: FontWeight.w700, letterSpacing: 1.4, color: color);
+    fontSize: size,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.4,
+    color: color);
 
 /// A page scaffold with Sampada's signature terracotta gradient header
 /// (AppTheme.navGradient + rounded bottom corners), identical to Settings/About
@@ -100,7 +108,8 @@ class HelpScaffold extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 22),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 2),
@@ -108,13 +117,16 @@ class HelpScaffold extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: helpSerif(size: 20, color: Colors.white)),
+                          Text(title,
+                              style: helpSerif(size: 20, color: Colors.white)),
                           if (subtitle != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: Text(subtitle!,
                                   style: const TextStyle(
-                                      fontSize: 11.5, color: Colors.white70, fontWeight: FontWeight.w500)),
+                                      fontSize: 11.5,
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.w500)),
                             ),
                         ],
                       ),
@@ -147,7 +159,8 @@ class HelpEyebrow extends StatelessWidget {
 class HelpSectionTitle extends StatelessWidget {
   final String text;
   final EdgeInsets padding;
-  const HelpSectionTitle(this.text, {super.key, this.padding = const EdgeInsets.only(top: 22, bottom: 12)});
+  const HelpSectionTitle(this.text,
+      {super.key, this.padding = const EdgeInsets.only(top: 22, bottom: 12)});
   @override
   Widget build(BuildContext context) {
     final p = HelpPalette.of(context);
@@ -155,8 +168,11 @@ class HelpSectionTitle extends StatelessWidget {
       padding: padding,
       child: Row(
         children: [
-          Container(width: 6, height: 6, decoration: const BoxDecoration(
-              color: HelpColors.terracotta, shape: BoxShape.circle)),
+          Container(
+              width: 6,
+              height: 6,
+              decoration: const BoxDecoration(
+                  color: HelpColors.terracotta, shape: BoxShape.circle)),
           const SizedBox(width: 8),
           Text(text, style: helpSerif(size: 15.5, color: p.ink)),
         ],
@@ -170,7 +186,11 @@ class HelpCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
   final VoidCallback? onTap;
-  const HelpCard({super.key, required this.child, this.padding = const EdgeInsets.all(16), this.onTap});
+  const HelpCard(
+      {super.key,
+      required this.child,
+      this.padding = const EdgeInsets.all(16),
+      this.onTap});
   @override
   Widget build(BuildContext context) {
     final p = HelpPalette.of(context);
@@ -185,7 +205,11 @@ class HelpCard extends StatelessWidget {
       child: child,
     );
     if (onTap == null) return card;
-    return InkWell(borderRadius: BorderRadius.circular(16), onTap: onTap, child: card);
+    return InteractiveSurface(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: card,
+    );
   }
 }
 
@@ -207,7 +231,8 @@ class HelpMenuList extends StatelessWidget {
         children: [
           for (int i = 0; i < children.length; i++) ...[
             children[i],
-            if (i < children.length - 1) Divider(height: 1, thickness: 1, color: p.line),
+            if (i < children.length - 1)
+              Divider(height: 1, thickness: 1, color: p.line),
           ],
         ],
       ),
@@ -233,14 +258,16 @@ class HelpMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = HelpPalette.of(context);
     final accent = tint ?? HelpColors.terracottaDeep;
-    return InkWell(
+    return InteractiveSurface(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
             Container(
-              width: 34, height: 34,
+              width: 34,
+              height: 34,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: p.isDark ? 0.18 : 0.10),
                 borderRadius: BorderRadius.circular(10),
@@ -252,16 +279,22 @@ class HelpMenuItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: p.ink)),
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: p.ink)),
                   if (subtitle != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 1),
-                      child: Text(subtitle!, style: TextStyle(fontSize: 11.5, color: p.muted)),
+                      child: Text(subtitle!,
+                          style: TextStyle(fontSize: 11.5, color: p.muted)),
                     ),
                 ],
               ),
             ),
-            if (onTap != null) Icon(Icons.chevron_right, size: 16, color: p.faint),
+            if (onTap != null)
+              Icon(Icons.chevron_right, size: 16, color: p.faint),
           ],
         ),
       ),
@@ -289,7 +322,7 @@ class HelpTopicTile extends StatelessWidget {
     final p = HelpPalette.of(context);
     return Opacity(
       opacity: disabled ? 0.5 : 1,
-      child: InkWell(
+      child: InteractiveSurface(
         borderRadius: BorderRadius.circular(16),
         onTap: disabled ? null : onTap,
         child: Container(
@@ -311,30 +344,40 @@ class HelpTopicTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 36, height: 36,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
-                      color: HelpColors.terracotta.withValues(alpha: p.isDark ? 0.18 : 0.12),
+                      color: HelpColors.terracotta
+                          .withValues(alpha: p.isDark ? 0.18 : 0.12),
                       borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(11), bottom: Radius.circular(4)),
                     ),
-                    child: Icon(icon, size: 17, color: HelpColors.terracottaDeep),
+                    child:
+                        Icon(icon, size: 17, color: HelpColors.terracottaDeep),
                   ),
                   const SizedBox(height: 6),
                   Text(label,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: p.ink, height: 1.2)),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: p.ink,
+                          height: 1.2)),
                 ],
               ),
               if (badge != null)
                 Positioned(
-                  top: -8, right: -2,
+                  top: -8,
+                  right: -2,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
-                      color: p.ink, borderRadius: BorderRadius.circular(6)),
-                    child: Text(badge!, style: helpLabel(size: 8, color: p.page)),
+                        color: p.ink, borderRadius: BorderRadius.circular(6)),
+                    child:
+                        Text(badge!, style: helpLabel(size: 8, color: p.page)),
                   ),
                 ),
             ],
@@ -350,7 +393,8 @@ class HelpSearchField extends StatelessWidget {
   final String hint;
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
-  const HelpSearchField({super.key, required this.hint, this.onChanged, this.controller});
+  const HelpSearchField(
+      {super.key, required this.hint, this.onChanged, this.controller});
   @override
   Widget build(BuildContext context) {
     final p = HelpPalette.of(context);
@@ -366,12 +410,15 @@ class HelpSearchField extends StatelessWidget {
         fillColor: p.card,
         contentPadding: const EdgeInsets.symmetric(vertical: 13),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: p.line)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: p.line)),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: p.line)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: p.line)),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: HelpColors.terracotta, width: 1.4)),
+            borderRadius: BorderRadius.circular(14),
+            borderSide:
+                const BorderSide(color: HelpColors.terracotta, width: 1.4)),
       ),
     );
   }
@@ -382,7 +429,8 @@ class HelpPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
   final IconData? icon;
-  const HelpPrimaryButton({super.key, required this.label, this.onTap, this.icon});
+  const HelpPrimaryButton(
+      {super.key, required this.label, this.onTap, this.icon});
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -393,10 +441,12 @@ class HelpPrimaryButton extends StatelessWidget {
           backgroundColor: HelpColors.terracotta,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         icon: icon != null ? Icon(icon, size: 18) : const SizedBox.shrink(),
-        label: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        label: Text(label,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -418,9 +468,12 @@ class HelpSecondaryButton extends StatelessWidget {
           foregroundColor: p.ink,
           side: BorderSide(color: p.line),
           padding: const EdgeInsets.symmetric(vertical: 13),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
-        child: Text(label, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+        child: Text(label,
+            style:
+                const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -431,11 +484,15 @@ class HelpChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const HelpChip({super.key, required this.label, required this.selected, required this.onTap});
+  const HelpChip(
+      {super.key,
+      required this.label,
+      required this.selected,
+      required this.onTap});
   @override
   Widget build(BuildContext context) {
     final p = HelpPalette.of(context);
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
@@ -474,7 +531,9 @@ class HelpTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: p.ink)),
+        Text(label,
+            style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w600, color: p.ink)),
         const SizedBox(height: 7),
         TextField(
           controller: controller,
@@ -485,14 +544,18 @@ class HelpTextField extends StatelessWidget {
             hintStyle: TextStyle(color: p.faint, fontSize: 13),
             filled: true,
             fillColor: p.card,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: p.line)),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: p.line)),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: p.line)),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: p.line)),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: HelpColors.terracotta, width: 1.4)),
+                borderRadius: BorderRadius.circular(12),
+                borderSide:
+                    const BorderSide(color: HelpColors.terracotta, width: 1.4)),
           ),
         ),
       ],
@@ -501,7 +564,8 @@ class HelpTextField extends StatelessWidget {
 }
 
 /// Toast-style confirmation (dark pill with a gold check).
-void showHelpToast(BuildContext context, String message, {IconData icon = Icons.check_circle}) {
+void showHelpToast(BuildContext context, String message,
+    {IconData icon = Icons.check_circle}) {
   final messenger = ScaffoldMessenger.of(context);
   messenger.clearSnackBars();
   messenger.showSnackBar(SnackBar(
@@ -512,8 +576,12 @@ void showHelpToast(BuildContext context, String message, {IconData icon = Icons.
     content: Row(mainAxisSize: MainAxisSize.min, children: [
       Icon(icon, size: 16, color: HelpColors.gold),
       const SizedBox(width: 10),
-      Flexible(child: Text(message,
-          style: const TextStyle(color: Color(0xFFF8F6F3), fontSize: 12.5, fontWeight: FontWeight.w600))),
+      Flexible(
+          child: Text(message,
+              style: const TextStyle(
+                  color: Color(0xFFF8F6F3),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600))),
     ]),
   ));
 }

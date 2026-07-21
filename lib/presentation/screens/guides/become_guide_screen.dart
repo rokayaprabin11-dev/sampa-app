@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -26,11 +27,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   int _step = 0;
 
   // Step 1 – Personal Details
-  final _fullNameController   = TextEditingController();
-  final _phoneController      = TextEditingController();
-  final _emailController      = TextEditingController();
-  final _introController      = TextEditingController();
-  String _selectedLocation    = 'Kathmandu';
+  final _fullNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _introController = TextEditingController();
+  String _selectedLocation = 'Kathmandu';
   DateTime? _dateOfBirth;
   final Set<String> _languages = {'Nepali', 'English'};
   // Languages the applicant typed in via "+ Add Other" — kept apart from the
@@ -41,8 +42,12 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   // Step 2 – Expertise
   final Set<String> _specializations = {'Temples', 'Stupas'};
   String _yearsExperience = '3 – 5 years';
-  final Set<String> _areas     = {'Kathmandu', 'Lalitpur', 'Bhaktapur'};
-  final Set<String> _tourTypes = {'Walking Tours', 'Heritage Tours', 'Cultural Tours'};
+  final Set<String> _areas = {'Kathmandu', 'Lalitpur', 'Bhaktapur'};
+  final Set<String> _tourTypes = {
+    'Walking Tours',
+    'Heritage Tours',
+    'Cultural Tours'
+  };
   String _knowledgeLevel = 'Expert';
 
   // Profile photo (step 1)
@@ -52,8 +57,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   // Step 4 – Payment. Where tourists send money once a tour is done. Sampada
   // never holds it: these accounts are the guide's own, and they confirm each
   // payment themselves.
-  final _esewaController   = TextEditingController();
-  final _khaltiController  = TextEditingController();
+  final _esewaController = TextEditingController();
+  final _khaltiController = TextEditingController();
   final _fonepayController = TextEditingController();
   final _payNotesController = TextEditingController();
   PaymentMethod _preferredPayment = PaymentMethod.esewa;
@@ -63,55 +68,93 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   XFile? _idBack;
   XFile? _certification;
   final _emergencyController = TextEditingController();
-  final _referralController  = TextEditingController();
+  final _referralController = TextEditingController();
   bool _confirmedAccuracy = false;
   bool _isUploading = false;
 
   // Application gate: block re-submitting while a submission is under review.
-  bool _statusChecked = false;   // profile fetch done
-  String? _appStatus;            // pending / approved / rejected / revoked / null
-  bool _justSubmitted = false;   // true right after a successful submit
+  bool _statusChecked = false; // profile fetch done
+  String? _appStatus; // pending / approved / rejected / revoked / null
+  bool _justSubmitted = false; // true right after a successful submit
 
   final _picker = ImagePicker();
 
-  static const _allLanguages = ['Nepali', 'English', 'Hindi', 'Chinese', 'Japanese'];
+  static const _allLanguages = [
+    'Nepali',
+    'English',
+    'Hindi',
+    'Chinese',
+    'Japanese'
+  ];
   static const _allSpecializations = [
-    'Heritage Sites', 'Temples', 'Stupas', 'Durbar Squares',
-    'Museums', 'Newari Culture', 'Festivals & Rituals', 'Local Food & Cuisine',
+    'Heritage Sites',
+    'Temples',
+    'Stupas',
+    'Durbar Squares',
+    'Museums',
+    'Newari Culture',
+    'Festivals & Rituals',
+    'Local Food & Cuisine',
   ];
   static const _allAreas = [
-    'Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Lumbini', 'Mustang', 'Everest Region',
+    'Kathmandu',
+    'Lalitpur',
+    'Bhaktapur',
+    'Pokhara',
+    'Lumbini',
+    'Mustang',
+    'Everest Region',
   ];
   static const _allTourTypes = [
-    'Walking Tours', 'Heritage Tours', 'Cultural Tours', 'Food Tours',
-    'Photography Tours', 'Trekking Tours', 'Educational Tours',
+    'Walking Tours',
+    'Heritage Tours',
+    'Cultural Tours',
+    'Food Tours',
+    'Photography Tours',
+    'Trekking Tours',
+    'Educational Tours',
   ];
   static const _locations = [
-    'Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Chitwan', 'Lumbini', 'Mustang',
+    'Kathmandu',
+    'Lalitpur',
+    'Bhaktapur',
+    'Pokhara',
+    'Chitwan',
+    'Lumbini',
+    'Mustang',
   ];
   static const _experienceLevels = [
-    'Less than 1 year', '1 – 2 years', '3 – 5 years', '5 – 10 years', '10+ years',
+    'Less than 1 year',
+    '1 – 2 years',
+    '3 – 5 years',
+    '5 – 10 years',
+    '10+ years',
   ];
-  static const _knowledgeLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+  static const _knowledgeLevels = [
+    'Beginner',
+    'Intermediate',
+    'Advanced',
+    'Expert'
+  ];
 
   static const Map<String, IconData> _specIcons = {
-    'Heritage Sites':       Icons.account_balance,
-    'Temples':              Icons.temple_hindu,
-    'Stupas':               Icons.account_balance_wallet,
-    'Durbar Squares':       Icons.location_city,
-    'Museums':              Icons.museum,
-    'Newari Culture':       Icons.people_outline,
-    'Festivals & Rituals':  Icons.celebration_outlined,
+    'Heritage Sites': Icons.account_balance,
+    'Temples': Icons.temple_hindu,
+    'Stupas': Icons.account_balance_wallet,
+    'Durbar Squares': Icons.location_city,
+    'Museums': Icons.museum,
+    'Newari Culture': Icons.people_outline,
+    'Festivals & Rituals': Icons.celebration_outlined,
     'Local Food & Cuisine': Icons.restaurant_outlined,
   };
 
   static const Map<String, IconData> _tourIcons = {
-    'Walking Tours':     Icons.directions_walk,
-    'Heritage Tours':    Icons.account_balance,
-    'Cultural Tours':    Icons.palette_outlined,
-    'Food Tours':        Icons.restaurant_outlined,
+    'Walking Tours': Icons.directions_walk,
+    'Heritage Tours': Icons.account_balance,
+    'Cultural Tours': Icons.palette_outlined,
+    'Food Tours': Icons.restaurant_outlined,
     'Photography Tours': Icons.camera_alt_outlined,
-    'Trekking Tours':    Icons.terrain,
+    'Trekking Tours': Icons.terrain,
     'Educational Tours': Icons.school_outlined,
   };
 
@@ -169,7 +212,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   }
 
   Future<void> _pickImage(void Function(XFile) onPicked) async {
-    final file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final file =
+        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (file == null) return;
 
     // 5 MB size check
@@ -177,7 +221,9 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     if (bytes > 5 * 1024 * 1024) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.fileTooLarge), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.fileTooLarge),
+              backgroundColor: Colors.red),
         );
       }
       return;
@@ -188,7 +234,9 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     if (!['jpg', 'jpeg', 'png'].contains(ext)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.onlyJpgPng), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.onlyJpgPng),
+              backgroundColor: Colors.red),
         );
       }
       return;
@@ -202,8 +250,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     super.initState();
     final user = context.read<AuthProvider>().user;
     _fullNameController.text = user?.displayName ?? '';
-    _emailController.text    = user?.email ?? '';
-    _existingPhotoUrl        = user?.photoURL;
+    _emailController.text = user?.email ?? '';
+    _existingPhotoUrl = user?.photoURL;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gp = context.read<GuideProvider>();
@@ -225,7 +273,10 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           );
         }
         final specs = p['specialties'];
-        if (specs is List) { _specializations.clear(); _specializations.addAll(specs.cast<String>()); }
+        if (specs is List) {
+          _specializations.clear();
+          _specializations.addAll(specs.cast<String>());
+        }
       }
       setState(() => _statusChecked = true);
     });
@@ -249,7 +300,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   void _nextStep() {
     final error = _validateStep(_step);
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error), backgroundColor: Colors.red));
       return;
     }
     if (_step < 3) {
@@ -262,29 +314,67 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   String? _validateStep(int step) {
     switch (step) {
       case 0:
-        if (_existingPhotoUrl == null && _pickedProfilePhoto == null) return 'Upload a profile photo.';
-        if (_fullNameController.text.trim().isEmpty) return 'Enter your full name.';
-        if (_phoneController.text.trim().isEmpty)    return 'Enter your phone number.';
-        if (!RegExp(r'^\d{10}$').hasMatch(_phoneController.text.trim())) return 'Phone number must be 10 digits.';
-        if (_emailController.text.trim().isEmpty) return 'Enter your email address.';
-        if (!RegExp(r'^\S+@\S+\.\S+$').hasMatch(_emailController.text.trim())) return 'Enter a valid email address.';
-        if (_dateOfBirth == null) return 'Select your date of birth.';
-        if (_dateOfBirth!.isAfter(DateTime.now())) return 'Birthdate cannot be in the future.';
-        if (DateTime.now().difference(_dateOfBirth!).inDays < 365 * 18) return 'You must be at least 18 years old.';
-        if (_languages.isEmpty)                      return 'Select at least one language.';
-        if (_introController.text.trim().isEmpty)    return 'Write a short introduction.';
+        if (_existingPhotoUrl == null && _pickedProfilePhoto == null) {
+          return 'Upload a profile photo.';
+        }
+        if (_fullNameController.text.trim().isEmpty) {
+          return 'Enter your full name.';
+        }
+        if (_phoneController.text.trim().isEmpty) {
+          return 'Enter your phone number.';
+        }
+        if (!RegExp(r'^\d{10}$').hasMatch(_phoneController.text.trim())) {
+          return 'Phone number must be 10 digits.';
+        }
+        if (_emailController.text.trim().isEmpty) {
+          return 'Enter your email address.';
+        }
+        if (!RegExp(r'^\S+@\S+\.\S+$').hasMatch(_emailController.text.trim())) {
+          return 'Enter a valid email address.';
+        }
+        if (_dateOfBirth == null) {
+          return 'Select your date of birth.';
+        }
+        if (_dateOfBirth!.isAfter(DateTime.now())) {
+          return 'Birthdate cannot be in the future.';
+        }
+        if (DateTime.now().difference(_dateOfBirth!).inDays < 365 * 18) {
+          return 'You must be at least 18 years old.';
+        }
+        if (_languages.isEmpty) {
+          return 'Select at least one language.';
+        }
+        if (_introController.text.trim().isEmpty) {
+          return 'Write a short introduction.';
+        }
         return null;
       case 1:
-        if (_specializations.isEmpty) return 'Select at least one specialization.';
-        if (_areas.isEmpty)           return 'Select at least one area you guide in.';
-        if (_tourTypes.isEmpty)       return 'Select at least one tour type.';
+        if (_specializations.isEmpty) {
+          return 'Select at least one specialization.';
+        }
+        if (_areas.isEmpty) {
+          return 'Select at least one area you guide in.';
+        }
+        if (_tourTypes.isEmpty) {
+          return 'Select at least one tour type.';
+        }
         return null;
       case 2:
-        if (_idFront == null) return 'Upload government ID front side.';
-        if (_idBack == null)  return 'Upload government ID back side.';
-        if (_emergencyController.text.trim().isEmpty) return 'Enter emergency contact number.';
-        if (!RegExp(r'^\d{10}$').hasMatch(_emergencyController.text.trim())) return 'Emergency contact must be 10 digits.';
-        if (!_confirmedAccuracy) return 'Confirm that the information is true and accurate.';
+        if (_idFront == null) {
+          return 'Upload government ID front side.';
+        }
+        if (_idBack == null) {
+          return 'Upload government ID back side.';
+        }
+        if (_emergencyController.text.trim().isEmpty) {
+          return 'Enter emergency contact number.';
+        }
+        if (!RegExp(r'^\d{10}$').hasMatch(_emergencyController.text.trim())) {
+          return 'Emergency contact must be 10 digits.';
+        }
+        if (!_confirmedAccuracy) {
+          return 'Confirm that the information is true and accurate.';
+        }
         return null;
       case 3:
         // Cash is not an account: it needs nothing published, so it can never be
@@ -324,36 +414,36 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
             ? _uploadToCloudinary(_pickedProfilePhoto!, 'sampada/guides/photos')
             : Future.value(_existingPhotoUrl),
         _uploadToCloudinary(_idFront!, 'sampada/guides/id'),
-        _uploadToCloudinary(_idBack!,  'sampada/guides/id'),
+        _uploadToCloudinary(_idBack!, 'sampada/guides/id'),
         _certification != null
             ? _uploadToCloudinary(_certification!, 'sampada/guides/certs')
             : Future.value(null),
       ]);
 
-      final photoUrl   = results[0];
+      final photoUrl = results[0];
       final idFrontUrl = results[1];
-      final idBackUrl  = results[2];
-      final certUrl    = results[3];
+      final idBackUrl = results[2];
+      final certUrl = results[3];
 
       await gp.applyAsGuide({
-        'bio':               _introController.text.trim(),
-        'languages':         _languages.toList(),
-        'specialties':       _specializations.toList(),
-        'areas':             _areas.toList(),
-        'tour_types':        _tourTypes.toList(),
-        'knowledge_level':   _knowledgeLevel,
-        'years_experience':  _yearsExperience,
+        'bio': _introController.text.trim(),
+        'languages': _languages.toList(),
+        'specialties': _specializations.toList(),
+        'areas': _areas.toList(),
+        'tour_types': _tourTypes.toList(),
+        'knowledge_level': _knowledgeLevel,
+        'years_experience': _yearsExperience,
         // The applicant's own number, sent as a field rather than only being
         // buried in the `message` blob below — it is what a tourist rings from
         // the chat screen, so it has to survive as data.
-        'phone':             _phoneController.text.trim(),
+        'phone': _phoneController.text.trim(),
         'emergency_contact': _emergencyController.text.trim(),
-        'referral_code':     _referralController.text.trim(),
-        'hourly_rate':       2500.0,
-        if (photoUrl   != null) 'photo_url':        photoUrl,
-        if (idFrontUrl != null) 'id_front_url':     idFrontUrl,
-        if (idBackUrl  != null) 'id_back_url':      idBackUrl,
-        if (certUrl    != null) 'certification_url': certUrl,
+        'referral_code': _referralController.text.trim(),
+        'hourly_rate': 2500.0,
+        if (photoUrl != null) 'photo_url': photoUrl,
+        if (idFrontUrl != null) 'id_front_url': idFrontUrl,
+        if (idBackUrl != null) 'id_back_url': idBackUrl,
+        if (certUrl != null) 'certification_url': certUrl,
         'message': [
           'Name: ${_fullNameController.text.trim()}',
           'Phone: +977 ${_phoneController.text.trim()}',
@@ -377,10 +467,10 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         final payments = context.read<GuidePaymentProvider>();
         final methods = _paymentMethodsFilled;
         final payError = await payments.saveInformation(GuidePaymentInformation(
-          preferred:
-              methods.contains(_preferredPayment) || _preferredPayment == PaymentMethod.cash
-                  ? _preferredPayment
-                  : methods.first,
+          preferred: methods.contains(_preferredPayment) ||
+                  _preferredPayment == PaymentMethod.cash
+              ? _preferredPayment
+              : methods.first,
           esewaId: _esewaController.text,
           khaltiMobile: _khaltiController.text,
           fonepayNumber: _fonepayController.text,
@@ -391,9 +481,9 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         if (!mounted) return;
         if (payError != null) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                'Application sent, but your payment details did not save: '
-                '$payError You can add them from your guide profile.'),
+            content:
+                Text('Application sent, but your payment details did not save: '
+                    '$payError You can add them from your guide profile.'),
             backgroundColor: Colors.orange,
           ));
         }
@@ -411,7 +501,10 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.uploadFailed(e.toString())), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text(
+                  AppLocalizations.of(context)!.uploadFailed(e.toString())),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -424,7 +517,7 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final gp     = context.watch<GuideProvider>();
+    final gp = context.watch<GuideProvider>();
 
     // Still checking whether a submission already exists.
     if (!_statusChecked) {
@@ -460,23 +553,39 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: gp.isLoading || _isUploading ? null : _nextStep,
+                      onPressed:
+                          gp.isLoading || _isUploading ? null : _nextStep,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? AppColors.goldMain : AppColors.kColorDeep,
+                        backgroundColor:
+                            isDark ? AppColors.goldMain : AppColors.kColorDeep,
                         foregroundColor: isDark ? Colors.black : Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.kRadiusLg)),
                       ),
                       child: gp.isLoading || _isUploading
-                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white))
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  _step == 3 ? 'Submit for Review' : 'Save & Continue',
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  _step == 3
+                                      ? 'Submit for Review'
+                                      : 'Save & Continue',
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(width: 8),
-                                Icon(_step == 3 ? Icons.send_outlined : Icons.arrow_forward, size: 18),
+                                Icon(
+                                    _step == 3
+                                        ? Icons.send_outlined
+                                        : Icons.arrow_forward,
+                                    size: 18),
                               ],
                             ),
                     ),
@@ -511,42 +620,66 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 96, height: 96,
+                      width: 96,
+                      height: 96,
                       decoration: BoxDecoration(
-                        color: (isDark ? AppColors.goldMain : AppColors.kColorDeep).withValues(alpha: 0.10),
+                        color:
+                            (isDark ? AppColors.goldMain : AppColors.kColorDeep)
+                                .withValues(alpha: 0.10),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.check_circle, size: 56, color: accent),
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      _justSubmitted ? 'Application Submitted!' : 'Application Under Review',
+                      _justSubmitted
+                          ? 'Application Submitted!'
+                          : 'Application Under Review',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface),
                     ),
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.kColorPendingBg,
-                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusXxl),
                       ),
                       child: Text(
                         l10n.pendingReview,
-                        style: const TextStyle(color: AppColors.kColorPendingText, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: const TextStyle(
+                            color: AppColors.kColorPendingText,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12),
                       ),
                     ),
                     const SizedBox(height: 20),
                     Text(
                       l10n.applicationReviewMsg,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
+                      style: TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.kColorTextSecondary),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       l10n.applicationReviewNote,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12.5, height: 1.5, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextSecondary),
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? AppColors.darkTextTertiary
+                              : AppColors.kColorTextSecondary),
                     ),
                     const SizedBox(height: 32),
                     SizedBox(
@@ -557,9 +690,13 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: accent,
                           foregroundColor: isDark ? Colors.black : Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppDimensions.kRadiusLg)),
                         ),
-                        child: Text(l10n.btnBackToHome, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                        child: Text(l10n.btnBackToHome,
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -581,7 +718,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           end: Alignment.bottomCenter,
           colors: isDark
               ? const [AppColors.brownDeep, AppColors.brownDark]
-              : const [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimary],
+              : const [
+                  AppColors.kColorDeep,
+                  AppColors.kColorPrimaryMid,
+                  AppColors.kColorPrimary
+                ],
           stops: isDark ? null : const [0.0, 0.6, 1.0],
         ),
         borderRadius: const BorderRadius.only(
@@ -597,15 +738,22 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                icon:
+                    const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                 onPressed: _prevStep,
               ),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.becomeGuide, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                  Text(AppLocalizations.of(context)!.becomeGuideSubtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.becomeGuide,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold)),
+                  Text(AppLocalizations.of(context)!.becomeGuideSubtitle,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ],
@@ -618,7 +766,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   Widget _buildStepIndicator(BuildContext context, bool isDark) {
     const steps = ['Profile', 'Expertise', 'Verify', 'Payment'];
     final activeColor = isDark ? AppColors.goldMain : AppColors.kColorDeep;
-    final inactiveColor = isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle;
+    final inactiveColor =
+        isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -627,34 +776,44 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           if (i.isOdd) {
             final stepIndex = i ~/ 2;
             return Expanded(
-              child: Container(height: 2, color: _step > stepIndex ? activeColor : inactiveColor),
+              child: Container(
+                  height: 2,
+                  color: _step > stepIndex ? activeColor : inactiveColor),
             );
           }
           final stepIndex = i ~/ 2;
-          final isActive    = _step == stepIndex;
+          final isActive = _step == stepIndex;
           final isCompleted = _step > stepIndex;
           return Column(
             children: [
               Container(
-                width: 32, height: 32,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: (isActive || isCompleted) ? activeColor : Colors.transparent,
+                  color: (isActive || isCompleted)
+                      ? activeColor
+                      : Colors.transparent,
                   border: Border.all(
-                    color: (isActive || isCompleted) ? activeColor : inactiveColor,
+                    color:
+                        (isActive || isCompleted) ? activeColor : inactiveColor,
                     width: 2,
                   ),
                 ),
                 child: Center(
                   child: isCompleted
-                      ? Icon(Icons.check, size: 16, color: isDark ? Colors.black : Colors.white)
+                      ? Icon(Icons.check,
+                          size: 16, color: isDark ? Colors.black : Colors.white)
                       : Text(
                           '${stepIndex + 1}',
                           style: TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
                             color: isActive
                                 ? (isDark ? Colors.black : Colors.white)
-                                : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+                                : (isDark
+                                    ? AppColors.darkTextTertiary
+                                    : AppColors.kColorTextMuted),
                           ),
                         ),
                 ),
@@ -665,7 +824,11 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive ? activeColor : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+                  color: isActive
+                      ? activeColor
+                      : (isDark
+                          ? AppColors.darkTextTertiary
+                          : AppColors.kColorTextMuted),
                 ),
               ),
             ],
@@ -686,29 +849,39 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
         // Profile photo
         Center(
-          child: GestureDetector(
+          child: InteractiveSurface(
             onTap: () => _pickImage((f) => _pickedProfilePhoto = f),
             child: Stack(
               children: [
                 CircleAvatar(
                   radius: 48,
-                  backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
+                  backgroundColor:
+                      isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
                   backgroundImage: _pickedProfilePhoto != null
                       ? FileImage(File(_pickedProfilePhoto!.path))
-                      : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
-                  child: (_pickedProfilePhoto == null && _existingPhotoUrl == null)
-                      ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorBorderStrong)
-                      : null,
+                      : (_existingPhotoUrl != null
+                          ? NetworkImage(_existingPhotoUrl!)
+                          : null) as ImageProvider?,
+                  child:
+                      (_pickedProfilePhoto == null && _existingPhotoUrl == null)
+                          ? Icon(Icons.person,
+                              size: 48,
+                              color: isDark
+                                  ? AppColors.darkTextTertiary
+                                  : AppColors.kColorBorderStrong)
+                          : null,
                 ),
                 Positioned(
-                  bottom: 0, right: 0,
+                  bottom: 0,
+                  right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.camera_alt, size: 16, color: isDark ? Colors.black : Colors.white),
+                    child: Icon(Icons.camera_alt,
+                        size: 16, color: isDark ? Colors.black : Colors.white),
                   ),
                 ),
               ],
@@ -717,7 +890,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         ),
         const SizedBox(height: 24),
 
-        _field(context, isDark, 'Full Name', 'Enter your full name', _fullNameController),
+        _field(context, isDark, 'Full Name', 'Enter your full name',
+            _fullNameController),
         const SizedBox(height: 16),
 
         _label(context, isDark, 'Phone Number'),
@@ -725,17 +899,20 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         _phoneRow(context, isDark, _phoneController, '98XXXXXXXX'),
         const SizedBox(height: 16),
 
-        _field(context, isDark, 'Email Address', 'your@email.com', _emailController, type: TextInputType.emailAddress),
+        _field(context, isDark, 'Email Address', 'your@email.com',
+            _emailController,
+            type: TextInputType.emailAddress),
         const SizedBox(height: 16),
 
         _label(context, isDark, 'Location / District'),
         const SizedBox(height: 8),
-        _dropdown(context, isDark, _selectedLocation, _locations, (v) => setState(() => _selectedLocation = v!)),
+        _dropdown(context, isDark, _selectedLocation, _locations,
+            (v) => setState(() => _selectedLocation = v!)),
         const SizedBox(height: 16),
 
         _label(context, isDark, 'Date of Birth'),
         const SizedBox(height: 8),
-        GestureDetector(
+        InteractiveSurface(
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
@@ -751,17 +928,29 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
         _secHeader(context, isDark, 'Languages Spoken', Icons.language),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.selectAllApply, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+        Text(AppLocalizations.of(context)!.selectAllApply,
+            style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 8, runSpacing: 8,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             ..._languageOptions.map((l) => _chip(
-              context, isDark, l, _languages.contains(l),
-              () => setState(() => _languages.contains(l) ? _languages.remove(l) : _languages.add(l)),
-              showCheck: true,
-            )),
-            _outlineChip(context, isDark, '+ Add Other', onTap: _addCustomLanguage),
+                  context,
+                  isDark,
+                  l,
+                  _languages.contains(l),
+                  () => setState(() => _languages.contains(l)
+                      ? _languages.remove(l)
+                      : _languages.add(l)),
+                  showCheck: true,
+                )),
+            _outlineChip(context, isDark, '+ Add Other',
+                onTap: _addCustomLanguage),
           ],
         ),
         const SizedBox(height: 24),
@@ -770,16 +959,26 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         const SizedBox(height: 4),
         Text(
           AppLocalizations.of(context)!.aboutYourselfDesc,
-          style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+          style: TextStyle(
+              fontSize: 11,
+              color: isDark
+                  ? AppColors.darkTextTertiary
+                  : AppColors.kColorTextMuted),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _introController,
           maxLines: 4,
           maxLength: 300,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
-          decoration: _inputDecor(isDark, 'Write a short introduction...').copyWith(
-            counterStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted, fontSize: 11),
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+          decoration:
+              _inputDecor(isDark, 'Write a short introduction...').copyWith(
+            counterStyle: TextStyle(
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.kColorTextMuted,
+                fontSize: 11),
           ),
         ),
       ],
@@ -798,14 +997,25 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.star_outline, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 22),
+            Icon(Icons.star_outline,
+                color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
+                size: 22),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.guideExpertise, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  Text(AppLocalizations.of(context)!.guideExpertiseDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+                  Text(AppLocalizations.of(context)!.guideExpertise,
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  Text(AppLocalizations.of(context)!.guideExpertiseDesc,
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? AppColors.darkTextTertiary
+                              : AppColors.kColorTextMuted)),
                 ],
               ),
             ),
@@ -814,14 +1024,17 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         const SizedBox(height: 24),
 
         // Primary Specialization
-        _rowLabel(context, isDark, 'Primary Specialization', '(Select up to 3)'),
+        _rowLabel(
+            context, isDark, 'Primary Specialization', '(Select up to 3)'),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 8, runSpacing: 8,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             ..._allSpecializations.map((s) {
               final sel = _specializations.contains(s);
-              return _iconChip(context, isDark, s, _specIcons[s] ?? Icons.place, sel, () {
+              return _iconChip(
+                  context, isDark, s, _specIcons[s] ?? Icons.place, sel, () {
                 setState(() {
                   if (sel) {
                     _specializations.remove(s);
@@ -836,21 +1049,33 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         ),
         const SizedBox(height: 24),
 
-        Text(AppLocalizations.of(context)!.yearsExperience, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.yearsExperience,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
         _dropdown(context, isDark, _yearsExperience, _experienceLevels,
-            (v) => setState(() => _yearsExperience = v!), prefixIcon: Icons.bar_chart),
+            (v) => setState(() => _yearsExperience = v!),
+            prefixIcon: Icons.bar_chart),
         const SizedBox(height: 24),
 
-        _rowLabel(context, isDark, 'Areas You Guide In', '(Select all that apply)'),
+        _rowLabel(
+            context, isDark, 'Areas You Guide In', '(Select all that apply)'),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 8, runSpacing: 8,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             ..._allAreas.map((a) => _iconChip(
-              context, isDark, a, Icons.location_on_outlined, _areas.contains(a),
-              () => setState(() => _areas.contains(a) ? _areas.remove(a) : _areas.add(a)),
-            )),
+                  context,
+                  isDark,
+                  a,
+                  Icons.location_on_outlined,
+                  _areas.contains(a),
+                  () => setState(() =>
+                      _areas.contains(a) ? _areas.remove(a) : _areas.add(a)),
+                )),
             _outlineChip(context, isDark, '+ Other'),
           ],
         ),
@@ -859,18 +1084,32 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         _rowLabel(context, isDark, 'Tour Types', '(Select all that apply)'),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 8, runSpacing: 8,
-          children: _allTourTypes.map((t) => _iconChip(
-            context, isDark, t, _tourIcons[t] ?? Icons.tour, _tourTypes.contains(t),
-            () => setState(() => _tourTypes.contains(t) ? _tourTypes.remove(t) : _tourTypes.add(t)),
-          )).toList(),
+          spacing: 8,
+          runSpacing: 8,
+          children: _allTourTypes
+              .map((t) => _iconChip(
+                    context,
+                    isDark,
+                    t,
+                    _tourIcons[t] ?? Icons.tour,
+                    _tourTypes.contains(t),
+                    () => setState(() => _tourTypes.contains(t)
+                        ? _tourTypes.remove(t)
+                        : _tourTypes.add(t)),
+                  ))
+              .toList(),
         ),
         const SizedBox(height: 24),
 
-        Text(AppLocalizations.of(context)!.knowledgeLevel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.knowledgeLevel,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
         _dropdown(context, isDark, _knowledgeLevel, _knowledgeLevels,
-            (v) => setState(() => _knowledgeLevel = v!), prefixIcon: Icons.bar_chart),
+            (v) => setState(() => _knowledgeLevel = v!),
+            prefixIcon: Icons.bar_chart),
       ],
     );
   }
@@ -883,108 +1122,181 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
       children: [
         _infoBar(context, isDark),
         const SizedBox(height: 24),
-
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.shield_outlined, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 22),
+            Icon(Icons.shield_outlined,
+                color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
+                size: 22),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.verification, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  Text(AppLocalizations.of(context)!.verificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+                  Text(AppLocalizations.of(context)!.verification,
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  Text(AppLocalizations.of(context)!.verificationDesc,
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? AppColors.darkTextTertiary
+                              : AppColors.kColorTextMuted)),
                 ],
               ),
             ),
           ],
         ),
         const SizedBox(height: 24),
-
-        Text(AppLocalizations.of(context)!.governmentId, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.governmentId,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.governmentIdDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+        Text(AppLocalizations.of(context)!.governmentIdDesc,
+            style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _uploadBox(context, isDark, 'Upload ID Front Side', Icons.credit_card, _idFront != null, () => _pickImage((f) => _idFront = f))),
+            Expanded(
+                child: _uploadBox(
+                    context,
+                    isDark,
+                    'Upload ID Front Side',
+                    Icons.credit_card,
+                    _idFront != null,
+                    () => _pickImage((f) => _idFront = f))),
             const SizedBox(width: 12),
-            Expanded(child: _uploadBox(context, isDark, 'Upload ID Back Side', Icons.credit_card_outlined, _idBack != null, () => _pickImage((f) => _idBack = f))),
+            Expanded(
+                child: _uploadBox(
+                    context,
+                    isDark,
+                    'Upload ID Back Side',
+                    Icons.credit_card_outlined,
+                    _idBack != null,
+                    () => _pickImage((f) => _idBack = f))),
           ],
         ),
         const SizedBox(height: 24),
-
-        Text(AppLocalizations.of(context)!.profilePhoto, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.profilePhoto,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.profilePhotoDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+        Text(AppLocalizations.of(context)!.profilePhotoDesc,
+            style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
         Center(
           child: CircleAvatar(
             radius: 48,
-            backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
+            backgroundColor:
+                isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
             backgroundImage: _pickedProfilePhoto != null
                 ? FileImage(File(_pickedProfilePhoto!.path))
-                : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider?,
+                : (_existingPhotoUrl != null
+                    ? NetworkImage(_existingPhotoUrl!)
+                    : null) as ImageProvider?,
             child: (_pickedProfilePhoto == null && _existingPhotoUrl == null)
-                ? Icon(Icons.person, size: 48, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorBorderStrong)
+                ? Icon(Icons.person,
+                    size: 48,
+                    color: isDark
+                        ? AppColors.darkTextTertiary
+                        : AppColors.kColorBorderStrong)
                 : null,
           ),
         ),
         const SizedBox(height: 24),
-
         Row(
           children: [
-            Text(AppLocalizations.of(context)!.certification, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+            Text(AppLocalizations.of(context)!.certification,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(width: 6),
-            Text('(Optional)', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+            Text('(Optional)',
+                style: TextStyle(
+                    fontSize: 11,
+                    color: isDark
+                        ? AppColors.darkTextTertiary
+                        : AppColors.kColorTextMuted)),
           ],
         ),
         const SizedBox(height: 4),
-        Text(AppLocalizations.of(context)!.certificationDesc, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+        Text(AppLocalizations.of(context)!.certificationDesc,
+            style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.kColorTextMuted)),
         const SizedBox(height: 12),
-        _uploadBox(context, isDark, 'Upload Certificate', Icons.workspace_premium_outlined, _certification != null, () => _pickImage((f) => _certification = f)),
+        _uploadBox(
+            context,
+            isDark,
+            'Upload Certificate',
+            Icons.workspace_premium_outlined,
+            _certification != null,
+            () => _pickImage((f) => _certification = f)),
         const SizedBox(height: 24),
-
-        Text(AppLocalizations.of(context)!.additionalInfo, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(AppLocalizations.of(context)!.additionalInfo,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 16),
-
         _label(context, isDark, 'Emergency Contact Number'),
         const SizedBox(height: 8),
         _phoneRow(context, isDark, _emergencyController, '98XXXXXXXX'),
         const SizedBox(height: 16),
-
-        _field(context, isDark, 'Referral Code (Optional)', 'Enter referral code (if any)', _referralController),
+        _field(context, isDark, 'Referral Code (Optional)',
+            'Enter referral code (if any)', _referralController),
         const SizedBox(height: 24),
-
-        GestureDetector(
+        InteractiveSurface(
           onTap: () => setState(() => _confirmedAccuracy = !_confirmedAccuracy),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 20, height: 20,
+                width: 20,
+                height: 20,
                 margin: const EdgeInsets.only(top: 1),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
                   border: Border.all(
                     color: _confirmedAccuracy
                         ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
-                        : (isDark ? AppColors.darkBorder : AppColors.kColorTextMuted),
+                        : (isDark
+                            ? AppColors.darkBorder
+                            : AppColors.kColorTextMuted),
                   ),
                   color: _confirmedAccuracy
                       ? (isDark ? AppColors.goldMain : AppColors.kColorDeep)
                       : Colors.transparent,
                 ),
                 child: _confirmedAccuracy
-                    ? Icon(Icons.check, size: 14, color: isDark ? Colors.black : Colors.white)
+                    ? Icon(Icons.check,
+                        size: 14, color: isDark ? Colors.black : Colors.white)
                     : null,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   AppLocalizations.of(context)!.confirmInfoAccurate,
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurface),
                 ),
               ),
             ],
@@ -1001,7 +1313,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   /// only to tourists who have actually booked them, and the guide confirms each
   /// payment themselves before a booking counts as settled.
   Widget _buildStep4(BuildContext context, bool isDark) {
-    final muted = isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted;
+    final muted =
+        isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted;
     final accent = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final filled = _paymentMethodsFilled;
 
@@ -1014,7 +1327,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.account_balance_wallet_outlined, color: accent, size: 22),
+            Icon(Icons.account_balance_wallet_outlined,
+                color: accent, size: 22),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -1037,12 +1351,14 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
         ),
         const SizedBox(height: 24),
 
-        _field(context, isDark, 'eSewa ID', 'Mobile number or eSewa ID', _esewaController),
+        _field(context, isDark, 'eSewa ID', 'Mobile number or eSewa ID',
+            _esewaController),
         const SizedBox(height: 16),
-        _field(context, isDark, 'Khalti Mobile', '98XXXXXXXX', _khaltiController),
+        _field(
+            context, isDark, 'Khalti Mobile', '98XXXXXXXX', _khaltiController),
         const SizedBox(height: 16),
-        _field(context, isDark, 'Fonepay Number', 'Mobile or Fonepay account number',
-            _fonepayController),
+        _field(context, isDark, 'Fonepay Number',
+            'Mobile or Fonepay account number', _fonepayController),
         const SizedBox(height: 8),
         Text('Add at least one. You can add the others later.',
             style: TextStyle(fontSize: 11, color: muted)),
@@ -1070,8 +1386,12 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
             style: TextStyle(fontSize: 11, color: muted)),
         const SizedBox(height: 24),
 
-        _field(context, isDark, 'Note for Tourists (Optional)',
-            'e.g. Put your booking reference in the remarks.', _payNotesController),
+        _field(
+            context,
+            isDark,
+            'Note for Tourists (Optional)',
+            'e.g. Put your booking reference in the remarks.',
+            _payNotesController),
         const SizedBox(height: 16),
 
         Container(
@@ -1111,15 +1431,27 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: isDark ? AppColors.darkBgCard : AppColors.kColorBorderCream,
-              child: Icon(Icons.people_outline, size: 16, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
+              backgroundColor:
+                  isDark ? AppColors.darkBgCard : AppColors.kColorBorderCream,
+              child: Icon(Icons.people_outline,
+                  size: 16,
+                  color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
             ),
             const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppLocalizations.of(context)!.joinVerifiedGuides, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                Text(AppLocalizations.of(context)!.earnFromHeritage, style: TextStyle(fontSize: 10, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
+                Text(AppLocalizations.of(context)!.joinVerifiedGuides,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface)),
+                Text(AppLocalizations.of(context)!.earnFromHeritage,
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.kColorTextMuted)),
               ],
             ),
           ],
@@ -1133,7 +1465,10 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           ),
           child: Text(
             'NPR 2,500 / day avg',
-            style: TextStyle(color: isDark ? AppColors.goldMain : AppColors.kColorDeep, fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(
+                color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
+                fontWeight: FontWeight.bold,
+                fontSize: 11),
           ),
         ),
       ],
@@ -1142,9 +1477,21 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
   Widget _buildFooter(BuildContext context, bool isDark) {
     const data = [
-      (Icons.list_alt_outlined, 'What happens next?', 'Our team will review your application and verify your details.'),
-      (Icons.access_time_outlined, 'What happens next?', 'You\'ll be notified within 1 – 2 business days via email or app.'),
-      (Icons.bookmark_outline, 'What happens next?', 'Once approved, you can start receiving bookings and earning!'),
+      (
+        Icons.list_alt_outlined,
+        'What happens next?',
+        'Our team will review your application and verify your details.'
+      ),
+      (
+        Icons.access_time_outlined,
+        'What happens next?',
+        'You\'ll be notified within 1 – 2 business days via email or app.'
+      ),
+      (
+        Icons.bookmark_outline,
+        'What happens next?',
+        'Once approved, you can start receiving bookings and earning!'
+      ),
     ];
     final (icon, title, body) = data[_step];
     return Container(
@@ -1156,14 +1503,25 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
       ),
       child: Row(
         children: [
-          Icon(icon, color: isDark ? AppColors.goldMain : AppColors.kColorDeep, size: 28),
+          Icon(icon,
+              color: isDark ? AppColors.goldMain : AppColors.kColorDeep,
+              size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                Text(body, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextMuted)),
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface)),
+                Text(body,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.kColorTextMuted)),
               ],
             ),
           ),
@@ -1172,12 +1530,19 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     );
   }
 
-  Widget _secHeader(BuildContext context, bool isDark, String title, IconData icon) {
+  Widget _secHeader(
+      BuildContext context, bool isDark, String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
+        Icon(icon,
+            size: 18,
+            color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
         const SizedBox(width: 8),
-        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(title,
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface)),
       ],
     );
   }
@@ -1185,20 +1550,38 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
   Widget _rowLabel(BuildContext context, bool isDark, String main, String sub) {
     return Row(
       children: [
-        Text(main, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        Text(main,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(width: 6),
-        Text(sub, style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted)),
+        Text(sub,
+            style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.kColorTextMuted)),
       ],
     );
   }
 
   Widget _label(BuildContext context, bool isDark, String text) {
-    return Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted));
+    return Text(text,
+        style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: isDark
+                ? AppColors.darkTextTertiary
+                : AppColors.kColorTextMuted));
   }
 
-  InputDecoration _inputDecor(bool isDark, String hint) => _guideInputDecor(isDark, hint);
+  InputDecoration _inputDecor(bool isDark, String hint) =>
+      _guideInputDecor(isDark, hint);
 
-  Widget _field(BuildContext context, bool isDark, String label, String hint, TextEditingController ctrl, {int maxLines = 1, TextInputType type = TextInputType.text}) {
+  Widget _field(BuildContext context, bool isDark, String label, String hint,
+      TextEditingController ctrl,
+      {int maxLines = 1, TextInputType type = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1208,28 +1591,40 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           controller: ctrl,
           maxLines: maxLines,
           keyboardType: type,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
           decoration: _inputDecor(isDark, hint),
         ),
       ],
     );
   }
 
-  Widget _phoneRow(BuildContext context, bool isDark, TextEditingController ctrl, String hint) {
+  Widget _phoneRow(BuildContext context, bool isDark,
+      TextEditingController ctrl, String hint) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
           decoration: BoxDecoration(
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+            border: Border.all(
+                color: isDark
+                    ? AppColors.darkBorder
+                    : AppColors.kColorBorderCream),
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
             color: isDark ? AppColors.darkBgCard : Colors.transparent,
           ),
           child: Row(
             children: [
-              Text('+977', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
+              Text('+977',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 14)),
               const SizedBox(width: 4),
-              Icon(Icons.arrow_drop_down, size: 16, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+              Icon(Icons.arrow_drop_down,
+                  size: 16,
+                  color: isDark
+                      ? AppColors.darkTextTertiary
+                      : AppColors.kColorTextMuted),
             ],
           ),
         ),
@@ -1238,7 +1633,8 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           child: TextField(
             controller: ctrl,
             keyboardType: TextInputType.phone,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
             decoration: _inputDecor(isDark, hint),
           ),
         ),
@@ -1250,13 +1646,18 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         color: isDark ? AppColors.darkBgCard : Colors.transparent,
       ),
       child: Row(
         children: [
-          Icon(Icons.calendar_today_outlined, size: 16, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+          Icon(Icons.calendar_today_outlined,
+              size: 16,
+              color: isDark
+                  ? AppColors.darkTextTertiary
+                  : AppColors.kColorTextMuted),
           const SizedBox(width: 8),
           Text(
             _dateOfBirth != null
@@ -1266,7 +1667,9 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
               fontSize: 14,
               color: _dateOfBirth != null
                   ? Theme.of(context).colorScheme.onSurface
-                  : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+                  : (isDark
+                      ? AppColors.darkTextTertiary
+                      : AppColors.kColorTextMuted),
             ),
           ),
         ],
@@ -1274,11 +1677,14 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     );
   }
 
-  Widget _dropdown(BuildContext context, bool isDark, String value, List<String> items, ValueChanged<String?> onChanged, {IconData? prefixIcon}) {
+  Widget _dropdown(BuildContext context, bool isDark, String value,
+      List<String> items, ValueChanged<String?> onChanged,
+      {IconData? prefixIcon}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
+        border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream),
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
         color: isDark ? AppColors.darkBgCard : Colors.transparent,
       ),
@@ -1289,36 +1695,50 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           icon: const Icon(Icons.keyboard_arrow_down),
           iconEnabledColor: AppColors.kColorTextMuted,
           dropdownColor: isDark ? AppColors.darkBgCard : Colors.white,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
-          items: items.map((e) => DropdownMenuItem(
-            value: e,
-            child: Row(
-              children: [
-                if (prefixIcon != null) ...[
-                  Icon(prefixIcon, size: 16, color: isDark ? AppColors.goldMain : AppColors.kColorDeep),
-                  const SizedBox(width: 8),
-                ],
-                Text(e),
-              ],
-            ),
-          )).toList(),
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+          items: items
+              .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Row(
+                      children: [
+                        if (prefixIcon != null) ...[
+                          Icon(prefixIcon,
+                              size: 16,
+                              color: isDark
+                                  ? AppColors.goldMain
+                                  : AppColors.kColorDeep),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(e),
+                      ],
+                    ),
+                  ))
+              .toList(),
           onChanged: onChanged,
         ),
       ),
     );
   }
 
-  Widget _chip(BuildContext context, bool isDark, String label, bool selected, VoidCallback onTap, {bool showCheck = false}) {
-    final activeBg   = isDark ? AppColors.goldMain : AppColors.kColorDeep;
+  Widget _chip(BuildContext context, bool isDark, String label, bool selected,
+      VoidCallback onTap,
+      {bool showCheck = false}) {
+    final activeBg = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final inactiveBg = isDark ? AppColors.darkBgCard : Colors.white;
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
           color: selected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)),
+          border: Border.all(
+              color: selected
+                  ? activeBg
+                  : (isDark
+                      ? AppColors.darkBorder
+                      : AppColors.kColorBorderSubtle)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1326,13 +1746,19 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
             Text(
               label,
               style: TextStyle(
-                fontSize: 12, fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                color: selected
+                    ? (isDark ? Colors.black : Colors.white)
+                    : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.kColorTextSecondary),
               ),
             ),
             if (selected && showCheck) ...[
               const SizedBox(width: 4),
-              Icon(Icons.check, size: 12, color: isDark ? Colors.black : Colors.white),
+              Icon(Icons.check,
+                  size: 12, color: isDark ? Colors.black : Colors.white),
             ],
           ],
         ),
@@ -1340,36 +1766,53 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
     );
   }
 
-  Widget _iconChip(BuildContext context, bool isDark, String label, IconData icon, bool selected, VoidCallback onTap) {
-    final activeBg   = isDark ? AppColors.goldMain : AppColors.kColorDeep;
+  Widget _iconChip(BuildContext context, bool isDark, String label,
+      IconData icon, bool selected, VoidCallback onTap) {
+    final activeBg = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final inactiveBg = isDark ? AppColors.darkBgCard : Colors.white;
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
           color: selected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: selected ? activeBg : (isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle)),
+          border: Border.all(
+              color: selected
+                  ? activeBg
+                  : (isDark
+                      ? AppColors.darkBorder
+                      : AppColors.kColorBorderSubtle)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              icon, size: 14,
-              color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextSecondary),
+              icon,
+              size: 14,
+              color: selected
+                  ? (isDark ? Colors.black : Colors.white)
+                  : (isDark
+                      ? AppColors.darkTextTertiary
+                      : AppColors.kColorTextSecondary),
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12, fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? (isDark ? Colors.black : Colors.white) : (isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary),
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                color: selected
+                    ? (isDark ? Colors.black : Colors.white)
+                    : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.kColorTextSecondary),
               ),
             ),
             if (selected) ...[
               const SizedBox(width: 4),
-              Icon(Icons.check, size: 12, color: isDark ? Colors.black : Colors.white),
+              Icon(Icons.check,
+                  size: 12, color: isDark ? Colors.black : Colors.white),
             ],
           ],
         ),
@@ -1379,24 +1822,33 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 
   /// Without [onTap] this is a static affordance — the "+ More" / "+ Other"
   /// chips on step 2 are still inert.
-  Widget _outlineChip(BuildContext context, bool isDark, String label, {VoidCallback? onTap}) {
-    return GestureDetector(
+  Widget _outlineChip(BuildContext context, bool isDark, String label,
+      {VoidCallback? onTap}) {
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkBgCard : Colors.white,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-          border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
+          border: Border.all(
+              color:
+                  isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
         ),
-        child: Text(label, style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.kColorTextSecondary)),
       ),
     );
   }
 
-  Widget _uploadBox(BuildContext context, bool isDark, String label, IconData icon, bool uploaded, VoidCallback onTap) {
+  Widget _uploadBox(BuildContext context, bool isDark, String label,
+      IconData icon, bool uploaded, VoidCallback onTap) {
     final accentColor = isDark ? AppColors.goldMain : AppColors.kColorDeep;
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
@@ -1404,22 +1856,34 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
           color: isDark ? AppColors.darkBgCard : Colors.white,
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
           border: Border.all(
-            color: uploaded ? accentColor : (isDark ? AppColors.darkBorder : const Color(0xFFCCBCAF)),
+            color: uploaded
+                ? accentColor
+                : (isDark ? AppColors.darkBorder : const Color(0xFFCCBCAF)),
             style: BorderStyle.solid,
           ),
         ),
         child: Column(
           children: [
-            Icon(uploaded ? Icons.check_circle : icon, color: accentColor, size: 28),
+            Icon(uploaded ? Icons.check_circle : icon,
+                color: accentColor, size: 28),
             const SizedBox(height: 8),
             Text(
               uploaded ? 'Uploaded' : label,
               textAlign: TextAlign.center,
-              style: TextStyle(color: accentColor, fontSize: 12, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                  color: accentColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500),
             ),
             if (!uploaded) ...[
               const SizedBox(height: 4),
-              Text(AppLocalizations.of(context)!.fileTypeHint, textAlign: TextAlign.center, style: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted, fontSize: 10)),
+              Text(AppLocalizations.of(context)!.fileTypeHint,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: isDark
+                          ? AppColors.darkTextTertiary
+                          : AppColors.kColorTextMuted,
+                      fontSize: 10)),
             ],
           ],
         ),
@@ -1431,13 +1895,26 @@ class _BecomeGuideScreenState extends State<BecomeGuideScreen>
 InputDecoration _guideInputDecor(bool isDark, String hint) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted, fontSize: 14),
+    hintStyle: TextStyle(
+        color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted,
+        fontSize: 14),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     filled: isDark,
     fillColor: isDark ? AppColors.darkBgCard : Colors.transparent,
-    border:        OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream)),
-    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderCream)),
-    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg), borderSide: BorderSide(color: isDark ? AppColors.goldMain : AppColors.kColorDeep)),
+    border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+        borderSide: BorderSide(
+            color:
+                isDark ? AppColors.darkBorder : AppColors.kColorBorderCream)),
+    enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+        borderSide: BorderSide(
+            color:
+                isDark ? AppColors.darkBorder : AppColors.kColorBorderCream)),
+    focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+        borderSide: BorderSide(
+            color: isDark ? AppColors.goldMain : AppColors.kColorDeep)),
   );
 }
 
@@ -1502,7 +1979,8 @@ class _AddLanguageDialogState extends State<_AddLanguageDialog> {
         textCapitalization: TextCapitalization.words,
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _submit(),
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+        style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
         decoration: _guideInputDecor(isDark, 'e.g. Newari, French').copyWith(
           errorText: _errorText,
           counterText: '',
@@ -1511,11 +1989,16 @@ class _AddLanguageDialogState extends State<_AddLanguageDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary)),
+          child: Text('Cancel',
+              style: TextStyle(
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.kColorTextSecondary)),
         ),
         TextButton(
           onPressed: _submit,
-          child: Text('Add', style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
+          child: Text('Add',
+              style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
         ),
       ],
     );

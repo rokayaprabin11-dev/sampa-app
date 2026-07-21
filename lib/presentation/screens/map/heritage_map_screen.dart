@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -198,7 +199,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     final controller = AnimationController(vsync: this, duration: flight);
     _flyController = controller;
 
-    final move = CurvedAnimation(parent: controller, curve: Curves.easeInOutCubic);
+    final move =
+        CurvedAnimation(parent: controller, curve: Curves.easeInOutCubic);
     final latTween = Tween<double>(begin: start.latitude, end: dest.latitude);
     final lngTween = Tween<double>(begin: start.longitude, end: dest.longitude);
 
@@ -212,8 +214,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             tween: Tween(begin: midZoom, end: endZoom), weight: 55),
       ]).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
     } else {
-      zoom = Tween<double>(begin: startZoom, end: endZoom)
-          .animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+      zoom = Tween<double>(begin: startZoom, end: endZoom).animate(
+          CurvedAnimation(parent: controller, curve: Curves.easeInOut));
     }
 
     controller.addListener(() {
@@ -232,8 +234,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   void _zoomBy(double delta) {
     final camera = _mapController.camera;
     final target = (camera.zoom + delta).clamp(_minZoom, _maxZoom);
-    _flyTo(camera.center, target,
-        duration: const Duration(milliseconds: 250));
+    _flyTo(camera.center, target, duration: const Duration(milliseconds: 250));
   }
 
   Future<void> _tryLocate() async {
@@ -356,7 +357,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
       return null;
     }
 
-    double score(_MapItem item, double match, double popularity, double priority) {
+    double score(
+        _MapItem item, double match, double popularity, double priority) {
       final visible = bounds.contains(item.point) ? 1.0 : 0.0;
       var proximity = 0.0;
       if (pos != null) {
@@ -491,9 +493,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   /// Two closest heritage sites to the user; without a fix, the first two
   /// (distance hidden — never show a km label that isn't from a real fix).
   List<(_MapItem, double?)> _nearestTwoSites(HeritageProvider heritage) {
-    final valid = heritage.sites
-        .where((s) => _inNepal(s.latitude, s.longitude))
-        .toList();
+    final valid =
+        heritage.sites.where((s) => _inNepal(s.latitude, s.longitude)).toList();
     final pos = _userPosition;
     if (pos == null) {
       return valid.take(2).map((s) => (_fromSite(s), null as double?)).toList();
@@ -602,8 +603,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppDimensions.sp16, AppDimensions.sp8, AppDimensions.sp16, AppDimensions.sp16),
+          padding: const EdgeInsets.fromLTRB(AppDimensions.sp16,
+              AppDimensions.sp8, AppDimensions.sp16, AppDimensions.sp16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -646,14 +647,13 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
         textInputAction: TextInputAction.search,
         onChanged: _onSearchChanged,
         onSubmitted: _onSearch,
-        style: const TextStyle(
-            color: AppColors.kColorTextBody, fontSize: 14),
+        style: const TextStyle(color: AppColors.kColorTextBody, fontSize: 14),
         decoration: InputDecoration(
           isDense: true,
           border: InputBorder.none,
           hintText: l10n.searchHeritageHint,
-          hintStyle: const TextStyle(
-              color: AppColors.kColorTextMuted, fontSize: 14),
+          hintStyle:
+              const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
           prefixIcon: const Icon(Icons.search,
               color: AppColors.kColorTextMuted, size: AppDimensions.iconMd),
           suffixIcon: _searchController.text.isEmpty
@@ -668,8 +668,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                     setState(() => _suggestions = const []);
                   },
                 ),
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 12, horizontal: AppDimensions.sp16),
+          contentPadding: const EdgeInsets.symmetric(
+              vertical: 12, horizontal: AppDimensions.sp16),
         ),
       ),
     );
@@ -733,14 +733,13 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     final size = isSelected ? 46.0 : 38.0;
     // Events use the temple-red brand fill; sites keep the heritage gold —
     // so the two kinds are distinguishable at a glance.
-    final fill = item.isEvent
-        ? AppColors.kColorPrimary
-        : AppColors.kColorAccentLight;
+    final fill =
+        item.isEvent ? AppColors.kColorPrimary : AppColors.kColorAccentLight;
     return Marker(
       point: item.point,
       width: size,
       height: size,
-      child: GestureDetector(
+      child: InteractiveSurface(
         onTap: () => _selectItem(item),
         child: AnimatedBuilder(
           animation: _bounce,
@@ -793,13 +792,11 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
             decoration: BoxDecoration(
               color: AppColors.statusInfo,
               shape: BoxShape.circle,
-              border: Border.all(
-                  color: AppColors.kColorTextOnPrimary, width: 2.5),
+              border:
+                  Border.all(color: AppColors.kColorTextOnPrimary, width: 2.5),
               boxShadow: const [
                 BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 1)),
+                    color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
               ],
             ),
           ),
@@ -889,8 +886,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(vertical: AppDimensions.sp4),
         itemCount: _suggestions.length,
-        separatorBuilder: (_, __) => const Divider(
-            height: 1, color: AppColors.kColorBorderFaint),
+        separatorBuilder: (_, __) =>
+            const Divider(height: 1, color: AppColors.kColorBorderFaint),
         itemBuilder: (context, i) {
           final item = _suggestions[i];
           final km = pos == null
@@ -926,8 +923,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                           children: [
                             if (item.isEvent) ...[
                               const Icon(Icons.event,
-                                  size: 11,
-                                  color: AppColors.kColorPrimary),
+                                  size: 11, color: AppColors.kColorPrimary),
                               const SizedBox(width: 3),
                             ],
                             Expanded(
@@ -950,8 +946,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
                     Text(
                       GeoDistance.shortLabel(km),
                       style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.kColorTextSecondary),
+                          fontSize: 11, color: AppColors.kColorTextSecondary),
                     ),
                   ],
                 ],
@@ -1040,7 +1035,7 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
   }
 
   Widget _itemCard(AppLocalizations l10n, _MapItem item, double? km) {
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: () => _selectItem(item),
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.sp12),
@@ -1166,7 +1161,8 @@ class _HeritageMapScreenState extends State<HeritageMapScreen>
     if (item.isEvent && item.event != null) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => EventDetailScreen(event: item.event!)),
+        MaterialPageRoute(
+            builder: (_) => EventDetailScreen(event: item.event!)),
       );
     } else if (item.site != null) {
       Navigator.pushNamed(context, AppStrings.heritageDetailsPath,

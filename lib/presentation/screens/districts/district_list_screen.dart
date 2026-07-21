@@ -305,21 +305,13 @@ class _CircleIconButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
+          hoverColor: Colors.white.withValues(alpha: 0.1),
           customBorder: const CircleBorder(),
           child: SizedBox(
             width: 48,
             height: 48,
             child: Center(
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                ),
-                child: Icon(icon, color: Colors.white, size: 17),
-              ),
+              child: Icon(icon, color: Colors.white, size: 20),
             ),
           ),
         ),

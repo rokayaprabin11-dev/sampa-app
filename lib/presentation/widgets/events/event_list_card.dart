@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 
 /// Shared event card used on both the Events screen ("Current Events") and the
 /// Home screen ("Nearby Events") so they render identically. Thumbnail + title
@@ -38,8 +39,9 @@ class EventListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
@@ -66,7 +68,8 @@ class EventListCard extends StatelessWidget {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: isLight ? AppColors.bgCream : AppColors.darkBgCard,
-                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusLg),
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusLg),
                   ),
                   child: imageUrl.isNotEmpty
                       ? AppNetworkImage(
@@ -79,8 +82,9 @@ class EventListCard extends StatelessWidget {
                               size: 40),
                         )
                       : Icon(Icons.music_note,
-                          color:
-                              isLight ? AppColors.brownDark : AppColors.goldMain,
+                          color: isLight
+                              ? AppColors.brownDark
+                              : AppColors.goldMain,
                           size: 40),
                 ),
                 const SizedBox(width: 16),
@@ -171,7 +175,8 @@ class EventListCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 2),
-                Icon(Icons.chevron_right, size: 18, color: AppColors.brownAccent),
+                Icon(Icons.chevron_right,
+                    size: 18, color: AppColors.brownAccent),
               ],
             ),
           ],

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -203,7 +204,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             bookingTabOf(b) == _tab && _matchesQuery(b) && _filters.matches(b))
         .toList();
 
-    int byDate(Map<String, dynamic> a, Map<String, dynamic> b, {bool asc = true}) {
+    int byDate(Map<String, dynamic> a, Map<String, dynamic> b,
+        {bool asc = true}) {
       final r = '${a['created_at'] ?? a['date']}'
           .compareTo('${b['created_at'] ?? b['date']}');
       return asc ? r : -r;
@@ -291,7 +293,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           : Text(l10n.myBookingsTitle),
       actions: [
         IconButton(
-          tooltip: _searching ? l10n.tooltipCloseSearch : l10n.tooltipSearchBookings,
+          tooltip:
+              _searching ? l10n.tooltipCloseSearch : l10n.tooltipSearchBookings,
           icon: Icon(_searching ? Icons.close : Icons.search, color: onHeader),
           onPressed: () => setState(() {
             _searching = !_searching;
@@ -332,8 +335,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     // Loading (first paint, nothing cached yet) → skeletons.
     if (_loading && all.isEmpty) {
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(AppDimensions.sp16, AppDimensions.sp8,
-            AppDimensions.sp16, AppDimensions.sp24),
+        padding: const EdgeInsets.fromLTRB(AppDimensions.sp16,
+            AppDimensions.sp8, AppDimensions.sp16, AppDimensions.sp24),
         itemCount: 3,
         separatorBuilder: (_, __) => const SizedBox(height: AppDimensions.sp14),
         itemBuilder: (_, __) => const BookingCardSkeleton(),
@@ -345,7 +348,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     if (gp.bookingsError != null && all.isEmpty) {
       final l10n = AppLocalizations.of(context)!;
       return BookingErrorView(
-        message: _offline ? l10n.offlineReconnect : l10n.somethingWentWrongServer,
+        message:
+            _offline ? l10n.offlineReconnect : l10n.somethingWentWrongServer,
         onRetry: _retry,
       );
     }
@@ -453,8 +457,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppDimensions.kRadiusXxl)),
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppDimensions.kRadiusXxl)),
       ),
       builder: (_) => _FilterSheet(
         initial: _filters,
@@ -526,7 +530,7 @@ class _TabBar extends StatelessWidget {
               button: true,
               selected: selected,
               label: l10n.semanticsTabBookings(tab.label(l10n), count),
-              child: GestureDetector(
+              child: InteractiveSurface(
                 onTap: () => onChanged(tab),
                 behavior: HitTestBehavior.opaque,
                 child: AnimatedContainer(
@@ -599,7 +603,8 @@ class BookingCard extends StatelessWidget {
     final rating = asDoubleOrNull(guide?['rating_avg']);
     final verified = guide?['is_verified'] == true;
     final languages =
-        (guide?['languages'] as List?)?.whereType<String>().toList() ?? const [];
+        (guide?['languages'] as List?)?.whereType<String>().toList() ??
+            const [];
     final price = asDoubleOrNull(booking['total_price']);
     final group = bookingGroupSize(booking);
 
@@ -741,7 +746,8 @@ class _Meta extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: AppDimensions.iconSm, color: AppColors.kColorAccentSafe),
+        Icon(icon,
+            size: AppDimensions.iconSm, color: AppColors.kColorAccentSafe),
         const SizedBox(width: AppDimensions.sp6),
         Flexible(
           child: Text(
@@ -810,7 +816,8 @@ class _QuickActions extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => ChatScreen(
               bookingId: booking['id'] as int,
-              otherPartyName: (booking['guide_name'] ?? l10n.tourGuide).toString(),
+              otherPartyName:
+                  (booking['guide_name'] ?? l10n.tourGuide).toString(),
             ),
           ),
         ),
@@ -847,7 +854,10 @@ class _FilledAction extends StatelessWidget {
   final VoidCallback onTap;
   final Color? color;
   const _FilledAction(
-      {required this.icon, required this.label, required this.onTap, this.color});
+      {required this.icon,
+      required this.label,
+      required this.onTap,
+      this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -871,7 +881,10 @@ class _OutlineAction extends StatelessWidget {
   final VoidCallback onTap;
   final Color? color;
   const _OutlineAction(
-      {required this.icon, required this.label, required this.onTap, this.color});
+      {required this.icon,
+      required this.label,
+      required this.onTap,
+      this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -932,8 +945,8 @@ class _FilterSheetState extends State<_FilterSheet> {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppDimensions.sp20, AppDimensions.sp16,
-            AppDimensions.sp20, AppDimensions.sp20),
+        padding: const EdgeInsets.fromLTRB(AppDimensions.sp20,
+            AppDimensions.sp16, AppDimensions.sp20, AppDimensions.sp20),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -946,7 +959,8 @@ class _FilterSheetState extends State<_FilterSheet> {
                   margin: const EdgeInsets.only(bottom: AppDimensions.sp16),
                   decoration: BoxDecoration(
                     color: bookingBorder(context),
-                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusPill),
                   ),
                 ),
               ),
@@ -964,7 +978,6 @@ class _FilterSheetState extends State<_FilterSheet> {
                 ],
               ),
               const SizedBox(height: AppDimensions.sp8),
-
               _group(context, l10n.groupStatus),
               Wrap(
                 spacing: AppDimensions.sp8,
@@ -978,7 +991,6 @@ class _FilterSheetState extends State<_FilterSheet> {
                         ))
                     .toList(),
               ),
-
               _group(context, l10n.groupPayment),
               Wrap(
                 spacing: AppDimensions.sp8,
@@ -992,7 +1004,6 @@ class _FilterSheetState extends State<_FilterSheet> {
                         ))
                     .toList(),
               ),
-
               if (widget.availablePackages.isNotEmpty) ...[
                 _group(context, l10n.groupPackage),
                 Wrap(
@@ -1002,13 +1013,13 @@ class _FilterSheetState extends State<_FilterSheet> {
                       .map((p) => _choice(
                             label: p,
                             selected: _draft.packages.contains(p),
-                            onTap: () => setState(() => _draft = _draft.copyWith(
-                                packages: _toggle(_draft.packages, p))),
+                            onTap: () => setState(() => _draft =
+                                _draft.copyWith(
+                                    packages: _toggle(_draft.packages, p))),
                           ))
                       .toList(),
                 ),
               ],
-
               _group(context, l10n.groupTourDate),
               Wrap(
                 spacing: AppDimensions.sp8,
@@ -1017,12 +1028,11 @@ class _FilterSheetState extends State<_FilterSheet> {
                     .map((w) => _choice(
                           label: w.label(l10n),
                           selected: _draft.window == w,
-                          onTap: () =>
-                              setState(() => _draft = _draft.copyWith(window: w)),
+                          onTap: () => setState(
+                              () => _draft = _draft.copyWith(window: w)),
                         ))
                     .toList(),
               ),
-
               _group(context, l10n.groupSortBy),
               Wrap(
                 spacing: AppDimensions.sp8,
@@ -1036,7 +1046,6 @@ class _FilterSheetState extends State<_FilterSheet> {
                         ))
                     .toList(),
               ),
-
               const SizedBox(height: AppDimensions.sp24),
               SizedBox(
                 width: double.infinity,

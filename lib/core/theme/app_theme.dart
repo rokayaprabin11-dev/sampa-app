@@ -31,40 +31,71 @@ class AppTheme {
   );
 
   static ThemeData get light => _buildLight();
-  static ThemeData get dark  => _buildDark();
+  static ThemeData get dark => _buildDark();
 
   static ThemeData _buildLight() {
     final base = ThemeData.light(useMaterial3: true);
     return base.copyWith(
+      splashFactory: InkRipple.splashFactory,
+      hoverColor: AppColors.kColorPrimary.withValues(alpha: 0.06),
+      focusColor: AppColors.kFocusRing.withValues(alpha: 0.14),
+      highlightColor: AppColors.kColorPrimary.withValues(alpha: 0.10),
       scaffoldBackgroundColor: AppColors.kColorBgPage,
       colorScheme: const ColorScheme.light(
-        primary:          AppColors.kColorPrimary,
-        onPrimary:        AppColors.kColorTextOnPrimary,
+        primary: AppColors.kColorPrimary,
+        onPrimary: AppColors.kColorTextOnPrimary,
         primaryContainer: AppColors.kColorPrimaryDark,
         onPrimaryContainer: AppColors.kColorTextOnPrimary,
-        secondary:        AppColors.kColorAccent,
-        onSecondary:      AppColors.kColorTextOnPrimary,
-        surface:          AppColors.kColorSurface,
-        onSurface:        AppColors.kColorTextBody,
+        secondary: AppColors.kColorAccent,
+        onSecondary: AppColors.kColorTextOnPrimary,
+        surface: AppColors.kColorSurface,
+        onSurface: AppColors.kColorTextBody,
         surfaceContainerHighest: AppColors.kColorBgWarm,
-        outline:          AppColors.kColorBorderMid,
-        outlineVariant:   AppColors.kColorBorderSubtle,
-        error:            Color(0xFFC62828),
-        onError:          AppColors.kColorTextOnPrimary,
-        shadow:           AppColors.kShadowColor,
+        outline: AppColors.kColorBorderMid,
+        outlineVariant: AppColors.kColorBorderSubtle,
+        error: Color(0xFFC62828),
+        onError: AppColors.kColorTextOnPrimary,
+        shadow: AppColors.kShadowColor,
       ),
-      textTheme: GoogleFonts.crimsonProTextTheme(base.textTheme).copyWith(
-        displayLarge:  GoogleFonts.cinzel(fontSize: 26, fontWeight: FontWeight.w600, color: AppColors.kColorTextHeading),
-        displayMedium: GoogleFonts.cinzel(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.kColorTextHeading),
-        titleLarge:    GoogleFonts.cinzel(fontSize: 20, fontWeight: FontWeight.w500, color: AppColors.kColorTextHeading),
-        titleMedium:   GoogleFonts.cinzel(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.kColorTextHeading),
-        titleSmall:    GoogleFonts.cinzel(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.kColorTextHeading),
-        bodyLarge:     GoogleFonts.crimsonPro(fontSize: 16, color: AppColors.kColorTextBody),
-        bodyMedium:    GoogleFonts.crimsonPro(fontSize: 15, color: AppColors.kColorTextBody),
-        bodySmall:     GoogleFonts.crimsonPro(fontSize: 13, color: AppColors.kColorTextSecondary),
-        labelLarge:    GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.kColorTextOnPrimary),
-        labelSmall:    GoogleFonts.cinzel(fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5, color: AppColors.kColorTextSecondary),
-      ).apply(fontFamilyFallback: devanagariFallback),
+      textTheme: GoogleFonts.crimsonProTextTheme(base.textTheme)
+          .copyWith(
+            displayLarge: GoogleFonts.cinzel(
+                fontSize: 26,
+                fontWeight: FontWeight.w600,
+                color: AppColors.kColorTextHeading),
+            displayMedium: GoogleFonts.cinzel(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: AppColors.kColorTextHeading),
+            titleLarge: GoogleFonts.cinzel(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                color: AppColors.kColorTextHeading),
+            titleMedium: GoogleFonts.cinzel(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.kColorTextHeading),
+            titleSmall: GoogleFonts.cinzel(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.kColorTextHeading),
+            bodyLarge: GoogleFonts.crimsonPro(
+                fontSize: 16, color: AppColors.kColorTextBody),
+            bodyMedium: GoogleFonts.crimsonPro(
+                fontSize: 15, color: AppColors.kColorTextBody),
+            bodySmall: GoogleFonts.crimsonPro(
+                fontSize: 13, color: AppColors.kColorTextSecondary),
+            labelLarge: GoogleFonts.crimsonPro(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.kColorTextOnPrimary),
+            labelSmall: GoogleFonts.cinzel(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.5,
+                color: AppColors.kColorTextSecondary),
+          )
+          .apply(fontFamilyFallback: devanagariFallback),
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -92,30 +123,58 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
           ),
-          textStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.3)),
+          textStyle: _dv(GoogleFonts.crimsonPro(
+              fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.3)),
+        ).copyWith(
+          animationDuration: const Duration(milliseconds: 220),
+          elevation: const WidgetStatePropertyAll(2),
+          overlayColor: WidgetStateProperty.resolveWith((states) =>
+              states.contains(WidgetState.pressed)
+                  ? Colors.white.withValues(alpha: 0.18)
+                  : null),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.kColorPrimary,
-          side: const BorderSide(color: AppColors.kColorBorderStrong, width: 1.5),
+          side:
+              const BorderSide(color: AppColors.kColorBorderStrong, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
           ),
-          textStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3)),
-        ),
+          textStyle: _dv(GoogleFonts.crimsonPro(
+              fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3)),
+        ).copyWith(animationDuration: const Duration(milliseconds: 220)),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.kColorPrimary,
-          textStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, fontWeight: FontWeight.w500)),
+          textStyle: _dv(GoogleFonts.crimsonPro(
+              fontSize: 14, fontWeight: FontWeight.w500)),
+        ).copyWith(animationDuration: const Duration(milliseconds: 220)),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+          animationDuration: const Duration(milliseconds: 220),
+          overlayColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return Colors.white.withValues(alpha: 0.20);
+            }
+            if (states.contains(WidgetState.hovered) ||
+                states.contains(WidgetState.focused)) {
+              return Colors.white.withValues(alpha: 0.12);
+            }
+            return null;
+          }),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.kColorSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
           borderSide: const BorderSide(color: AppColors.kColorBorderSubtle),
@@ -132,18 +191,29 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
           borderSide: const BorderSide(color: Color(0xFFC62828)),
         ),
-        hintStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextMuted)),
-        labelStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextSecondary)),
+        hintStyle: _dv(GoogleFonts.crimsonPro(
+            fontSize: 14, color: AppColors.kColorTextMuted)),
+        labelStyle: _dv(GoogleFonts.crimsonPro(
+            fontSize: 14, color: AppColors.kColorTextSecondary)),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.kColorBgMuted,
         selectedColor: AppColors.kColorPrimary,
-        labelStyle: _dv(GoogleFonts.crimsonPro(fontSize: 12, color: AppColors.kColorTextSecondary)),
+        labelStyle: _dv(GoogleFonts.crimsonPro(
+            fontSize: 12, color: AppColors.kColorTextSecondary)),
         side: const BorderSide(color: AppColors.kColorBorderMid),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: AppColors.kColorPrimary,
+        unselectedLabelColor: AppColors.kColorTextSecondary,
+        indicatorColor: AppColors.kColorPrimary,
+        overlayColor: WidgetStatePropertyAll(
+          AppColors.kColorPrimary.withValues(alpha: 0.08),
+        ),
       ),
       cardTheme: CardThemeData(
         color: AppColors.kColorCardBg,
@@ -171,12 +241,17 @@ class AppTheme {
         backgroundColor: AppColors.kColorPrimary,
         foregroundColor: AppColors.kColorTextOnPrimary,
         elevation: 4,
+        hoverElevation: 8,
+        focusElevation: 6,
+        highlightElevation: 2,
         shape: StadiumBorder(),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.kColorTextHeading,
-        contentTextStyle: _dv(GoogleFonts.crimsonPro(fontSize: 14, color: AppColors.kColorTextOnPrimary)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
+        contentTextStyle: _dv(GoogleFonts.crimsonPro(
+            fontSize: 14, color: AppColors.kColorTextOnPrimary)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd)),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -185,15 +260,19 @@ class AppTheme {
   static ThemeData _buildDark() {
     final base = ThemeData.dark(useMaterial3: true);
     return base.copyWith(
+      splashFactory: InkRipple.splashFactory,
+      hoverColor: Colors.white.withValues(alpha: 0.08),
+      focusColor: AppColors.kColorPrimaryLight.withValues(alpha: 0.18),
+      highlightColor: Colors.white.withValues(alpha: 0.12),
       scaffoldBackgroundColor: AppColors.kDarkBgPage,
       colorScheme: const ColorScheme.dark(
-        primary:   AppColors.kColorPrimaryLight,
+        primary: AppColors.kColorPrimaryLight,
         onPrimary: AppColors.kColorTextOnPrimary,
         secondary: AppColors.kColorAccentLight,
-        surface:   AppColors.kDarkBgSurface,
+        surface: AppColors.kDarkBgSurface,
         onSurface: AppColors.kDarkTextPrimary,
-        outline:   AppColors.kDarkBorder,
-        error:     Color(0xFFEF5350),
+        outline: AppColors.kDarkBorder,
+        error: Color(0xFFEF5350),
       ),
       textTheme: GoogleFonts.crimsonProTextTheme(base.textTheme)
           .apply(fontFamilyFallback: devanagariFallback),
@@ -204,6 +283,41 @@ class AppTheme {
           side: const BorderSide(color: AppColors.kDarkBorder),
         ),
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ButtonStyle(
+          animationDuration: const Duration(milliseconds: 220),
+          overlayColor: WidgetStateProperty.resolveWith((states) =>
+              states.contains(WidgetState.pressed)
+                  ? Colors.white.withValues(alpha: 0.18)
+                  : null),
+        ),
+      ),
+      outlinedButtonTheme: const OutlinedButtonThemeData(
+        style: ButtonStyle(animationDuration: Duration(milliseconds: 220)),
+      ),
+      textButtonTheme: const TextButtonThemeData(
+        style: ButtonStyle(animationDuration: Duration(milliseconds: 220)),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+          animationDuration: const Duration(milliseconds: 220),
+          overlayColor: WidgetStatePropertyAll(
+            Colors.white.withValues(alpha: 0.14),
+          ),
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        overlayColor: WidgetStatePropertyAll(
+          Colors.white.withValues(alpha: 0.10),
+        ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        elevation: 4,
+        hoverElevation: 8,
+        focusElevation: 6,
+        highlightElevation: 2,
+      ),
     );
   }
 
@@ -213,7 +327,11 @@ class AppTheme {
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight],
+    colors: [
+      AppColors.kColorDeep,
+      AppColors.kColorPrimaryMid,
+      AppColors.kColorPrimaryLight
+    ],
     stops: [0.0, 0.6, 1.0],
   );
 
@@ -221,7 +339,11 @@ class AppTheme {
   static const LinearGradient navGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight],
+    colors: [
+      AppColors.kColorDeep,
+      AppColors.kColorPrimaryMid,
+      AppColors.kColorPrimaryLight
+    ],
     stops: [0.0, 0.6, 1.0],
   );
 
@@ -250,7 +372,11 @@ class AppTheme {
   static const LinearGradient cardImageGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight, AppColors.kColorAccent],
+    colors: [
+      AppColors.kColorPrimaryMid,
+      AppColors.kColorPrimaryLight,
+      AppColors.kColorAccent
+    ],
     stops: [0.0, 0.6, 1.0],
   );
 
@@ -268,10 +394,16 @@ class AppTheme {
 
   // ── Shadow presets ────────────────────────────────────────────────────────
   static List<BoxShadow> get cardShadow => [
-    const BoxShadow(color: AppColors.kShadowColorSubtle, blurRadius: 6, offset: Offset(0, 1)),
-  ];
+        const BoxShadow(
+            color: AppColors.kShadowColorSubtle,
+            blurRadius: 6,
+            offset: Offset(0, 1)),
+      ];
 
   static List<BoxShadow> get elevatedShadow => [
-    const BoxShadow(color: AppColors.kShadowColor, blurRadius: 12, offset: Offset(0, 2)),
-  ];
+        const BoxShadow(
+            color: AppColors.kShadowColor,
+            blurRadius: 12,
+            offset: Offset(0, 2)),
+      ];
 }

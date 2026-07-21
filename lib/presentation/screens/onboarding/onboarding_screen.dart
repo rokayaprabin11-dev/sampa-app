@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:provider/provider.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/core/constants/app_colors.dart';
@@ -29,19 +30,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Timer? _timer;
 
   List<SlideData> _getSlides(AppLocalizations l10n) => [
-    SlideData(
-      location: l10n.pashupatinath,
-      imageUrl: 'assets/images/onboarding/pashupatinath-nepal.jpg',
-    ),
-    SlideData(
-      location: l10n.lumbini,
-      imageUrl: 'assets/images/onboarding/lumbini.jpg',
-    ),
-    SlideData(
-      location: l10n.swayambhunath,
-      imageUrl: 'assets/images/onboarding/Swayambhunath-Stupa.jpg',
-    ),
-  ];
+        SlideData(
+          location: l10n.pashupatinath,
+          imageUrl: 'assets/images/onboarding/pashupatinath-nepal.jpg',
+        ),
+        SlideData(
+          location: l10n.lumbini,
+          imageUrl: 'assets/images/onboarding/lumbini.jpg',
+        ),
+        SlideData(
+          location: l10n.swayambhunath,
+          imageUrl: 'assets/images/onboarding/Swayambhunath-Stupa.jpg',
+        ),
+      ];
 
   @override
   void initState() {
@@ -95,7 +96,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         color: const Color(0xFF4A1F0D),
-                        child: const Icon(Icons.image_not_supported, color: Colors.white),
+                        child: const Icon(Icons.image_not_supported,
+                            color: Colors.white),
                       ),
                     ),
                     Positioned(
@@ -104,7 +106,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       right: 20,
                       child: Row(
                         children: [
-                          const Icon(Icons.location_on, color: Colors.redAccent, size: 20),
+                          const Icon(Icons.location_on,
+                              color: Colors.redAccent, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             slides[index].location,
@@ -112,7 +115,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               color: Colors.white,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                              shadows: [
+                                Shadow(color: Colors.black54, blurRadius: 4)
+                              ],
                             ),
                           ),
                         ],
@@ -131,7 +136,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             right: 0,
             height: size.height * 0.5,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
               decoration: const BoxDecoration(
                 color: AppColors.bgPage,
                 borderRadius: BorderRadius.only(
@@ -169,7 +175,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: 4,
                     decoration: BoxDecoration(
                       color: AppColors.goldMain,
-                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.kRadiusSm),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -193,12 +200,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         await PermissionService().requestInitialPermissions();
                         LocationService().getCurrentPosition();
                         if (context.mounted) {
-                          Navigator.pushReplacementNamed(context, AppStrings.homePath);
+                          Navigator.pushReplacementNamed(
+                              context, AppStrings.homePath);
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brownDark,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                AppDimensions.kRadiusPill)),
                         elevation: 0,
                       ),
                       child: Row(
@@ -260,11 +270,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildLanguageButton(BuildContext context, String langCode, String text) {
+  Widget _buildLanguageButton(
+      BuildContext context, String langCode, String text) {
     final localeProvider = Provider.of<LocaleProvider>(context);
     final isSelected = localeProvider.locale.languageCode == langCode;
 
-    return GestureDetector(
+    return InteractiveSurface(
       onTap: () => localeProvider.setLocale(Locale(langCode)),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

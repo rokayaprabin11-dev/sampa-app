@@ -68,7 +68,9 @@ class AppNetworkImage extends StatelessWidget {
     final after = i + marker.length;
     final rest = raw.substring(after);
     // Already transformed (next segment contains transform tokens)?
-    if (rest.startsWith('f_') || rest.startsWith('q_') || rest.startsWith('w_')) {
+    if (rest.startsWith('f_') ||
+        rest.startsWith('q_') ||
+        rest.startsWith('w_')) {
       return raw;
     }
     final w = cloudinaryWidth ?? width;
@@ -93,6 +95,8 @@ class AppNetworkImage extends StatelessWidget {
         fit: fit,
         width: width,
         height: height,
+        fadeInDuration: const Duration(milliseconds: 240),
+        fadeOutDuration: const Duration(milliseconds: 160),
         placeholder: (context, _) => _placeholder(context),
         errorWidget: (context, _, __) => _fallback(context),
       );

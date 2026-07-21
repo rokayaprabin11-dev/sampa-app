@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
@@ -23,7 +24,10 @@ class StorageStatusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
+        border: Border.all(
+            color: Theme.of(context).brightness == Brightness.light
+                ? AppColors.kColorBorderCream
+                : AppColors.darkBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +44,9 @@ class StorageStatusCard extends StatelessWidget {
           Text(
             '${usedMB.toInt()} MB of $totalGB GB',
             style: TextStyle(
-              color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.kColorTextMuted
+                  : AppColors.darkTextSecondary,
               fontSize: 14,
             ),
           ),
@@ -49,7 +55,8 @@ class StorageStatusCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: AppColors.kColorAccentLight.withValues(alpha: 0.2),
+              backgroundColor:
+                  AppColors.kColorAccentLight.withValues(alpha: 0.2),
               color: const Color(0xFF8B2C1F),
               minHeight: 8,
             ),
@@ -90,7 +97,10 @@ class DownloadItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
+        border: Border.all(
+            color: Theme.of(context).brightness == Brightness.light
+                ? AppColors.kColorBorderCream
+                : AppColors.darkBorder),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -98,9 +108,12 @@ class DownloadItemCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(AppDimensions.kRadiusMd),
             child: SizedBox(
-              width: 56, height: 56,
+              width: 56,
+              height: 56,
               child: (imageUrl != null && imageUrl!.isNotEmpty)
-                  ? AppNetworkImage(url: imageUrl, fit: BoxFit.cover,
+                  ? AppNetworkImage(
+                      url: imageUrl,
+                      fit: BoxFit.cover,
                       errorWidget: _iconFallback(context))
                   : _iconFallback(context),
             ),
@@ -122,59 +135,96 @@ class DownloadItemCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.location_on, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : AppColors.goldMain, size: 14),
+                    Icon(Icons.location_on,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.kColorTextHeading
+                            : AppColors.goldMain,
+                        size: 14),
                     const SizedBox(width: 4),
                     Text(
                       '$sitesCount sites',
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary, fontSize: 13),
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? AppColors.kColorTextMuted
+                                  : AppColors.darkTextSecondary,
+                          fontSize: 13),
                     ),
                     const SizedBox(width: 12),
-                    Icon(Icons.save, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : AppColors.goldMain, size: 14),
+                    Icon(Icons.save,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.kColorTextHeading
+                            : AppColors.goldMain,
+                        size: 14),
                     const SizedBox(width: 4),
                     Text(
                       size,
-                      style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary, fontSize: 13),
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? AppColors.kColorTextMuted
+                                  : AppColors.darkTextSecondary,
+                          fontSize: 13),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 if (isReady)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.kRadiusSm),
                       border: Border.all(color: AppColors.kColorOnlineDot),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.check, color: AppColors.kColorOnlineDot, size: 14),
+                        const Icon(Icons.check,
+                            color: AppColors.kColorOnlineDot, size: 14),
                         const SizedBox(width: 4),
                         Text(
                           'Ready',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   )
                 else
-                  GestureDetector(
+                  InteractiveSurface(
                     onTap: onDownload,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.kColorAccentLight,
-                        borderRadius: BorderRadius.circular(AppDimensions.kRadiusSm),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.kRadiusSm),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.download, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : Colors.black, size: 14),
+                          Icon(Icons.download,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.light
+                                  ? AppColors.kColorTextHeading
+                                  : Colors.black,
+                              size: 14),
                           const SizedBox(width: 4),
                           Text(
                             'Download',
-                            style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? AppColors.kColorTextHeading
+                                    : Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -187,12 +237,20 @@ class DownloadItemCard extends StatelessWidget {
           if (isReady)
             Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.light ? const Color(0xFF1A1A1A) : AppColors.darkBgCard,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? const Color(0xFF1A1A1A)
+                    : AppColors.darkBgCard,
                 shape: BoxShape.circle,
-                border: Theme.of(context).brightness == Brightness.dark ? Border.all(color: AppColors.darkBorder) : null,
+                border: Theme.of(context).brightness == Brightness.dark
+                    ? Border.all(color: AppColors.darkBorder)
+                    : null,
               ),
               child: IconButton(
-                icon: Icon(Icons.delete_outline, color: Theme.of(context).brightness == Brightness.light ? Colors.white : AppColors.goldMain, size: 20),
+                icon: Icon(Icons.delete_outline,
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.white
+                        : AppColors.goldMain,
+                    size: 20),
                 onPressed: onDelete,
                 constraints: const BoxConstraints(),
                 padding: const EdgeInsets.all(8),
@@ -204,9 +262,16 @@ class DownloadItemCard extends StatelessWidget {
   }
 
   Widget _iconFallback(BuildContext context) => Container(
-    color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTagBg : AppColors.darkBgCard,
-    child: Center(child: Icon(icon, color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextHeading : AppColors.goldMain, size: 32)),
-  );
+        color: Theme.of(context).brightness == Brightness.light
+            ? AppColors.kColorTagBg
+            : AppColors.darkBgCard,
+        child: Center(
+            child: Icon(icon,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? AppColors.kColorTextHeading
+                    : AppColors.goldMain,
+                size: 32)),
+      );
 }
 
 class TipCard extends StatelessWidget {
@@ -219,16 +284,24 @@ class TipCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBgCard,
+        color: Theme.of(context).brightness == Brightness.light
+            ? AppColors.kColorBorderCream
+            : AppColors.darkBgCard,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Theme.of(context).brightness == Brightness.dark ? Border.all(color: AppColors.darkBorder) : null,
+        border: Theme.of(context).brightness == Brightness.dark
+            ? Border.all(color: AppColors.darkBorder)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline, color: Theme.of(context).brightness == Brightness.light ? Colors.white : AppColors.goldMain, size: 18),
+              Icon(Icons.lightbulb_outline,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : AppColors.goldMain,
+                  size: 18),
               const SizedBox(width: 8),
               Text(
                 'Tip',
@@ -245,7 +318,9 @@ class TipCard extends StatelessWidget {
             text,
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextMuted : AppColors.darkTextSecondary,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.kColorTextMuted
+                  : AppColors.darkTextSecondary,
             ),
           ),
         ],
@@ -253,10 +328,3 @@ class TipCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
