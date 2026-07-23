@@ -31,14 +31,16 @@ class LocalNotification {
         receivedAt: receivedAt,
       );
 
-  factory LocalNotification.fromMap(Map<String, dynamic> m) => LocalNotification(
+  factory LocalNotification.fromMap(Map<String, dynamic> m) =>
+      LocalNotification(
         id: m['id'] as String,
         title: m['title'] as String,
         body: m['body'] as String,
         type: m['type'] as String? ?? 'system',
         data: jsonDecode(m['data'] as String? ?? '{}') as Map<String, dynamic>,
         isRead: (m['is_read'] as int? ?? 0) == 1,
-        receivedAt: DateTime.fromMillisecondsSinceEpoch(m['received_at'] as int),
+        receivedAt:
+            DateTime.fromMillisecondsSinceEpoch(m['received_at'] as int),
       );
 
   Map<String, dynamic> toMap() => {
@@ -76,11 +78,32 @@ class NotificationLocalDataSource {
 
   Future<void> save(LocalNotification notification) async {
     final db = await dbHelper.database;
-    await db.insert(
-      'local_notifications',
-      notification.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.transaction((txn) async {
+      await txn.insert(
+        'local_notifications',
+        notification.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      // Notifications are useful only while recent: retain the newest 100 and
+      // never retain anything older than 30 days.  The ordered subquery avoids
+      // loading IDs into Dart and keeps storage bounded on busy accounts.
+      final cutoff = DateTime.now()
+          .subtract(const Duration(days: 30))
+          .millisecondsSinceEpoch;
+      await txn.delete(
+        'local_notifications',
+        where: 'received_at < ?',
+        whereArgs: [cutoff],
+      );
+      await txn.rawDelete('''
+        DELETE FROM local_notifications
+        WHERE id NOT IN (
+          SELECT id FROM local_notifications
+          ORDER BY received_at DESC
+          LIMIT 100
+        )
+      ''');
+    });
   }
 
   Future<void> markRead(String id) async {
@@ -95,7 +118,8 @@ class NotificationLocalDataSource {
 
   Future<void> markAllRead() async {
     final db = await dbHelper.database;
-    await db.update('local_notifications', {'is_read': 1}, where: 'is_read = 0');
+    await db.update('local_notifications', {'is_read': 1},
+        where: 'is_read = 0');
   }
 
   /// Wipe every row. Called on account switch — the table has no user_id

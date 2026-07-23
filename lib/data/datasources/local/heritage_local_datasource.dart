@@ -7,11 +7,15 @@ import 'package:sampada/data/models/heritage_site_model.dart';
 
 abstract class HeritageLocalDataSource {
   Future<void> saveSite(HeritageSiteModel site);
+  Future<void> saveSites(Iterable<HeritageSiteModel> sites);
   Future<bool> isSiteDownloaded(String id);
-  Future<List<HeritageSiteModel>> getLastHeritageSites({int limit = 20, int offset = 0});
+  Future<List<HeritageSiteModel>> getLastHeritageSites(
+      {int limit = 20, int offset = 0});
   Future<HeritageSiteModel?> getSiteById(String id);
-  Future<List<HeritageSiteModel>> searchSites(String query, {double? lat, double? lng});
-  Future<List<HeritageSiteModel>> getNearbySites(double lat, double lng, {int limit = 20});
+  Future<List<HeritageSiteModel>> searchSites(String query,
+      {double? lat, double? lng});
+  Future<List<HeritageSiteModel>> getNearbySites(double lat, double lng,
+      {int limit = 20});
   Future<void> clearCache();
   Future<void> evictStaleCache({int maxAgeDays = 7});
 }
@@ -29,23 +33,53 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
 
   @override
   Future<void> saveSite(HeritageSiteModel site) async {
+    await saveSites([site]);
+  }
+
+  @override
+  Future<void> saveSites(Iterable<HeritageSiteModel> sites) async {
     if (kIsWeb) return;
+    final values = sites.toList(growable: false);
+    if (values.isEmpty) return;
     final db = await dbHelper.database;
+    final hasFts = await _hasTable(db, 'local_heritage_sites_fts');
     await db.transaction((txn) async {
-      await txn.insert('local_heritage_sites', site.toJson(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      final batch = txn.batch();
+      for (final site in values) {
+        // The FTS table has no primary-key constraint, so replace would create
+        // duplicates.  Delete the old document before inserting the latest one.
+        batch.insert('local_heritage_sites', site.toJson(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
+        if (hasFts) {
+          batch.delete('local_heritage_sites_fts',
+              where: 'id = ?', whereArgs: [site.id]);
+          batch.insert('local_heritage_sites_fts', {
+            'id': site.id,
+            'name_en': site.name,
+            'name_ne': site.nameNepali,
+            'district': site.district,
+            'category': site.category,
+          });
+        }
+      }
+      await batch.commit(noResult: true);
       await txn.insert(
-        'local_heritage_sites_fts',
-        {
-          'id': site.id,
-          'name_en': site.name,
-          'name_ne': site.nameNepali,
-          'district': site.district,
-          'category': site.category,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+          'cache_metadata',
+          {
+            'table_name': 'local_heritage_sites',
+            'last_sync_at': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            'version': 1,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace);
     });
+  }
+
+  Future<bool> _hasTable(DatabaseExecutor db, String table) async {
+    final rows = await db.rawQuery(
+      "SELECT 1 FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?",
+      [table],
+    );
+    return rows.isNotEmpty;
   }
 
   @override
@@ -67,7 +101,7 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
       final db = await dbHelper.database;
       final maps = await db.query(
         'local_heritage_sites',
-        orderBy: 'is_featured DESC, rating_avg DESC',
+        orderBy: 'is_featured DESC, rating_avg DESC, cached_at DESC',
         limit: limit,
         offset: offset,
       );
@@ -114,9 +148,7 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
       ''', [ftsQuery]);
 
       // Fallback to LIKE if FTS returns nothing (handles partial/special chars)
-      final rows = ftsRows.isNotEmpty
-          ? ftsRows
-          : await db.rawQuery('''
+      final rows = ftsRows.isNotEmpty ? ftsRows : await db.rawQuery('''
               SELECT * FROM local_heritage_sites
               WHERE name_en LIKE ? OR name_ne LIKE ? OR district LIKE ?
               ORDER BY rating_avg DESC
@@ -202,13 +234,14 @@ class HeritageLocalDataSourceImpl implements HeritageLocalDataSource {
       final placeholders = List.filled(ids.length, '?').join(',');
       await db.transaction((txn) async {
         await txn.rawDelete(
-            'DELETE FROM local_heritage_sites WHERE id IN ($placeholders)', ids);
+            'DELETE FROM local_heritage_sites WHERE id IN ($placeholders)',
+            ids);
         await txn.rawDelete(
-            'DELETE FROM local_heritage_sites_fts WHERE id IN ($placeholders)', ids);
+            'DELETE FROM local_heritage_sites_fts WHERE id IN ($placeholders)',
+            ids);
       });
     } catch (e) {
       debugPrint('Cache eviction error: $e');
     }
   }
-
 }

@@ -52,53 +52,62 @@ class _EventsScreenState extends State<EventsScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const _Header(),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                l10n.sectionNearbyFestivals,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? AppColors.textHeadline
-                      : AppColors.goldMain,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future.wait([
+            eventProvider.loadEvents(),
+            eventProvider.loadStartingSoonEvents(),
+          ]);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _Header(),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  l10n.sectionNearbyFestivals,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? AppColors.textHeadline
+                        : AppColors.goldMain,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _MonthSelector(
-              months: eventProvider.bsMonths,
-              selectedIndex: eventProvider.selectedMonthIndex,
-              onTap: (index) => eventProvider.setSelectedMonthIndex(index),
-            ),
-            const SizedBox(height: 24),
-            const _CalendarWidget(),
-            const SizedBox(height: 32),
-            _EventSection(
-              title: l10n.sectionCurrentEvents,
-              events: eventProvider.currentEvents,
-              isLoading: eventProvider.isLoadingStartingSoon,
-              error: eventProvider.startingSoonError,
-              emptyText: l10n.emptyEventsStartingSoon,
-              formatDate: (d) => _formatEventDate(context, d),
-            ),
-            const SizedBox(height: 32),
-            _EventSection(
-              title: l10n.sectionEventsThisMonth,
-              events: eventProvider.monthEvents,
-              isLoading: eventProvider.isLoading,
-              error: eventProvider.error,
-              emptyText: l10n.emptyEventsThisMonth,
-              formatDate: (d) => _formatEventDate(context, d),
-            ),
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 16),
+              _MonthSelector(
+                months: eventProvider.bsMonths,
+                selectedIndex: eventProvider.selectedMonthIndex,
+                onTap: (index) => eventProvider.setSelectedMonthIndex(index),
+              ),
+              const SizedBox(height: 24),
+              const _CalendarWidget(),
+              const SizedBox(height: 32),
+              _EventSection(
+                title: l10n.sectionCurrentEvents,
+                events: eventProvider.currentEvents,
+                isLoading: eventProvider.isLoadingStartingSoon,
+                error: eventProvider.startingSoonError,
+                emptyText: l10n.emptyEventsStartingSoon,
+                formatDate: (d) => _formatEventDate(context, d),
+              ),
+              const SizedBox(height: 32),
+              _EventSection(
+                title: l10n.sectionEventsThisMonth,
+                events: eventProvider.monthEvents,
+                isLoading: eventProvider.isLoading,
+                error: eventProvider.error,
+                emptyText: l10n.emptyEventsThisMonth,
+                formatDate: (d) => _formatEventDate(context, d),
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: const AppBottomNav(currentIndex: 3),
@@ -145,7 +154,7 @@ class _EventSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        if (isLoading)
+        if (isLoading && events.isEmpty)
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),

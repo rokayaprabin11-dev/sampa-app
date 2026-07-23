@@ -8,6 +8,7 @@ import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
+import 'package:sampada/presentation/widgets/shared/loading_states.dart';
 
 class VisitHistoryScreen extends StatefulWidget {
   const VisitHistoryScreen({super.key});
@@ -103,7 +104,7 @@ class _VisitHistoryScreenState extends State<VisitHistoryScreen> {
           // --- Results List ---
           Expanded(
             child: profileProvider.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LoadingSkeletonList(itemCount: 4)
                 : profileProvider.visitHistory.isEmpty
                     ? Center(child: Text(l10n.emptyVisitHistory))
                     : ListView.builder(

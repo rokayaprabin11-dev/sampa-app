@@ -18,10 +18,11 @@ class ShimmerSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+      baseColor: isDark ? AppColors.kDarkBgCard : AppColors.kColorBgMuted,
+      highlightColor:
+          isDark ? AppColors.kDarkBorder : AppColors.kColorBorderCream,
       child: Container(
         width: width,
         height: height,
@@ -44,7 +45,10 @@ class HeritageCardSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
+        border: Border.all(
+            color: Theme.of(context).brightness == Brightness.light
+                ? AppColors.kColorBorderCream
+                : AppColors.darkBorder),
       ),
       child: Row(
         children: [
@@ -79,12 +83,19 @@ class HeritageGridSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorBorderCream : AppColors.darkBorder),
+        border: Border.all(
+            color: Theme.of(context).brightness == Brightness.light
+                ? AppColors.kColorBorderCream
+                : AppColors.darkBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Expanded(child: ShimmerSkeleton(width: double.infinity, height: double.infinity, borderRadius: 16)),
+          const Expanded(
+              child: ShimmerSkeleton(
+                  width: double.infinity,
+                  height: double.infinity,
+                  borderRadius: 16)),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -235,12 +246,12 @@ class ProfileStatsSkeleton extends StatelessWidget {
   }
 
   Widget _statSkeleton() => const Column(
-    children: [
-      ShimmerSkeleton(width: 48, height: 26, borderRadius: 6),
-      SizedBox(height: 6),
-      ShimmerSkeleton(width: 64, height: 12, borderRadius: 4),
-    ],
-  );
+        children: [
+          ShimmerSkeleton(width: 48, height: 26, borderRadius: 6),
+          SizedBox(height: 6),
+          ShimmerSkeleton(width: 64, height: 12, borderRadius: 4),
+        ],
+      );
 }
 
 class EventCardSkeleton extends StatelessWidget {
@@ -254,7 +265,10 @@ class EventCardSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusXxl),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.light ? AppColors.bgCream : AppColors.darkBorder),
+        border: Border.all(
+            color: Theme.of(context).brightness == Brightness.light
+                ? AppColors.bgCream
+                : AppColors.darkBorder),
       ),
       child: Row(
         children: [
@@ -270,9 +284,11 @@ class EventCardSkeleton extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const ShimmerSkeleton(width: 60, height: 18, borderRadius: 10),
+                    const ShimmerSkeleton(
+                        width: 60, height: 18, borderRadius: 10),
                     const SizedBox(width: 8),
-                    const ShimmerSkeleton(width: 60, height: 18, borderRadius: 10),
+                    const ShimmerSkeleton(
+                        width: 60, height: 18, borderRadius: 10),
                   ],
                 ),
               ],
@@ -283,10 +299,3 @@ class EventCardSkeleton extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-

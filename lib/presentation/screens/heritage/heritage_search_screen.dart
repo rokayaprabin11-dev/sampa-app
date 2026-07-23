@@ -474,7 +474,10 @@ class _HeritageSearchScreenState extends State<HeritageSearchScreen> {
     return Expanded(
       child: Consumer<HeritageProvider>(
         builder: (context, provider, _) {
-          if (provider.isLoading) {
+          // Preserve search results already in memory while a list refresh is
+          // in flight.  Skeletons are reserved for a genuinely empty first
+          // load.
+          if (provider.isLoading && provider.sites.isEmpty) {
             return _buildShimmerGrid();
           }
 

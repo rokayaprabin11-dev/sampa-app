@@ -11,6 +11,45 @@ import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
 import 'package:sampada/providers/guide_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+Color _bookingActionColor(BuildContext context, [Color? override]) {
+  if (override != null) return override;
+  return Theme.of(context).brightness == Brightness.dark
+      ? AppColors.kColorAccentLight
+      : AppColors.kColorPrimary;
+}
+
+ButtonStyle _bookingOutlinedActionStyle(BuildContext context,
+    {Color? color, EdgeInsetsGeometry? padding}) {
+  final accent = _bookingActionColor(context, color);
+  return OutlinedButton.styleFrom(
+    foregroundColor: accent,
+    side: BorderSide(color: accent.withValues(alpha: 0.75), width: 1.25),
+    padding: padding ??
+        const EdgeInsets.symmetric(
+            vertical: AppDimensions.sp12, horizontal: AppDimensions.sp12),
+    textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: accent,
+          letterSpacing: 0.25,
+        ),
+  );
+}
+
+ButtonStyle _bookingFilledActionStyle(BuildContext context,
+    {Color? color, EdgeInsetsGeometry? padding}) {
+  final accent = _bookingActionColor(context, color);
+  return ElevatedButton.styleFrom(
+    backgroundColor: accent,
+    foregroundColor: AppColors.kColorTextOnPrimary,
+    padding: padding ??
+        const EdgeInsets.symmetric(
+            vertical: AppDimensions.sp12, horizontal: AppDimensions.sp16),
+    textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: AppColors.kColorTextOnPrimary,
+          letterSpacing: 0.25,
+        ),
+  );
+}
+
 /// Everything known about one booking: who is guiding, when, on what package,
 /// what it costs and how it was reached, plus the actions legal in its current
 /// state. Reads the live row out of [GuideProvider] by id, so an action taken
@@ -172,8 +211,8 @@ class _DetailBody extends StatelessWidget {
 
   // ── Booking information ───────────────────────────────────────────────────
 
-  Widget _bookingInfo(
-      BuildContext context, ({String label, double? hours, double? price})? pkg) {
+  Widget _bookingInfo(BuildContext context,
+      ({String label, double? hours, double? price})? pkg) {
     final s = bookingStatusMeta(_status);
     final duration = pkg?.hours;
     return BookingSection(
@@ -211,8 +250,8 @@ class _DetailBody extends StatelessWidget {
 
   // ── Package ───────────────────────────────────────────────────────────────
 
-  Widget _packageSection(
-      BuildContext context, ({String label, double? hours, double? price}) pkg) {
+  Widget _packageSection(BuildContext context,
+      ({String label, double? hours, double? price}) pkg) {
     final t = Theme.of(context).textTheme;
     return BookingSection(
       icon: Icons.tour_outlined,
@@ -239,8 +278,8 @@ class _DetailBody extends StatelessWidget {
                         fontWeight: FontWeight.w700)),
                 if (pkg.hours != null)
                   Text('${money(pkg.hours!)} hour tour',
-                      style: t.bodySmall
-                          ?.copyWith(color: bookingMuted(context))),
+                      style:
+                          t.bodySmall?.copyWith(color: bookingMuted(context))),
               ],
             ),
           ),
@@ -290,7 +329,9 @@ class _DetailBody extends StatelessWidget {
           ],
           BookingKeyValue(
             label: 'Total',
-            value: b.total != null ? 'NPR ${money(b.total!)}' : 'Priced after tour',
+            value: b.total != null
+                ? 'NPR ${money(b.total!)}'
+                : 'Priced after tour',
             emphasise: true,
           ),
           if (method != null && method.isNotEmpty)
@@ -313,6 +354,7 @@ class _DetailBody extends StatelessWidget {
                 icon: const Icon(Icons.copy_all_outlined,
                     size: AppDimensions.iconSm),
                 label: const Text('Copy Receipt Number'),
+                style: _bookingOutlinedActionStyle(context),
               ),
             ),
           ],
@@ -327,6 +369,7 @@ class _DetailBody extends StatelessWidget {
                 label: Text(booking['payment_status'] == 'rejected'
                     ? 'Pay Again'
                     : 'Pay Now'),
+                style: _bookingFilledActionStyle(context),
               ),
             ),
           ],
@@ -336,8 +379,10 @@ class _DetailBody extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => BookingActions.openPayment(context, booking),
-                icon: const Icon(Icons.hourglass_top, size: AppDimensions.iconSm),
+                icon:
+                    const Icon(Icons.hourglass_top, size: AppDimensions.iconSm),
                 label: const Text('View Submitted Payment'),
+                style: _bookingOutlinedActionStyle(context),
               ),
             ),
           ],
@@ -491,7 +536,8 @@ class _GuideHeader extends StatelessWidget {
     final reviews = asIntOrNull(guide?['review_count']);
     final years = asIntOrNull(guide?['years_experience']);
     final languages =
-        (guide?['languages'] as List?)?.whereType<String>().toList() ?? const [];
+        (guide?['languages'] as List?)?.whereType<String>().toList() ??
+            const [];
     final verified = guide?['is_verified'] == true;
 
     return BookingCardShell(
@@ -549,10 +595,11 @@ class _GuideHeader extends StatelessWidget {
                       Text(
                         [
                           if (years != null) '$years yr experience',
-                          if (languages.isNotEmpty) languages.take(3).join(', '),
+                          if (languages.isNotEmpty)
+                            languages.take(3).join(', '),
                         ].join(' · '),
-                        style: t.bodySmall
-                            ?.copyWith(color: bookingMuted(context)),
+                        style:
+                            t.bodySmall?.copyWith(color: bookingMuted(context)),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -571,10 +618,10 @@ class _GuideHeader extends StatelessWidget {
                   icon: const Icon(Icons.call_outlined,
                       size: AppDimensions.iconSm),
                   label: const Text('Call'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: AppDimensions.sp10, horizontal: AppDimensions.sp8),
-                  ),
+                  style: _bookingOutlinedActionStyle(context,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppDimensions.sp10,
+                          horizontal: AppDimensions.sp8)),
                 ),
               ),
               const SizedBox(width: AppDimensions.sp8),
@@ -594,10 +641,10 @@ class _GuideHeader extends StatelessWidget {
                   icon: const Icon(Icons.chat_bubble_outline,
                       size: AppDimensions.iconSm),
                   label: const Text('Message'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: AppDimensions.sp10, horizontal: AppDimensions.sp8),
-                  ),
+                  style: _bookingOutlinedActionStyle(context,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppDimensions.sp10,
+                          horizontal: AppDimensions.sp8)),
                 ),
               ),
               const SizedBox(width: AppDimensions.sp8),
@@ -614,10 +661,10 @@ class _GuideHeader extends StatelessWidget {
                   icon: const Icon(Icons.badge_outlined,
                       size: AppDimensions.iconSm),
                   label: const Text('Profile'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: AppDimensions.sp10, horizontal: AppDimensions.sp8),
-                  ),
+                  style: _bookingOutlinedActionStyle(context,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppDimensions.sp10,
+                          horizontal: AppDimensions.sp8)),
                 ),
               ),
             ],
@@ -638,6 +685,14 @@ class _GuideHeader extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.my_location, size: AppDimensions.iconSm),
                 label: const Text('Live Location'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _bookingActionColor(context),
+                  foregroundColor: AppColors.kColorTextOnPrimary,
+                  textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.kColorTextOnPrimary,
+                        letterSpacing: 0.25,
+                      ),
+                ),
               ),
             ),
           ],
@@ -672,8 +727,13 @@ class _FullButton extends StatelessWidget {
           icon: Icon(icon, size: AppDimensions.iconSm),
           label: Text(label),
           style: ElevatedButton.styleFrom(
-            backgroundColor: color,
+            backgroundColor: _bookingActionColor(context, color),
+            foregroundColor: AppColors.kColorTextOnPrimary,
             padding: const EdgeInsets.symmetric(vertical: AppDimensions.sp14),
+            textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: AppColors.kColorTextOnPrimary,
+                  letterSpacing: 0.25,
+                ),
           ),
         ),
       );
@@ -684,11 +744,9 @@ class _FullButton extends StatelessWidget {
         onPressed: onTap,
         icon: Icon(icon, size: AppDimensions.iconSm),
         label: Text(label),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: color == null ? null : BorderSide(color: color!),
-          padding: const EdgeInsets.symmetric(vertical: AppDimensions.sp14),
-        ),
+        style: _bookingOutlinedActionStyle(context,
+            color: color,
+            padding: const EdgeInsets.symmetric(vertical: AppDimensions.sp14)),
       ),
     );
   }

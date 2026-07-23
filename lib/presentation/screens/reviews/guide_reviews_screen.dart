@@ -11,6 +11,7 @@ import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/screens/reviews/write_review_sheet.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
 import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
+import 'package:sampada/presentation/widgets/shared/loading_states.dart';
 import 'package:sampada/providers/guide_provider.dart';
 
 enum _Sort { recent, highest, lowest }
@@ -304,12 +305,7 @@ class _GuideReviewsScreenState extends State<GuideReviewsScreen> {
                   ),
                 ),
               if (_loadingMore)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppDimensions.sp20),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                ),
+                const SliverToBoxAdapter(child: LoadMoreIndicator()),
               SliverToBoxAdapter(
                   child: SizedBox(height: canWrite ? 96 : AppDimensions.sp32)),
             ],

@@ -8,6 +8,7 @@ import 'package:sampada/core/services/secure_screen.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/injection.dart' as di;
 import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
+import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Booking chat. The conversation lives in Firestore (real-time + offline
@@ -161,7 +162,7 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const _ChatSkeleton()
           : _channel == null
               ? _unavailable(context, isDark)
               : Column(
@@ -182,14 +183,20 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.lock_outline, size: 56, color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+          Icon(Icons.lock_outline,
+              size: 56,
+              color: isDark
+                  ? AppColors.darkTextTertiary
+                  : AppColors.kColorTextMuted),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.chatOpensOnceAccepted,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.kColorTextSecondary,
             ),
           ),
         ],
@@ -204,14 +211,17 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
       stream: _chat.messages(channel.channelId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const _ChatSkeleton();
         }
         final messages = snapshot.data ?? const <ChatMessage>[];
         if (messages.isEmpty) {
           return Center(
             child: Text(
               AppLocalizations.of(context)!.sayHello,
-              style: TextStyle(color: isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+              style: TextStyle(
+                  color: isDark
+                      ? AppColors.darkTextTertiary
+                      : AppColors.kColorTextMuted),
             ),
           );
         }
@@ -226,14 +236,16 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
           itemCount: messages.length,
           itemBuilder: (context, i) {
             final message = messages[messages.length - 1 - i];
-            return _bubble(context, isDark, message, mine: message.from == myUid);
+            return _bubble(context, isDark, message,
+                mine: message.from == myUid);
           },
         );
       },
     );
   }
 
-  Widget _bubble(BuildContext context, bool isDark, ChatMessage message, {required bool mine}) {
+  Widget _bubble(BuildContext context, bool isDark, ChatMessage message,
+      {required bool mine}) {
     final t = Theme.of(context).textTheme;
     final mineBg = isDark ? AppColors.goldMain : AppColors.kColorDeep;
     final theirsBg = isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm;
@@ -241,7 +253,8 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         margin: const EdgeInsets.symmetric(vertical: 3),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
@@ -280,7 +293,9 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
                     fontSize: 11,
                     color: mine
                         ? (isDark ? Colors.black54 : Colors.white70)
-                        : (isDark ? AppColors.darkTextTertiary : AppColors.kColorTextMuted),
+                        : (isDark
+                            ? AppColors.darkTextTertiary
+                            : AppColors.kColorTextMuted),
                   ),
                 ),
                 if (mine) ...[
@@ -326,7 +341,9 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
-            color: isDark ? AppColors.darkTextSecondary : AppColors.kColorTextSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.kColorTextSecondary,
           ),
         ),
       );
@@ -339,7 +356,10 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           border: Border(
-            top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.kColorBorderSubtle),
+            top: BorderSide(
+                color: isDark
+                    ? AppColors.darkBorder
+                    : AppColors.kColorBorderSubtle),
           ),
         ),
         child: Row(
@@ -351,15 +371,20 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
                 minLines: 1,
                 maxLines: 4,
                 textCapitalization: TextCapitalization.sentences,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14),
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context)!.messageHint,
                   counterText: '',
                   filled: true,
-                  fillColor: isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  fillColor:
+                      isDark ? AppColors.darkBgCard : AppColors.kColorBgWarm,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.kRadiusPill),
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -372,7 +397,8 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
               tooltip: AppLocalizations.of(context)!.sendMessageTooltip,
               onPressed: _sending ? null : _send,
               style: IconButton.styleFrom(
-                backgroundColor: isDark ? AppColors.goldMain : AppColors.kColorDeep,
+                backgroundColor:
+                    isDark ? AppColors.goldMain : AppColors.kColorDeep,
                 disabledBackgroundColor:
                     (isDark ? AppColors.goldMain : AppColors.kColorDeep)
                         .withValues(alpha: 0.5),
@@ -387,4 +413,26 @@ class _ChatScreenState extends State<ChatScreen> with SecureScreenMixin {
       ),
     );
   }
+}
+
+class _ChatSkeleton extends StatelessWidget {
+  const _ChatSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        children: const [
+          Align(
+              alignment: Alignment.centerLeft,
+              child: ShimmerSkeleton(width: 190, height: 44, borderRadius: 18)),
+          SizedBox(height: 12),
+          Align(
+              alignment: Alignment.centerRight,
+              child: ShimmerSkeleton(width: 140, height: 56, borderRadius: 18)),
+          SizedBox(height: 12),
+          Align(
+              alignment: Alignment.centerLeft,
+              child: ShimmerSkeleton(width: 220, height: 44, borderRadius: 18)),
+        ],
+      );
 }

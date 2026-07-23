@@ -2,13 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 
-// v8: force schema rebuild — earlier installs created the DB before the FTS5
-// crash was caught, so tables after the FTS virtual table (local_notifications,
-// sync_queue, …) could be missing. Bumping the version reruns _onCreate via
-// _onUpgrade with the FTS-safe fallback so all tables exist.
-// v9: local_events gains start_time / end_time so offline event cards can show
-// the event time, matching the online cards.
-const int _kDbVersion = 9;
+// v10: production cache migration.  This version is deliberately additive:
+// cached content may be discarded, but pending actions and user preferences
+// must survive an app update.
+const int _kDbVersion = 10;
 const String _kDbName = 'sampada.db';
 
 class DatabaseHelper {
@@ -41,27 +38,55 @@ class DatabaseHelper {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Drop and recreate — dev only. Replace with additive migrations before release.
-    await _dropAllTables(db);
-    await _onCreate(db, newVersion);
+    // Never rebuild the database during a production upgrade.  In particular,
+    // doing so loses queued offline actions before they can be synchronized.
+    if (oldVersion < 10) {
+      await _migrateToV10(db);
+    }
   }
 
-  Future<void> _dropAllTables(Database db) async {
-    const tables = [
-      // v1–v3 legacy names
-      'sync_metadata', 'cache_users', 'cache_districts', 'cache_sites',
-      'cache_sites_fts', 'cache_site_media', 'cache_events',
-      'cache_site_reviews', 'cache_bookmarks', 'cache_visit_history',
-      'cache_guides', 'cache_bookings', 'cache_notifications',
+  Future<void> _migrateToV10(Database db) async {
+    // These columns are optional cache enrichment.  Older installs keep their
+    // existing rows and simply receive null/default values until refreshed.
+    for (final statement in [
+      'ALTER TABLE local_heritage_sites ADD COLUMN history_en TEXT',
+      'ALTER TABLE local_heritage_sites ADD COLUMN history_ne TEXT',
+      'ALTER TABLE local_heritage_sites ADD COLUMN municipality TEXT',
+      'ALTER TABLE local_heritage_sites ADD COLUMN opening_hours TEXT',
+      'ALTER TABLE local_heritage_sites ADD COLUMN entry_fee TEXT',
+      'ALTER TABLE local_events ADD COLUMN rsvp_status TEXT',
+      'ALTER TABLE local_events ADD COLUMN updated_at INTEGER',
+      'ALTER TABLE local_user_profile ADD COLUMN notification_preferences TEXT',
+      'ALTER TABLE local_user_profile ADD COLUMN last_updated INTEGER',
+    ]) {
+      try {
+        await db.execute(statement);
+      } catch (_) {
+        // The column may already exist on a partially migrated install.
+      }
+    }
+    await _createProductionTables(db);
+    await _createIndexes(db);
+    // Retire unused legacy caches.  None are read by the current app; keeping
+    // them duplicates server data and can retain sensitive/nonessential data.
+    for (final table in [
+      'local_site_media',
+      'local_reviews_draft',
+      'local_recently_viewed',
+      'local_search_history',
+      'cache_users',
+      'cache_districts',
+      'cache_sites',
+      'cache_sites_fts',
+      'cache_site_media',
+      'cache_events',
+      'cache_site_reviews',
+      'cache_guides',
+      'cache_bookings',
+      'cache_notifications',
       'cache_offline_downloads',
-      // v4-v6 names
-      'local_heritage_sites', 'local_heritage_sites_fts', 'local_site_media',
-      'local_events', 'local_bookmarks', 'local_reviews_draft',
-      'local_user_profile', 'local_recently_viewed', 'local_search_history',
-      'local_notifications', 'sync_queue', 'local_search_history', 'local_recently_viewed',
-    ];
-    for (final t in tables) {
-      await db.execute('DROP TABLE IF EXISTS $t');
+    ]) {
+      await db.execute('DROP TABLE IF EXISTS $table');
     }
   }
 
@@ -77,12 +102,17 @@ class DatabaseHelper {
         category        TEXT    NOT NULL,
         short_desc_en   TEXT,
         short_desc_ne   TEXT,
-        description_en  TEXT,
-        description_ne  TEXT,
-        latitude        REAL    NOT NULL,
-        longitude       REAL    NOT NULL,
-        district        TEXT    NOT NULL,
-        province        TEXT,
+      description_en  TEXT,
+      description_ne  TEXT,
+      history_en      TEXT,
+      history_ne      TEXT,
+      latitude        REAL    NOT NULL,
+      longitude       REAL    NOT NULL,
+      district        TEXT    NOT NULL,
+      province        TEXT,
+      municipality    TEXT,
+      opening_hours   TEXT,
+      entry_fee       TEXT,
         is_unesco       INTEGER NOT NULL DEFAULT 0,
         cover_image_url TEXT,
         rating_avg      REAL    NOT NULL DEFAULT 0.0,
@@ -95,11 +125,7 @@ class DatabaseHelper {
         is_dirty        INTEGER NOT NULL DEFAULT 0
       )
     ''');
-    await db.execute('CREATE INDEX idx_lhs_district  ON local_heritage_sites (district)');
-    await db.execute('CREATE INDEX idx_lhs_name_en   ON local_heritage_sites (name_en)');
-    await db.execute('CREATE INDEX idx_lhs_rating    ON local_heritage_sites (rating_avg DESC)');
-    await db.execute('CREATE INDEX idx_lhs_featured  ON local_heritage_sites (is_featured)');
-    await db.execute('CREATE INDEX idx_lhs_cached    ON local_heritage_sites (cached_at)');
+    await _createIndexes(db);
 
     // FTS5 is compiled into standard SQLite but some Android vendors (MIUI, etc.)
     // ship a stripped SQLite without it.  Fall back to FTS4, then skip.
@@ -123,21 +149,6 @@ class DatabaseHelper {
     }
 
     await db.execute('''
-      CREATE TABLE local_site_media (
-        id          TEXT    PRIMARY KEY,
-        site_id     TEXT    NOT NULL,
-        media_type  TEXT    NOT NULL DEFAULT 'image',
-        url         TEXT    NOT NULL,
-        title_en    TEXT,
-        title_ne    TEXT,
-        is_primary  INTEGER NOT NULL DEFAULT 0,
-        sort_order  INTEGER NOT NULL DEFAULT 0,
-        cached_at   INTEGER NOT NULL
-      )
-    ''');
-    await db.execute('CREATE INDEX idx_lsm_site ON local_site_media (site_id)');
-
-    await db.execute('''
       CREATE TABLE local_events (
         id              TEXT    PRIMARY KEY,
         site_id         TEXT,
@@ -153,12 +164,11 @@ class DatabaseHelper {
         is_recurring    INTEGER NOT NULL DEFAULT 0,
         district        TEXT,
         cover_image_url TEXT,
-        cached_at       INTEGER NOT NULL
+        rsvp_status     TEXT,
+        cached_at       INTEGER NOT NULL,
+        updated_at      INTEGER
       )
     ''');
-    await db.execute('CREATE INDEX idx_le_site   ON local_events (site_id)');
-    await db.execute('CREATE INDEX idx_le_date   ON local_events (event_date_ad)');
-    await db.execute('CREATE INDEX idx_le_dist   ON local_events (district)');
 
     // ------------------------------------------------------------------
     // 2. User data — local-first, synced to server
@@ -175,7 +185,8 @@ class DatabaseHelper {
     ''');
     await db.execute('CREATE INDEX idx_lb_site   ON local_bookmarks (site_id)');
     await db.execute('CREATE INDEX idx_lb_user   ON local_bookmarks (user_id)');
-    await db.execute('CREATE INDEX idx_lb_sync   ON local_bookmarks (is_synced)');
+    await db
+        .execute('CREATE INDEX idx_lb_sync   ON local_bookmarks (is_synced)');
 
     await db.execute('''
       CREATE TABLE local_user_profile (
@@ -186,7 +197,9 @@ class DatabaseHelper {
         avatar_url     TEXT,
         preferred_lang TEXT NOT NULL DEFAULT 'en',
         theme          TEXT NOT NULL DEFAULT 'system',
-        cached_at      INTEGER NOT NULL
+        notification_preferences TEXT,
+        cached_at      INTEGER NOT NULL,
+        last_updated   INTEGER
       )
     ''');
 
@@ -206,9 +219,6 @@ class DatabaseHelper {
                     CHECK (status IN ('pending','failed','done'))
       )
     ''');
-    await db.execute('CREATE INDEX idx_sq_status  ON sync_queue (status)');
-    await db.execute('CREATE INDEX idx_sq_created ON sync_queue (created_at ASC)');
-
     // ------------------------------------------------------------------
     // 4. Notification history — saved on FCM receive for offline access
     // ------------------------------------------------------------------
@@ -223,9 +233,91 @@ class DatabaseHelper {
         received_at INTEGER NOT NULL
       )
     ''');
-    await db.execute('CREATE INDEX idx_ln_received ON local_notifications (received_at DESC)');
-    await db.execute('CREATE INDEX idx_ln_read     ON local_notifications (is_read)');
+    await _createProductionTables(db);
+    await _createIndexes(db);
+  }
 
+  Future<void> _createProductionTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cache_metadata (
+        table_name   TEXT PRIMARY KEY,
+        last_sync_at INTEGER NOT NULL,
+        version      INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS local_heritage_categories (
+        id         TEXT PRIMARY KEY,
+        name       TEXT NOT NULL,
+        icon       TEXT,
+        updated_at INTEGER,
+        cached_at  INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS local_help_articles (
+        id         TEXT PRIMARY KEY,
+        title      TEXT NOT NULL,
+        body       TEXT NOT NULL,
+        kind       TEXT NOT NULL DEFAULT 'article',
+        updated_at INTEGER,
+        cached_at  INTEGER NOT NULL
+      )
+    ''');
+    // Sync actions are transient.  A successful worker update removes the row
+    // in SQLite itself, preventing completed operations from accumulating even
+    // if the process is terminated before its Dart cleanup runs.
+    await db.execute('''
+      CREATE TRIGGER IF NOT EXISTS delete_completed_sync_actions
+      AFTER UPDATE OF status ON sync_queue
+      WHEN NEW.status = 'done'
+      BEGIN
+        DELETE FROM sync_queue WHERE id = NEW.id;
+      END
+    ''');
+    await _createFtsTables(db);
+  }
+
+  Future<void> _createIndexes(Database db) async {
+    for (final statement in [
+      'CREATE INDEX IF NOT EXISTS idx_lhs_district ON local_heritage_sites (district)',
+      'CREATE INDEX IF NOT EXISTS idx_lhs_name_en ON local_heritage_sites (name_en)',
+      'CREATE INDEX IF NOT EXISTS idx_lhs_rating ON local_heritage_sites (rating_avg DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_lhs_featured ON local_heritage_sites (is_featured)',
+      'CREATE INDEX IF NOT EXISTS idx_lhs_cached ON local_heritage_sites (cached_at)',
+      'CREATE INDEX IF NOT EXISTS idx_lhs_coordinates ON local_heritage_sites (latitude, longitude)',
+      'CREATE INDEX IF NOT EXISTS idx_le_site ON local_events (site_id)',
+      'CREATE INDEX IF NOT EXISTS idx_le_date ON local_events (event_date_ad)',
+      'CREATE INDEX IF NOT EXISTS idx_le_cached ON local_events (cached_at)',
+      'CREATE INDEX IF NOT EXISTS idx_sq_status ON sync_queue (status, created_at ASC)',
+      'CREATE INDEX IF NOT EXISTS idx_ln_received ON local_notifications (received_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_ln_read ON local_notifications (is_read)',
+    ]) {
+      try {
+        await db.execute(statement);
+      } catch (_) {
+        // Older, incomplete development databases are repaired on next sync.
+      }
+    }
+  }
+
+  Future<void> _createFtsTables(Database db) async {
+    // Keep the existing heritage index.  Event/help indexes are populated only
+    // by their local writers, so no server payload or UI contract changes.
+    for (final spec in [
+      ('local_events_fts', 'id, title_en, title_ne'),
+      ('local_help_articles_fts', 'id, title, body'),
+    ]) {
+      try {
+        await db.execute(
+            'CREATE VIRTUAL TABLE IF NOT EXISTS ${spec.$1} USING fts5(${spec.$2}, tokenize = "unicode61")');
+      } catch (_) {
+        try {
+          await db.execute(
+              'CREATE VIRTUAL TABLE IF NOT EXISTS ${spec.$1} USING fts4(${spec.$2})');
+        } catch (_) {}
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -237,7 +329,16 @@ class DatabaseHelper {
   Future<void> clearContentCache() async {
     final db = await database;
     final batch = db.batch();
-    for (final t in ['local_heritage_sites', 'local_site_media', 'local_events']) {
+    for (final t in [
+      'local_heritage_sites',
+      'local_heritage_sites_fts',
+      'local_events',
+      'local_events_fts',
+      'local_heritage_categories',
+      'local_help_articles',
+      'local_help_articles_fts',
+      'cache_metadata',
+    ]) {
       batch.delete(t);
     }
     await batch.commit(noResult: true);
@@ -248,7 +349,10 @@ class DatabaseHelper {
     final db = await database;
     final batch = db.batch();
     for (final t in [
-      'local_bookmarks', 'local_user_profile', 'sync_queue', 'local_notifications',
+      'local_bookmarks',
+      'local_user_profile',
+      'sync_queue',
+      'local_notifications',
     ]) {
       batch.delete(t);
     }
@@ -260,6 +364,33 @@ class DatabaseHelper {
     final db = await database;
     await db.execute('PRAGMA wal_checkpoint(TRUNCATE)');
     await db.execute('VACUUM');
+  }
+
+  /// Low-cost retention work for a background sync or app-idle callback.
+  /// It never touches pending user actions.  Help articles use an ID primary
+  /// key, so a newer server version replaces the older row rather than growing
+  /// history indefinitely.
+  Future<void> runCacheMaintenance() async {
+    if (kIsWeb) return;
+    final db = await database;
+    final now = DateTime.now();
+    final notificationCutoff =
+        now.subtract(const Duration(days: 30)).millisecondsSinceEpoch;
+    final helpCutoff =
+        now.subtract(const Duration(days: 180)).millisecondsSinceEpoch ~/ 1000;
+    await db.transaction((txn) async {
+      await txn.delete('sync_queue', where: "status = 'done'");
+      await txn.delete(
+        'local_notifications',
+        where: 'received_at < ?',
+        whereArgs: [notificationCutoff],
+      );
+      await txn.delete(
+        'local_help_articles',
+        where: 'cached_at < ?',
+        whereArgs: [helpCutoff],
+      );
+    });
   }
 
   Future<void> close() async {

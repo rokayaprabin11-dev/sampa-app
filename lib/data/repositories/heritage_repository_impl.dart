@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:sampada/data/models/heritage_site.dart';
 import 'package:sampada/data/repositories/heritage_repository.dart';
@@ -10,7 +12,7 @@ class HeritageRepositoryImpl implements HeritageRepository {
   final HeritageRemoteDataSource remoteDataSource;
   final HeritageLocalDataSource localDataSource;
 
-   HeritageRepositoryImpl({
+  HeritageRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
   });
@@ -42,6 +44,10 @@ class HeritageRepositoryImpl implements HeritageRepository {
         bbox: bbox,
         sortBy: sortBy,
       );
+      // Persist list pages after the response has been returned.  SQLite writes
+      // must not delay the first visible frame, and failures never invalidate a
+      // successful server response.
+      unawaited(_cacheSites(sites));
       debugPrint('HeritageRepository: ${sites.length} sites from REMOTE');
       return HeritageSitesResult.remote(sites);
     } catch (e) {
@@ -63,7 +69,8 @@ class HeritageRepositoryImpl implements HeritageRepository {
   }
 
   @override
-  Future<List<HeritageSite>> getFeaturedSites({double? lat, double? lng}) async {
+  Future<List<HeritageSite>> getFeaturedSites(
+      {double? lat, double? lng}) async {
     try {
       return await remoteDataSource.getFeaturedSites(lat: lat, lng: lng);
     } catch (e) {
@@ -98,7 +105,7 @@ class HeritageRepositoryImpl implements HeritageRepository {
       isFeatured: site.isFeatured,
       createdAt: site.createdAt,
     );
-    
+
     return await remoteDataSource.createHeritageSite(siteModel.toJson());
   }
 
@@ -150,11 +157,14 @@ class HeritageRepositoryImpl implements HeritageRepository {
       return localDataSource.searchSites(query);
     }
   }
+
+  Future<void> _cacheSites(Iterable<HeritageSiteModel> sites) async {
+    try {
+      await localDataSource.saveSites(sites);
+    } catch (e) {
+      // A local cache failure must never turn a successful remote fetch into
+      // an apparent network failure (including when a test double omits it).
+      debugPrint('HeritageRepository: cache write failed: $e');
+    }
+  }
 }
-
-
-
-
-
-
-

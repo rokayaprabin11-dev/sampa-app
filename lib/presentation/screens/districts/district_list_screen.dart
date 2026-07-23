@@ -9,6 +9,8 @@ import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/data/models/district_model.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/presentation/widgets/heritage_widgets.dart';
+import 'package:sampada/presentation/widgets/shared/loading_states.dart';
+import 'package:sampada/presentation/widgets/shared/shimmer_loading.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 
 enum _DistrictFilter { all, valley, mostSites }
@@ -44,7 +46,8 @@ class _DistrictListScreenState extends State<DistrictListScreen> {
     }
     switch (_filter) {
       case _DistrictFilter.mostSites:
-        return list.toList()..sort((a, b) => b.sitesCount.compareTo(a.sitesCount));
+        return list.toList()
+          ..sort((a, b) => b.sitesCount.compareTo(a.sitesCount));
       case _DistrictFilter.valley:
         return list.where((d) => _valleySlugs.contains(d.slug)).toList();
       case _DistrictFilter.all:
@@ -68,14 +71,20 @@ class _DistrictListScreenState extends State<DistrictListScreen> {
               builder: (context, hp, _) {
                 final loading = hp.isLoading && hp.districts.isEmpty;
                 if (loading) {
-                  return const Center(child: CircularProgressIndicator(color: AppColors.kColorPrimary));
+                  return const LoadingSkeletonList(
+                    itemCount: 6,
+                    padding: EdgeInsets.fromLTRB(24, 4, 24, 24),
+                    itemBuilder: _districtSkeleton,
+                  );
                 }
                 // Only districts that already have heritage sites — the rest
                 // aren't populated yet, so they're left out rather than shown
                 // as dimmed placeholders.
-                final populated = hp.districts.where((d) => d.sitesCount > 0).toList();
+                final populated =
+                    hp.districts.where((d) => d.sitesCount > 0).toList();
                 final visible = _visible(populated);
-                final siteTotal = populated.fold<int>(0, (s, d) => s + d.sitesCount);
+                final siteTotal =
+                    populated.fold<int>(0, (s, d) => s + d.sitesCount);
 
                 return CustomScrollView(
                   slivers: [
@@ -88,22 +97,29 @@ class _DistrictListScreenState extends State<DistrictListScreen> {
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(24, 4, 24, 12),
                       sliver: SliverToBoxAdapter(
-                        child: _CountLine(districtCount: populated.length, siteTotal: siteTotal),
+                        child: _CountLine(
+                            districtCount: populated.length,
+                            siteTotal: siteTotal),
                       ),
                     ),
                     if (visible.isEmpty)
                       SliverFillRemaining(
                         hasScrollBody: false,
                         child: Center(
-                          child: Text(AppLocalizations.of(context)!.noDistrictsMatchSearch,
-                            style: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14)),
+                          child: Text(
+                              AppLocalizations.of(context)!
+                                  .noDistrictsMatchSearch,
+                              style: const TextStyle(
+                                  color: AppColors.kColorTextMuted,
+                                  fontSize: 14)),
                         ),
                       )
                     else
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                         sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             mainAxisSpacing: 14,
                             crossAxisSpacing: 14,
@@ -119,7 +135,9 @@ class _DistrictListScreenState extends State<DistrictListScreen> {
                                   name: d.name,
                                   nameNp: d.nameNp,
                                   sitesCount: d.sitesCount,
-                                  coverImageUrl: d.coverImageUrl.isNotEmpty ? d.coverImageUrl : null,
+                                  coverImageUrl: d.coverImageUrl.isNotEmpty
+                                      ? d.coverImageUrl
+                                      : null,
                                   icon: info.icon,
                                   iconColor: info.color,
                                   iconBgColor: info.bgColor,
@@ -147,6 +165,11 @@ class _DistrictListScreenState extends State<DistrictListScreen> {
   }
 }
 
+Widget _districtSkeleton(BuildContext context, int index) => const SizedBox(
+      height: 160,
+      child: DistrictCardSkeleton(),
+    );
+
 class _StaggeredFadeIn extends StatelessWidget {
   final int index;
   final Widget child;
@@ -160,7 +183,8 @@ class _StaggeredFadeIn extends StatelessWidget {
       curve: Curves.easeOut,
       builder: (context, value, child) => Opacity(
         opacity: value,
-        child: Transform.translate(offset: Offset(0, (1 - value) * 12), child: child),
+        child: Transform.translate(
+            offset: Offset(0, (1 - value) * 12), child: child),
       ),
       child: child,
     );
@@ -184,7 +208,11 @@ class _Header extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.kColorDeep, AppColors.kColorPrimaryMid, AppColors.kColorPrimaryLight],
+              colors: [
+                AppColors.kColorDeep,
+                AppColors.kColorPrimaryMid,
+                AppColors.kColorPrimaryLight
+              ],
             ),
             image: AppTheme.headerIllustration,
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
@@ -207,25 +235,29 @@ class _Header extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(l10n.districtsTitle.toUpperCase(),
-                          // Cinzel — the display face — not the platform serif.
-                          style: GoogleFonts.cinzel(
-                            color: AppColors.kColorTextOnHeader,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.5,
-                          ).copyWith(fontFamilyFallback: AppTheme.devanagariFallback)),
+                            // Cinzel — the display face — not the platform serif.
+                            style: GoogleFonts.cinzel(
+                              color: AppColors.kColorTextOnHeader,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                            ).copyWith(
+                                fontFamilyFallback:
+                                    AppTheme.devanagariFallback)),
                         const SizedBox(height: 4),
                         Text(l10n.districtsSubtitle,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xB3FFFFFF),
-                          )),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: const Color(0xB3FFFFFF),
+                                    )),
                       ],
                     ),
                   ),
                   _CircleIconButton(
                     icon: Icons.notifications,
                     label: l10n.navNotifications,
-                    onTap: () => Navigator.pushNamed(context, AppStrings.notificationsPath),
+                    onTap: () => Navigator.pushNamed(
+                        context, AppStrings.notificationsPath),
                   ),
                 ],
               ),
@@ -256,7 +288,10 @@ class _SearchBar extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -266,10 +301,12 @@ class _SearchBar extends StatelessWidget {
           Expanded(
             child: TextField(
               onChanged: onChanged,
-              style: const TextStyle(color: AppColors.kColorTextBody, fontSize: 14),
+              style: const TextStyle(
+                  color: AppColors.kColorTextBody, fontSize: 14),
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context)!.searchDistrictHint,
-                hintStyle: const TextStyle(color: AppColors.kColorTextMuted, fontSize: 14),
+                hintStyle: const TextStyle(
+                    color: AppColors.kColorTextMuted, fontSize: 14),
                 border: InputBorder.none,
                 isCollapsed: true,
               ),
@@ -342,7 +379,9 @@ class _CountLine extends StatelessWidget {
               TextSpan(
                   text: l10n.districtCountLabel(districtCount),
                   style: const TextStyle(color: AppColors.kColorAccentSafe)),
-              const TextSpan(text: ' · ', style: TextStyle(color: AppColors.kColorTextHeading)),
+              const TextSpan(
+                  text: ' · ',
+                  style: TextStyle(color: AppColors.kColorTextHeading)),
               TextSpan(
                   text: l10n.siteCountLabel(siteTotal),
                   style: const TextStyle(color: AppColors.kColorAccentSafe)),
@@ -350,7 +389,8 @@ class _CountLine extends StatelessWidget {
           ),
         ),
         Text(l10n.updatedRecently,
-            style: const TextStyle(fontSize: 12, color: AppColors.kColorTextMuted)),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.kColorTextMuted)),
       ],
     );
   }
@@ -374,15 +414,17 @@ class _FilterChips extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-        children: items.entries.map((e) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: CategoryChip(
-            label: e.value,
-            isSelected: e.key == current,
-            onTap: () => onChanged(e.key),
-            isDesignStyle: true,
-          ),
-        )).toList(),
+        children: items.entries
+            .map((e) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: CategoryChip(
+                    label: e.value,
+                    isSelected: e.key == current,
+                    onTap: () => onChanged(e.key),
+                    isDesignStyle: true,
+                  ),
+                ))
+            .toList(),
       ),
     );
   }

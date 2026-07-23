@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:sampada/presentation/widgets/common/interactive_surface.dart';
 import 'package:sampada/presentation/widgets/common/app_network_image.dart';
@@ -5,11 +7,13 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/providers/profile_provider.dart';
 import 'package:sampada/providers/heritage_provider.dart';
 import 'package:sampada/data/models/heritage_site_model.dart';
 import 'package:sampada/data/models/site_image_model.dart';
+import 'package:sampada/presentation/widgets/shared/loading_states.dart';
 
 class HeritageSiteScreen extends StatefulWidget {
   const HeritageSiteScreen({super.key});
@@ -115,13 +119,28 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // A list/navigation entry already carries the cover image. Keep it visible
+    // as a softly blurred backdrop while its richer detail payload is fetched,
+    // rather than flashing the generic black fallback.
+    if (_loadingDetail) {
+      return _HeritageDetailLoadingBackdrop(imageUrl: _site?.imageUrl);
+    }
     if (_site == null) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: Center(
           child: _loadingDetail
-              ? const CircularProgressIndicator(
-                  color: Color(0xFFD4A017), strokeWidth: 2)
+              ? Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: Theme.of(context)
+                        .colorScheme
+                        .copyWith(onSurface: Colors.white),
+                  ),
+                  child: const FullScreenLoader(
+                    label: 'Loading heritage details…',
+                    icon: Icons.account_balance_outlined,
+                  ),
+                )
               : Text(AppLocalizations.of(context)!.siteNotFound,
                   style: const TextStyle(color: Colors.white)),
         ),
@@ -137,7 +156,7 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
     final isDark = cs.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color.fromARGB(255, 210, 141, 141),
       // The hero and the card are positioned as fractions of the *full* screen
       // height, but the body shrinks when a keyboard opens (e.g. a dialog
       // pushed over this route), which squeezed the card to a fraction of its
@@ -616,6 +635,58 @@ class _HeritageSiteScreenState extends State<HeritageSiteScreen> {
       default:
         return Icons.account_balance;
     }
+  }
+}
+
+class _HeritageDetailLoadingBackdrop extends StatelessWidget {
+  const _HeritageDetailLoadingBackdrop({this.imageUrl});
+
+  final String? imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCover = imageUrl?.trim().isNotEmpty == true;
+    return Scaffold(
+      backgroundColor: AppColors.kColorDeep,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (hasCover)
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: AppNetworkImage(
+                url: imageUrl,
+                fit: BoxFit.cover,
+                errorWidget: const DecoratedBox(
+                  decoration: BoxDecoration(gradient: AppTheme.heroGradient),
+                ),
+              ),
+            )
+          else
+            const DecoratedBox(
+              decoration: BoxDecoration(gradient: AppTheme.heroGradient),
+            ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColors.kColorDeep.withValues(alpha: 0.62),
+            ),
+          ),
+          SafeArea(
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: Theme.of(context)
+                    .colorScheme
+                    .copyWith(onSurface: AppColors.kColorTextHeading),
+              ),
+              child: const FullScreenLoader(
+                label: 'Loading heritage details…',
+                icon: Icons.account_balance_outlined,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

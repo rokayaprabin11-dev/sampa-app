@@ -81,7 +81,8 @@ class HeritageProvider with ChangeNotifier {
     }
     _isSearching = true;
     notifyListeners();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () => _runSearch(clamped));
+    _debounceTimer =
+        Timer(const Duration(milliseconds: 350), () => _runSearch(clamped));
   }
 
   Future<void> _runSearch(String query) async {
@@ -91,7 +92,9 @@ class HeritageProvider with ChangeNotifier {
     notifyListeners();
     try {
       final results = await repository.searchHeritageSites(query);
-      if (seq != _searchSeq) return; // a newer query superseded this one — drop it
+      if (seq != _searchSeq) {
+        return; // a newer query superseded this one — drop it
+      }
       _searchResults = results;
       _searchError = null;
     } catch (e) {
@@ -190,7 +193,8 @@ class HeritageProvider with ChangeNotifier {
       'durbar square': 'durbar',
       // Nepali equivalents map to same slugs if needed
     };
-    return map[s] ?? s.replaceAll(RegExp(r's$'), ''); // strip trailing 's' as fallback
+    return map[s] ??
+        s.replaceAll(RegExp(r's$'), ''); // strip trailing 's' as fallback
   }
 
   // Backwards compatibility getter (unfiltered)
@@ -212,18 +216,24 @@ class HeritageProvider with ChangeNotifier {
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
       await fetchSites(
         query: _currentQuery.isEmpty ? null : _currentQuery,
-        category: _currentCategory == 'All' ? null : _mapCategory(_currentCategory),
+        category:
+            _currentCategory == 'All' ? null : _mapCategory(_currentCategory),
       );
     });
   }
 
   String _mapCategory(String category) {
     switch (category) {
-      case 'Temples': return 'temple';
-      case 'Durbar Sq.': return 'durbar';
-      case 'Stupas': return 'stupa';
-      case 'Monasteries': return 'monastery';  // NOTE: no 'monastery' slug in backend
-      default: return category.toLowerCase();
+      case 'Temples':
+        return 'temple';
+      case 'Durbar Sq.':
+        return 'durbar';
+      case 'Stupas':
+        return 'stupa';
+      case 'Monasteries':
+        return 'monastery'; // NOTE: no 'monastery' slug in backend
+      default:
+        return category.toLowerCase();
     }
   }
 
@@ -236,9 +246,29 @@ class HeritageProvider with ChangeNotifier {
     String sortBy = 'name',
     bool forceRemote = false,
   }) async {
-    _isLoading = true;
+    // A refresh must never blank an already useful list.  The UI uses this
+    // flag only to render a first-load skeleton, while existing data remains
+    // available throughout the background update.
+    _isLoading = _sites.isEmpty;
     _error = null;
     notifyListeners();
+
+    // Offline-first first paint: when memory is empty, hydrate it from SQLite
+    // before attempting the network.  A cache hit immediately replaces the
+    // skeleton; the remote request below then refreshes it in the background.
+    if (_sites.isEmpty) {
+      try {
+        final cached = await repository.getCachedHeritageSites();
+        if (cached.sites.isNotEmpty) {
+          _sites = cached.sites;
+          _isShowingCachedData = true;
+          _isLoading = false;
+          notifyListeners();
+        }
+      } catch (e) {
+        debugPrint('fetchSites cache hydration failed: $e');
+      }
+    }
 
     // Auto-sync gates *automatic* refreshes only. A user-initiated action — a
     // search, a category filter, or an explicit pull-to-refresh (forceRemote) —
@@ -346,10 +376,3 @@ class HeritageProvider with ChangeNotifier {
     await fetchSites(query: query);
   }
 }
-
-
-
-
-
-
-

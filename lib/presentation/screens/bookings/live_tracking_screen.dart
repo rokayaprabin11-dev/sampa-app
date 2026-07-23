@@ -12,6 +12,7 @@ import 'package:sampada/core/services/route_service.dart';
 import 'package:sampada/core/services/tracking_service.dart';
 import 'package:sampada/injection.dart' as di;
 import 'package:sampada/presentation/widgets/common/sampada_app_bar.dart';
+import 'package:sampada/presentation/widgets/shared/loading_states.dart';
 
 /// Mutual live tracking for a confirmed booking: each party sees the other's
 /// position, the route between them, the distance and the ETA, updating in near
@@ -177,7 +178,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         now.difference(_lastRouteFetch!) < _routeMinInterval) {
       return;
     }
-    _fetchingRoute = true;
+    if (mounted) setState(() => _fetchingRoute = true);
     _lastRouteFetch = now;
     try {
       final r = await _routeSvc.fetchRoute(start: me, dest: peer);
@@ -185,7 +186,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
     } catch (_) {
       // Routing is best-effort; the straight-line distance still shows.
     } finally {
-      _fetchingRoute = false;
+      if (mounted) setState(() => _fetchingRoute = false);
     }
   }
 
@@ -265,7 +266,10 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         title: Text('Live location · ${widget.otherPartyName}'),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const FullScreenLoader(
+              label: 'Connecting to live location…',
+              icon: Icons.location_searching,
+            )
           : _error != null
               ? _errorView(_error!)
               : _mapView(),
@@ -340,6 +344,22 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
           ],
         ),
         _infoBanner(),
+        if (_fetchingRoute)
+          Positioned(
+            top: 92,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Chip(
+                avatar: const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                label: const Text('Calculating route…'),
+              ),
+            ),
+          ),
         if (_ended) _endedOverlay(),
       ],
     );
@@ -352,8 +372,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
       right: AppDimensions.sp12,
       child: Card(
         elevation: 3,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: Padding(
           padding: const EdgeInsets.symmetric(
               horizontal: AppDimensions.sp16, vertical: AppDimensions.sp12),
@@ -407,8 +426,8 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
           Icon(icon, size: 16, color: AppColors.statusInfo),
           const SizedBox(height: 2),
           Text(value,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w700, fontSize: 13)),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
           Text(label, style: const TextStyle(fontSize: 10)),
         ],
       );
@@ -450,8 +469,8 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                   const Icon(Icons.flag_outlined, size: 40),
                   const SizedBox(height: AppDimensions.sp12),
                   const Text('Tour ended',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 16)),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                   const SizedBox(height: AppDimensions.sp8),
                   const Text('Location sharing has stopped.',
                       textAlign: TextAlign.center),

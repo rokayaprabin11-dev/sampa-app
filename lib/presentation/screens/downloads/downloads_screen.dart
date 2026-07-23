@@ -6,6 +6,7 @@ import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/profile_provider.dart';
 import 'package:sampada/presentation/widgets/downloads_widgets.dart';
+import 'package:sampada/presentation/widgets/shared/loading_states.dart';
 
 class DownloadsScreen extends StatefulWidget {
   const DownloadsScreen({super.key});
@@ -55,14 +56,16 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                          icon: const Icon(Icons.arrow_back,
+                              color: Colors.white, size: 20),
                           onPressed: () => Navigator.pop(context),
                           hoverColor: Colors.white.withValues(alpha: 0.1),
                           splashColor: Colors.white.withValues(alpha: 0.2),
@@ -106,21 +109,27 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     totalGB: 2,
                   ),
                   const SizedBox(height: 24),
-                  
                   Text(
                     'Downloaded Content',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.light ? AppColors.kColorTextSecondary : AppColors.goldMain,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? AppColors.kColorTextSecondary
+                          : AppColors.goldMain,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
                   profileProvider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const SizedBox(
+                          height: 340,
+                          child: LoadingSkeletonList(
+                              itemCount: 3, padding: EdgeInsets.zero),
+                        )
                       : downloads.isEmpty
-                          ? Center(child: Text(AppLocalizations.of(context)!.emptyDownloads))
+                          ? Center(
+                              child: Text(
+                                  AppLocalizations.of(context)!.emptyDownloads))
                           : ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
@@ -128,15 +137,17 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                               itemBuilder: (context, index) {
                                 final download = downloads[index];
                                 return DownloadItemCard(
-                                  title: download['site_name'] ?? 'Unknown Site',
+                                  title:
+                                      download['site_name'] ?? 'Unknown Site',
                                   sitesCount: 1, // Individual site download
-                                  size: '${(download['download_size'] ?? 0).toStringAsFixed(1)} MB',
-                                  icon: _getIconForCategory(download['site_category'] ?? ''),
+                                  size:
+                                      '${(download['download_size'] ?? 0).toStringAsFixed(1)} MB',
+                                  icon: _getIconForCategory(
+                                      download['site_category'] ?? ''),
                                   isReady: download['status'] == 'completed',
                                 );
                               },
                             ),
-                  
                   const SizedBox(height: 24),
                   const TipCard(
                     text: 'Downloaded content works without internet.',
@@ -165,10 +176,3 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     }
   }
 }
-
-
-
-
-
-
-

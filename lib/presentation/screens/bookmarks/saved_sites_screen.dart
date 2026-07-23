@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:sampada/core/constants/app_colors.dart';
 import 'package:sampada/core/constants/app_dimensions.dart';
 import 'package:sampada/core/constants/app_strings.dart';
+import 'package:sampada/core/theme/app_theme.dart';
 import 'package:sampada/generated/app_localizations.dart';
 import 'package:sampada/presentation/navigation/app_bottom_nav.dart';
 import 'package:sampada/providers/profile_provider.dart';
+import 'package:sampada/presentation/widgets/shared/loading_states.dart';
 
 class SavedSitesScreen extends StatefulWidget {
   const SavedSitesScreen({super.key});
@@ -49,16 +51,8 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.kColorDeep,
-                  AppColors.kColorPrimaryMid,
-                  AppColors.kColorPrimary,
-                ],
-                stops: [0.0, 0.6, 1.0],
-              ),
+              gradient: AppTheme.heroGradient,
+              image: AppTheme.headerIllustration,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(AppDimensions.kRadiusXxl),
                 bottomRight: Radius.circular(AppDimensions.kRadiusXxl),
@@ -76,8 +70,14 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
                     Row(
                       children: [
                         IconButton(
+                          style: IconButton.styleFrom(
+                            foregroundColor: AppColors.kColorTextOnHeader,
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.14),
+                            shape: const CircleBorder(),
+                          ),
                           icon: const Icon(Icons.arrow_back,
-                              color: Colors.white, size: 20),
+                              size: AppDimensions.iconMd),
                           onPressed: () => Navigator.pop(context),
                           hoverColor: Colors.white.withValues(alpha: 0.1),
                           splashColor: Colors.white.withValues(alpha: 0.2),
@@ -88,18 +88,22 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
                           children: [
                             Text(
                               l10n.bookmarks,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    color: AppColors.kColorTextOnHeader,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
                             Text(
                               '${profileProvider.bookmarksCount} bookmarked heritage sites',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.82),
+                                  ),
                             ),
                           ],
                         ),
@@ -133,7 +137,7 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
           // --- Results List ---
           Expanded(
             child: profileProvider.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LoadingSkeletonList(itemCount: 4)
                 : filteredBookmarks.isEmpty
                     ? Center(child: Text(l10n.emptyBookmarks))
                     : ListView.builder(
@@ -179,6 +183,10 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
 
   Widget _buildCategoryChip(BuildContext context, String label,
       {bool isSelected = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = isSelected
+        ? AppColors.kColorTextOnPrimary
+        : (isDark ? AppColors.kDarkTextPrimary : AppColors.kColorTextSecondary);
     return InteractiveSurface(
       onTap: () => setState(() => _selectedCategory = label),
       child: Container(
@@ -186,25 +194,24 @@ class _SavedSitesScreenState extends State<SavedSitesScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.kColorAccentLight
-              : (Theme.of(context).brightness == Brightness.light
-                  ? AppColors.kColorDeepShade
-                  : AppColors.darkBgSurface),
+              ? (isDark ? AppColors.kColorAccentLight : AppColors.kColorPrimary)
+              : (isDark ? AppColors.kDarkBgSurface : AppColors.kColorSurface),
           borderRadius: BorderRadius.circular(AppDimensions.kRadiusPill),
           border: Border.all(
               color: isSelected
-                  ? AppColors.kColorAccentLight
-                  : (Theme.of(context).brightness == Brightness.light
-                      ? AppColors.kColorDeepShade
-                      : AppColors.darkBorder)),
+                  ? (isDark
+                      ? AppColors.kColorAccentLight
+                      : AppColors.kColorPrimary)
+                  : (isDark
+                      ? AppColors.kDarkBorder
+                      : AppColors.kColorBorderMid)),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: isSelected ? Colors.black : Colors.white70,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 14,
-          ),
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: foreground,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              ),
         ),
       ),
     );
@@ -231,6 +238,8 @@ class _SavedSiteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final t = Theme.of(context).textTheme;
     return InteractiveSurface(
       onTap: onTap,
       child: Container(
@@ -277,28 +286,34 @@ class _SavedSiteCard extends StatelessWidget {
                             name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            style: t.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
-                        const Icon(Icons.bookmark,
-                            color: AppColors.kColorAccentLight, size: 24),
+                        Icon(Icons.bookmark,
+                            color: isDark
+                                ? AppColors.kColorAccentLight
+                                : AppColors.kColorPrimary,
+                            size: AppDimensions.iconLg),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on,
-                            size: 14, color: AppColors.kColorTextMuted),
+                        Icon(Icons.location_on_outlined,
+                            size: AppDimensions.iconSm,
+                            color: isDark
+                                ? AppColors.kDarkTextMuted
+                                : AppColors.kColorTextMuted),
                         const SizedBox(width: 4),
-                        Text(
-                          location,
-                          style: const TextStyle(
-                              color: AppColors.kColorTextMuted, fontSize: 13),
-                        ),
+                        Text(location,
+                            style: t.bodySmall?.copyWith(
+                              color: isDark
+                                  ? AppColors.kDarkTextMuted
+                                  : AppColors.kColorTextMuted,
+                            )),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -306,16 +321,20 @@ class _SavedSiteCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.kColorAccentLight,
+                        color: isDark
+                            ? AppColors.kColorAccentLight
+                                .withValues(alpha: 0.20)
+                            : AppColors.kColorTagBg,
                         borderRadius:
                             BorderRadius.circular(AppDimensions.kRadiusSm),
                       ),
                       child: Text(
                         type,
-                        style: const TextStyle(
-                          color: AppColors.kColorTextHeading,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                        style: t.labelSmall?.copyWith(
+                          color: isDark
+                              ? AppColors.kColorAccentLight
+                              : AppColors.kColorAccentSafe,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -330,7 +349,10 @@ class _SavedSiteCard extends StatelessWidget {
   }
 
   Widget _iconFallback(IconData icon) => Container(
-        color: AppColors.kColorDeep,
-        child: Center(child: Icon(icon, color: Colors.white38, size: 40)),
+        decoration: const BoxDecoration(gradient: AppTheme.cardImageGradient),
+        child: Center(
+            child: Icon(icon,
+                color: AppColors.kColorTextOnPrimary.withValues(alpha: 0.8),
+                size: 40)),
       );
 }
